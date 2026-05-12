@@ -5,6 +5,7 @@ import {
   ChevronLeft, ChevronRight, Star, Package, Filter, Heart,
   Link as LinkIcon, CheckCircle2, ExternalLink, ArrowUpDown, Camera, Image as ImageIcon
 } from 'lucide-react'
+import { supabase } from './lib/supabase'
 
 const API_KEY = 'ccaff9b1-804a-4041-8118-70ce26977867'
 const PROXY_BASE = '/api/otapi-proxy'
@@ -41,6 +42,79 @@ const formatPrice = (priceObj, currency) => {
   const iqdBase = Math.round(usd * USD_TO_IQD)
   const iqd = applyCommission(iqdBase)
   return { cny, usd, iqd }
+}
+
+// ─── Cache helpers ───
+const CACHE_HOURS = 24
+
+// تنظيف تلقائي - حذف كل ما يتجاوز 24 ساعة
+const cleanupOldData = async () => {
+  try {
+    const cutoff = new Date(Date.now() - CACHE_HOURS * 3600000).toISOString()
+    await supabase.from('search_cache').delete().lt('created_at', cutoff)
+    await supabase.from('popular_products').delete().lt('last_searched_at', cutoff)
+  } catch (e) { console.error('Cleanup error:', e) }
+}
+
+const getCache = async (providerKey, q, sort, pg) => {
+  try {
+    const { data } = await supabase
+      .from('search_cache')
+      .select('results, total_count, created_at')
+      .eq('provider', providerKey)
+      .eq('query', q.toLowerCase().trim())
+      .eq('sort', sort)
+      .eq('page', pg)
+      .single()
+    if (!data) return null
+    const age = (Date.now() - new Date(data.created_at).getTime()) / 3600000
+    if (age > CACHE_HOURS) return null
+    return { results: data.results, totalCount: data.total_count }
+  } catch { return null }
+}
+
+const setCache = async (providerKey, q, sort, pg, results, totalCount) => {
+  try {
+    await supabase.from('search_cache').upsert({
+      provider: providerKey,
+      query: q.toLowerCase().trim(),
+      sort,
+      page: pg,
+      results,
+      total_count: totalCount,
+      created_at: new Date().toISOString(),
+    }, { onConflict: 'provider,query,sort,page' })
+  } catch (e) { console.error('Cache save error:', e) }
+}
+
+const savePopularProduct = async (item, providerKey, priceIqd) => {
+  try {
+    const { data: existing } = await supabase
+      .from('popular_products')
+      .select('id, search_count')
+      .eq('product_id', String(item.Id))
+      .eq('provider', providerKey)
+      .single()
+    if (existing) {
+      await supabase.from('popular_products')
+        .update({
+          search_count: existing.search_count + 1,
+          last_searched_at: new Date().toISOString(),
+          price_iqd: priceIqd,
+          title: item.Title,
+          image: item.MainPictureUrl,
+        })
+        .eq('id', existing.id)
+    } else {
+      await supabase.from('popular_products').insert({
+        product_id: String(item.Id),
+        provider: providerKey,
+        title: item.Title,
+        image: item.MainPictureUrl,
+        price_iqd: priceIqd,
+      })
+    }
+  } catch (e) { console.error('Popular save error:', e) }
 }
 
 // استخراج product ID من رابط Taobao/1688
@@ -123,6 +197,7 @@ export default function ChinaShop() {
   const [showCart, setShowCart] = useState(false)
   const [addedToast, setAddedToast] = useState(false)
   const [extractedProducts, setExtractedProducts] = useState([])
+  const [popularProducts, setPopularProducts] = useState([])
   const [sheinUrl, setSheinUrl] = useState('/.netlify/functions/shein-proxy-page?url=' + encodeURIComponent('https://ar.shein.com'))
 
   const searchRef = useRef(null)
@@ -131,6 +206,20 @@ export default function ChinaShop() {
   useEffect(() => {
     localStorage.setItem('china_cart', JSON.stringify(cart))
   }, [cart])
+
+  // تنظيف البيانات القديمة + تحميل المنتجات الرائجة (أقل من 24 ساعة فقط)
+  useEffect(() => {
+    if (!prov) return
+    cleanupOldData().then(() => {
+      supabase
+        .from('popular_products')
+        .select('*')
+        .eq('provider', provider)
+        .order('search_count', { ascending: false })
+        .limit(10)
+        .then(({ data }) => { if (data?.length) setPopularProducts(data) })
+    })
+  }, [provider])
 
   const extractSheinProducts = () => {
     // عرض رسالة للمستخدم بكيفية استخراج المنتجات
@@ -194,13 +283,21 @@ export default function ChinaShop() {
       return
     }
 
-    // Amazon: استخدام SerpApi
+    // Amazon: استخدام SerpApi مع Cache
     if (prov.useSerpApi) {
-      setLoading(true)
       setSearched(true)
       setPage(pageNum)
       setSelectedProduct(null)
       setProductDetail(null)
+      const sort = sortOverride ?? sortBy
+      // التحقق من Cache أولاً
+      const cached = await getCache(provider, query.trim(), sort, pageNum)
+      if (cached) {
+        setResults(cached.results)
+        setTotalCount(cached.totalCount)
+        return
+      }
+      setLoading(true)
       try {
         const res = await fetch(`/.netlify/functions/amazon-serpapi?action=search&query=${encodeURIComponent(query.trim())}&page=${pageNum + 1}`)
         const data = await res.json()
@@ -220,6 +317,8 @@ export default function ChinaShop() {
           }))
           setResults(formatted)
           setTotalCount(data.totalResults || formatted.length)
+          // حفظ في Cache
+          setCache(provider, query.trim(), sort, pageNum, formatted, data.totalResults || formatted.length)
         } else {
           setResults([])
           setTotalCount(0)
@@ -258,14 +357,21 @@ export default function ChinaShop() {
       }, 100)
     }
     
-    setLoading(true)
     setSearched(true)
     setPage(pageNum)
     setSelectedProduct(null)
     setProductDetail(null)
     setUrlError('')
+    const sort = sortOverride ?? sortBy
+    // التحقق من Cache أولاً
+    const cached = await getCache(provider, trimmedQuery, sort, pageNum)
+    if (cached) {
+      setResults(cached.results)
+      setTotalCount(cached.totalCount)
+      return
+    }
+    setLoading(true)
     try {
-      const sort = sortOverride ?? sortBy
       const orderTag = sort !== 'default' ? `<OrderBy>${sort === 'price' ? 'Price' : sort === '-price' ? 'Price:Desc' : 'Volume:Desc'}</OrderBy>` : ''
       const params = new URLSearchParams({
         _method: 'SearchItemsFrame',
@@ -283,6 +389,8 @@ export default function ChinaShop() {
       if (data.ErrorCode === 'Ok' && data.Result?.Items?.Content) {
         setResults(data.Result.Items.Content)
         setTotalCount(data.Result.Items.TotalCount || 0)
+        // حفظ في Cache
+        setCache(provider, trimmedQuery, sort, pageNum, data.Result.Items.Content, data.Result.Items.TotalCount || 0)
       } else {
         setResults([])
         setTotalCount(0)
@@ -625,6 +733,9 @@ export default function ChinaShop() {
           setSelectedConfigs({})
         }
       }
+      // حفظ المنتج كرائج
+      const p = formatPrice(item.Price, prov.currency)
+      savePopularProduct(item, provider, p.iqd)
     } catch (err) {
       console.error('Detail error:', err)
     }
@@ -1256,13 +1367,50 @@ export default function ChinaShop() {
           </div>
         )}
 
-        {/* Categories */}
+        {/* Categories + Popular Products */}
         {!searched && !loading && (
           <div className="mt-5 px-4 mb-6">
+            {/* المنتجات الرائجة من Supabase */}
+            {popularProducts.length > 0 && (
+              <>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-[15px] font-bold text-gray-800 flex items-center gap-2">
+                    <span className="w-1 h-5 bg-orange-500 rounded-full"></span>
+                    🔥 الأكثر رواجاً
+                  </h3>
+                  <span className="text-[11px] text-gray-400">{popularProducts.length} منتج</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  {popularProducts.map(pp => (
+                    <div key={pp.id}
+                      onClick={() => loadProductById(pp.product_id, pp.provider)}
+                      className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all cursor-pointer active:scale-[0.97]">
+                      <div className="relative aspect-square bg-gray-50 overflow-hidden">
+                        <img src={pp.image} alt={pp.title} className="w-full h-full object-contain p-3" loading="lazy"
+                          onError={e => { e.target.style.display = 'none' }} />
+                        {pp.search_count > 3 && (
+                          <span className="absolute top-2 right-2 text-[9px] bg-red-500/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-lg font-bold">🔥 رائج</span>
+                        )}
+                      </div>
+                      <div className="p-3">
+                        <p className="text-[12px] text-gray-700 font-medium line-clamp-2 min-h-[34px] leading-snug">{pp.title}</p>
+                        <div className="mt-2">
+                          <p className="text-[15px] font-black text-gray-900">
+                            {formatNum(pp.price_iqd)}
+                            <span className="text-[10px] text-gray-400 font-normal mr-0.5">د.ع</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+            {/* الكاتيغوريز الثابتة */}
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[15px] font-bold text-gray-800 flex items-center gap-2">
-                <span className="w-1 h-5 bg-orange-500 rounded-full"></span>
-                الأكثر رواجاً
+                <span className="w-1 h-5 bg-blue-500 rounded-full"></span>
+                تصفح حسب الفئة
               </h3>
               <span className="text-[11px] text-gray-400">اضغط للتصفح</span>
             </div>
