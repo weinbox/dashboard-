@@ -5,7 +5,7 @@ import {
   ChevronLeft, ChevronRight, Star, Package, Filter, Heart,
   Link as LinkIcon, CheckCircle2, ExternalLink, ArrowUpDown, Camera, Image as ImageIcon,
   Flame, Lightbulb, Home, Headphones, Footprints, Briefcase, Sparkles, Smartphone,
-  Watch, Shirt, ToyBrick, ShoppingBag, Truck
+  Watch, Shirt, ToyBrick, ShoppingBag, Truck, Pill
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
@@ -203,6 +203,7 @@ export default function ChinaShop() {
   const [sheinUrl, setSheinUrl] = useState('/.netlify/functions/shein-proxy-page?url=' + encodeURIComponent('https://ar.shein.com'))
 
   const searchRef = useRef(null)
+  const debounceRef = useRef(null)
   const PAGE_SIZE = 20
 
   useEffect(() => {
@@ -1190,52 +1191,76 @@ export default function ChinaShop() {
   
   // ─── Search & Results View ───
   const categories = provider === 'amazon'
-    ? [{ icon: <Headphones className="w-5 h-5 text-blue-500" />, label: 'إلكترونيات', q: 'electronics' }, { icon: <Footprints className="w-5 h-5 text-green-500" />, label: 'أحذية', q: 'shoes' }, { icon: <Briefcase className="w-5 h-5 text-amber-600" />, label: 'حقائب', q: 'bags' }, { icon: <Sparkles className="w-5 h-5 text-pink-500" />, label: 'جمال', q: 'beauty' }, { icon: <Home className="w-5 h-5 text-teal-500" />, label: 'منزل', q: 'home' }, { icon: <Watch className="w-5 h-5 text-gray-600" />, label: 'ساعات', q: 'watches' }]
+    ? [
+        { icon: <Headphones className="w-5 h-5" />, label: 'إلكترونيات', q: 'electronics', bg: 'bg-blue-50', color: 'text-blue-600' },
+        { icon: <Footprints className="w-5 h-5" />, label: 'أحذية', q: 'shoes', bg: 'bg-green-50', color: 'text-green-600' },
+        { icon: <Briefcase className="w-5 h-5" />, label: 'حقائب', q: 'bags', bg: 'bg-amber-50', color: 'text-amber-600' },
+        { icon: <Sparkles className="w-5 h-5" />, label: 'جمال', q: 'beauty', bg: 'bg-pink-50', color: 'text-pink-600' },
+        { icon: <Pill className="w-5 h-5" />, label: 'مكملات', q: 'supplements vitamins', bg: 'bg-emerald-50', color: 'text-emerald-600' },
+        { icon: <Home className="w-5 h-5" />, label: 'منزل', q: 'home', bg: 'bg-teal-50', color: 'text-teal-600' },
+        { icon: <Watch className="w-5 h-5" />, label: 'ساعات', q: 'watches', bg: 'bg-gray-100', color: 'text-gray-600' },
+      ]
     : provider === '1688'
-    ? [{ icon: <Shirt className="w-5 h-5 text-purple-500" />, label: 'أزياء', q: 'ملابس' }, { icon: <Footprints className="w-5 h-5 text-green-500" />, label: 'أحذية', q: 'أحذية' }, { icon: <Briefcase className="w-5 h-5 text-amber-600" />, label: 'حقائب', q: 'حقائب' }, { icon: <Sparkles className="w-5 h-5 text-pink-500" />, label: 'جمال', q: 'مكياج' }, { icon: <Smartphone className="w-5 h-5 text-blue-500" />, label: 'إلكترونيات', q: 'إلكترونيات' }, { icon: <ToyBrick className="w-5 h-5 text-red-400" />, label: 'ألعاب', q: 'العاب اطفال' }]
-    : [{ icon: <Shirt className="w-5 h-5 text-purple-500" />, label: 'أزياء', q: 'فساتين' }, { icon: <Footprints className="w-5 h-5 text-green-500" />, label: 'أحذية', q: 'أحذية' }, { icon: <Briefcase className="w-5 h-5 text-amber-600" />, label: 'حقائب', q: 'حقائب' }, { icon: <Sparkles className="w-5 h-5 text-pink-500" />, label: 'جمال', q: 'عطور' }, { icon: <Smartphone className="w-5 h-5 text-blue-500" />, label: 'إلكترونيات', q: 'سماعات' }, { icon: <ToyBrick className="w-5 h-5 text-red-400" />, label: 'ألعاب', q: 'العاب اطفال' }]
+    ? [
+        { icon: <Shirt className="w-5 h-5" />, label: 'أزياء', q: 'ملابس', bg: 'bg-purple-50', color: 'text-purple-600' },
+        { icon: <Footprints className="w-5 h-5" />, label: 'أحذية', q: 'أحذية', bg: 'bg-green-50', color: 'text-green-600' },
+        { icon: <Briefcase className="w-5 h-5" />, label: 'حقائب', q: 'حقائب', bg: 'bg-amber-50', color: 'text-amber-600' },
+        { icon: <Sparkles className="w-5 h-5" />, label: 'جمال', q: 'مكياج', bg: 'bg-pink-50', color: 'text-pink-600' },
+        { icon: <Smartphone className="w-5 h-5" />, label: 'إلكترونيات', q: 'إلكترونيات', bg: 'bg-blue-50', color: 'text-blue-600' },
+        { icon: <ToyBrick className="w-5 h-5" />, label: 'ألعاب', q: 'العاب اطفال', bg: 'bg-red-50', color: 'text-red-500' },
+      ]
+    : [
+        { icon: <Shirt className="w-5 h-5" />, label: 'أزياء', q: 'فساتين', bg: 'bg-purple-50', color: 'text-purple-600' },
+        { icon: <Footprints className="w-5 h-5" />, label: 'أحذية', q: 'أحذية', bg: 'bg-green-50', color: 'text-green-600' },
+        { icon: <Briefcase className="w-5 h-5" />, label: 'حقائب', q: 'حقائب', bg: 'bg-amber-50', color: 'text-amber-600' },
+        { icon: <Sparkles className="w-5 h-5" />, label: 'جمال', q: 'عطور', bg: 'bg-pink-50', color: 'text-pink-600' },
+        { icon: <Smartphone className="w-5 h-5" />, label: 'إلكترونيات', q: 'سماعات', bg: 'bg-blue-50', color: 'text-blue-600' },
+        { icon: <ToyBrick className="w-5 h-5" />, label: 'ألعاب', q: 'العاب اطفال', bg: 'bg-red-50', color: 'text-red-500' },
+      ]
 
   const provColor = provider === 'amazon' ? 'from-gray-800 to-gray-900' : provider === 'shein' ? 'from-pink-500 to-pink-600' : 'from-orange-500 to-orange-600'
   const provAccent = provider === 'amazon' ? 'bg-amber-500' : provider === 'shein' ? 'bg-pink-500' : 'bg-orange-500'
 
+  // دالة البحث بعد التوقف عن الكتابة
+  const handleQueryChange = (val) => {
+    setQuery(val)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (val.trim().length >= 2) {
+      debounceRef.current = setTimeout(() => doSearch(0), 800)
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-white" dir="rtl">
+    <div className="min-h-screen bg-gray-50" dir="rtl">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-gray-100/60">
-        <div className="max-w-3xl mx-auto px-4 py-3">
+      <header className="sticky top-0 z-40 bg-white border-b border-gray-100">
+        <div className="max-w-3xl mx-auto px-4 py-2.5">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/')} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all active:scale-95 flex-shrink-0">
+            <button onClick={() => navigate('/')} className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 transition-all active:scale-95 flex-shrink-0">
               <ArrowRight className="w-5 h-5 text-gray-600" />
             </button>
-            {/* Search bar inline - يظهر فقط بعد البحث أو لغير أمازون */}
-            {(searched || provider !== 'amazon') && (
-              <div className="flex-1 relative" onClick={() => { if (searchMode === 'image') { setSearchMode('text'); setImageResults([]) } }}>
-                <Search className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  ref={searchRef}
-                  type="text"
-                  dir="auto"
-                  placeholder={`ابحث في ${prov.label}...`}
-                  value={query}
-                  onChange={e => setQuery(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && doSearch(0)}
-                  className="w-full h-10 pr-10 pl-10 bg-gray-100 rounded-full text-[13px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-300 border border-transparent placeholder:text-gray-400"
-                />
-                {query ? (
-                  <button onClick={(e) => { e.stopPropagation(); setQuery(''); searchRef.current?.focus() }} className="absolute left-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-200 rounded-full transition">
-                    <X className="w-4 h-4 text-gray-400" />
-                  </button>
-                ) : (
-                  <button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }} className="absolute left-3 top-1/2 -translate-y-1/2 p-0.5">
-                    <Camera className="w-4 h-4 text-gray-400" />
-                  </button>
-                )}
-              </div>
-            )}
-            <button onClick={() => setShowCart(true)} className="relative w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all active:scale-95 flex-shrink-0">
-              <ShoppingCart className="w-[18px] h-[18px] text-gray-600" />
+            {/* Provider Logo */}
+            <div className="flex-1 flex items-center justify-center">
+              {provider === 'amazon' ? (
+                <div className="flex items-center gap-1.5">
+                  <svg viewBox="0 0 603 182" className="h-5 w-auto" fill="none">
+                    <path d="M374.00 142.06C339.63 167.42 289.62 181 247.04 181C186.67 181 132.55 158.62 91.04 121.87C87.84 118.97 90.70 115.05 94.54 117.35C139.27 143.27 194.72 158.91 252.15 158.91C290.78 158.91 333.05 150.89 371.87 134.13C377.63 131.72 382.50 137.92 374.00 142.06Z" fill="#FF9900"/>
+                    <path d="M389.76 124.17C385.47 118.69 360.72 121.63 349.63 122.97C346.29 123.37 345.79 120.43 348.83 118.30C368.60 104.30 401.34 108.37 405.03 112.91C408.72 117.49 404.03 150.30 385.47 165.97C382.63 168.37 379.93 167.09 381.23 163.92C385.27 154.17 394.09 129.69 389.76 124.17Z" fill="#FF9900"/>
+                    <path d="M350.43 19.57V6.11C350.43 4.11 351.93 2.78 353.73 2.78H415.43C417.30 2.78 418.80 4.14 418.80 6.11V17.71C418.76 19.61 417.17 22.11 414.33 26.04L382.17 72.51C393.80 72.24 406.10 73.97 416.53 79.91C418.80 81.21 419.43 83.11 419.60 85.01V99.37C419.60 101.31 417.47 103.57 415.23 102.37C394.10 91.21 365.93 89.97 342.63 102.51C340.60 103.61 338.43 101.41 338.43 99.47V85.78C338.43 83.61 338.47 79.78 340.63 76.51L378.03 22.24H353.80C351.93 22.24 350.43 20.91 350.43 19.57Z" fill="#232F3E"/>
+                    <path d="M124.80 105.37H105.47C103.77 105.24 102.43 103.97 102.30 102.34V6.24C102.30 4.37 103.87 2.88 105.77 2.78H123.77C125.50 2.84 126.87 4.17 127.00 5.84V18.71H127.33C131.63 6.51 139.80 0.78 150.97 0.78C162.30 0.78 169.47 6.51 174.43 18.71C178.70 6.51 188.63 0.78 199.33 0.78C206.83 0.78 215.10 3.84 219.93 10.71C225.43 18.51 224.26 29.97 224.26 39.64L224.23 102.04C224.23 103.91 222.66 105.37 220.76 105.37H201.47C199.70 105.24 198.30 103.81 198.30 102.04V48.78C198.30 45.44 198.60 37.64 198.10 34.44C197.23 28.71 193.93 27.11 189.80 27.11C186.30 27.11 182.63 29.51 181.13 33.24C179.63 36.97 179.80 43.44 179.80 48.78V102.04C179.80 103.91 178.23 105.37 176.33 105.37H157.03C155.23 105.24 153.87 103.81 153.87 102.04V48.78C153.87 38.44 155.53 26.88 145.37 26.88C135.03 26.88 135.40 38.17 135.40 48.78V102.04C135.40 103.91 133.83 105.37 131.93 105.37H124.80Z" fill="#232F3E"/>
+                    <path d="M462.20 0.78C489.73 0.78 504.60 27.11 504.60 60.24C504.60 92.37 487.87 117.78 462.20 117.78C435.53 117.78 420.83 91.44 420.83 59.24C420.83 26.88 435.70 0.78 462.20 0.78ZM462.37 22.91C448.37 22.91 447.53 42.24 447.53 54.44C447.53 66.68 447.37 95.51 462.20 95.51C476.87 95.51 477.53 74.64 477.53 61.78C477.53 53.44 477.20 43.51 474.53 35.71C472.23 28.84 467.93 22.91 462.37 22.91Z" fill="#232F3E"/>
+                    <path d="M543.43 105.37H524.20C522.40 105.24 520.97 103.81 520.97 102.04L520.93 5.91C521.10 4.21 522.60 2.88 524.37 2.78H542.23C543.77 2.84 545.03 3.91 545.40 5.37V20.44H545.73C550.70 7.04 557.53 0.78 569.20 0.78C577.37 0.78 585.33 3.84 590.17 12.04C594.67 19.57 594.67 32.44 594.67 41.44V102.44C594.43 104.04 592.93 105.37 591.20 105.37H571.77C570.13 105.24 568.80 104.01 568.63 102.44V47.44C568.63 37.37 569.80 26.64 559.83 26.64C556.33 26.64 553.10 28.84 551.43 32.44C549.30 37.04 549.03 41.60 549.03 47.44V102.04C549.00 103.91 547.40 105.37 543.43 105.37Z" fill="#232F3E"/>
+                    <path d="M47.40 60.64C47.40 66.24 47.57 70.91 44.73 75.97C42.43 80.11 38.73 82.68 34.60 82.68C28.87 82.68 25.53 78.28 25.53 71.78C25.53 59.04 37.00 56.44 47.40 56.44V60.64ZM71.27 104.91C69.73 106.28 67.47 106.37 65.73 105.44C57.87 98.88 56.43 96.01 52.13 89.78C39.87 102.34 31.10 106.14 14.87 106.14C-4.53 106.14 -19.37 94.37 -19.37 70.91C-19.37 52.88 -9.47 40.88 5.93 35.01C19.33 29.78 38.40 28.88 47.40 27.78V26.11C47.40 22.78 47.67 18.84 45.70 16.01C44.03 13.44 40.83 12.38 38.03 12.38C32.83 12.38 28.20 15.04 27.07 20.64C26.83 21.91 25.90 23.17 24.63 23.24L5.87 21.17C4.73 20.91 3.47 19.97 3.77 18.28C8.13 -4.19 28.70 -11 47.27 -11C56.77 -11 69.37 -8.37 77.03 -1.00C86.77 8.21 85.83 20.44 85.83 33.78V63.44C85.83 72.78 89.63 76.91 93.20 82.11C94.43 83.91 94.70 86.04 93.13 87.34C89.27 90.61 82.37 96.61 78.57 99.97L71.27 104.91Z" fill="#232F3E" transform="translate(19,2)"/>
+                  </svg>
+                </div>
+              ) : (
+                <h1 className="text-[16px] font-black text-gray-900 tracking-tight">{prov.label}</h1>
+              )}
+            </div>
+            <button onClick={() => setShowCart(true)} className="relative w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 transition-all active:scale-95 flex-shrink-0">
+              <ShoppingCart className="w-5 h-5 text-gray-600" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5">{cartCount}</span>
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5">{cartCount}</span>
               )}
             </button>
           </div>
@@ -1245,185 +1270,160 @@ export default function ChinaShop() {
       <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageUpload} />
 
       <div className="max-w-3xl mx-auto">
-        {/* Provider Hero Banner */}
-        {!searched && !loading && (
-          <div className={`mx-4 mt-4 bg-gradient-to-l ${provColor} rounded-2xl p-5 relative overflow-hidden`}>
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-2">
-                {provider !== 'amazon' && provider !== 'shein' && (
-                  <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
-                    {provider === '1688' ? 'WHOLESALE' : 'RETAIL'}
-                  </span>
-                )}
-              </div>
-              <h2 className="text-white text-2xl font-black mb-1">{prov.label}</h2>
-              <p className="text-white/70 text-[13px]">ابحث واطلب ونوصّلك</p>
-            </div>
-            <div className="absolute top-3 left-4 w-24 h-24 bg-white/10 rounded-full"></div>
-            <div className="absolute -bottom-3 left-16 w-16 h-16 bg-white/5 rounded-full"></div>
+        {/* Search Section */}
+        <div className="bg-white px-4 pt-4 pb-2">
+          {/* Search Bar */}
+          <div className="relative" onClick={() => { if (searchMode === 'image') { setSearchMode('text'); setImageResults([]) } }}>
+            <Search className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 z-10" />
+            <input
+              ref={searchRef}
+              type="text"
+              dir="auto"
+              placeholder={provider === 'amazon' ? 'Search Amazon...' : `ابحث في ${prov.label}...`}
+              value={query}
+              onChange={e => handleQueryChange(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && doSearch(0)}
+              className="w-full h-11 pr-10 pl-10 bg-gray-100 rounded-xl text-[13px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-gray-200 border border-gray-200 focus:border-gray-300 placeholder:text-gray-400"
+            />
+            {query ? (
+              <button onClick={(e) => { e.stopPropagation(); setQuery(''); setSearched(false); setResults([]); searchRef.current?.focus() }} className="absolute left-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-200 rounded-full transition">
+                <X className="w-4 h-4 text-gray-400" />
+              </button>
+            ) : (
+              <button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }} className="absolute left-3 top-1/2 -translate-y-1/2 p-0.5">
+                <Camera className="w-4 h-4 text-gray-400" />
+              </button>
+            )}
           </div>
-        )}
+          {/* URL input */}
+          {!searched && !loading && provider !== 'shein' && (searchMode === 'text' || searchMode === 'url') && (
+            <div className="mt-2.5">
+              <div className="relative">
+                <LinkIcon className="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-300" />
+                <input type="url" dir="ltr"
+                  placeholder="...Paste product link"
+                  value={urlInput}
+                  onChange={e => { setUrlInput(e.target.value); setUrlError('') }}
+                  onKeyDown={e => e.key === 'Enter' && handleUrlSearch()}
+                  className="w-full h-10 pr-9 pl-4 bg-gray-50 rounded-xl text-[12px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-gray-200 border border-gray-100 focus:border-gray-300 placeholder:text-gray-300 text-left"
+                />
+              </div>
+              {urlError && <p className="text-[11px] text-red-500 mt-1.5 px-1">{urlError}</p>}
+            </div>
+          )}
+          {/* Categories - Circular scrollable */}
+          {!searched && !loading && provider !== 'shein' && (
+            <div className="mt-4 pb-1">
+              <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                {categories.map(cat => (
+                  <button key={cat.label}
+                    onClick={() => { setQuery(cat.q); doSearch(0) }}
+                    className="flex flex-col items-center gap-1.5 flex-shrink-0 active:scale-95 transition-all">
+                    <div className={`w-14 h-14 ${cat.bg} rounded-full flex items-center justify-center ${cat.color}`}>
+                      {cat.icon}
+                    </div>
+                    <span className="text-[11px] font-semibold text-gray-600 whitespace-nowrap">{cat.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {/* Mode toggle for image search */}
+          {!searched && !loading && provider !== 'shein' && searchMode === 'image' && (
+            <div className="mt-3 space-y-3">
+              <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-4 border border-gray-100">
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border border-gray-200">
+                  <ImageIcon className="w-5 h-5 text-gray-300" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[13px] font-bold text-gray-700">ارفع صورة للبحث</p>
+                  <p className="text-[11px] text-gray-400">نجد لك منتجات مشابهة</p>
+                </div>
+                <button onClick={() => fileInputRef.current?.click()}
+                  className="px-4 py-2 bg-gray-900 text-white text-[12px] font-bold rounded-xl hover:bg-gray-800 transition-all active:scale-95">
+                  اختر صورة
+                </button>
+              </div>
+              <div className="relative">
+                <ImageIcon className="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-300" />
+                <input type="url" dir="ltr" placeholder="...Or paste image URL"
+                  value={imageUrlInput}
+                  onChange={e => setImageUrlInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && doImageSearch(imageUrlInput)}
+                  className="w-full h-10 pr-9 pl-4 bg-gray-50 rounded-xl text-[12px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-gray-200 border border-gray-100 focus:border-gray-300 placeholder:text-gray-300 text-left"
+                />
+              </div>
+              {imageUrlInput && (
+                <button onClick={() => doImageSearch(imageUrlInput)}
+                  className="w-full h-10 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-bold text-[12px] flex items-center justify-center gap-2 transition-all active:scale-[0.97]">
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                  بحث بالصورة
+                </button>
+              )}
+            </div>
+          )}
+          {/* Search mode toggle - minimal */}
+          {!searched && !loading && provider !== 'shein' && (
+            <div className="flex justify-center mt-2 pb-1">
+              <button
+                onClick={() => searchMode === 'image' ? (() => { setSearchMode('text'); setImageResults([]) })() : setSearchMode('image')}
+                className="flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-gray-600 transition-colors py-1">
+                {searchMode === 'image' ? <Search className="w-3 h-3" /> : <Camera className="w-3 h-3" />}
+                {searchMode === 'image' ? 'بحث بالكلمة' : 'بحث بالصورة'}
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Provider Toggle */}
         {(provider === 'taobao' || provider === '1688') && !searched && !loading && (
-          <div className="flex gap-2.5 mx-4 mt-4">
+          <div className="flex gap-2 mx-4 mt-3">
             <button onClick={() => navigate('/china/taobao')}
-              className={`flex-1 h-12 rounded-2xl flex items-center justify-center gap-2.5 font-bold text-[13px] transition-all active:scale-[0.97] ${
-                provider === 'taobao' ? 'bg-orange-500 text-white shadow-lg shadow-orange-200/50' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              className={`flex-1 h-10 rounded-xl flex items-center justify-center gap-2 font-bold text-[12px] transition-all active:scale-[0.97] ${
+                provider === 'taobao' ? 'bg-orange-500 text-white' : 'bg-white text-gray-500 border border-gray-200'
               }`}>
-              <ShoppingBag className="w-4 h-4" />
-              Taobao Retail
+              <ShoppingBag className="w-3.5 h-3.5" />
+              Taobao
             </button>
             <button onClick={() => navigate('/china/1688')}
-              className={`flex-1 h-12 rounded-2xl flex items-center justify-center gap-2.5 font-bold text-[13px] transition-all active:scale-[0.97] ${
-                provider === '1688' ? 'bg-orange-500 text-white shadow-lg shadow-orange-200/50' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              className={`flex-1 h-10 rounded-xl flex items-center justify-center gap-2 font-bold text-[12px] transition-all active:scale-[0.97] ${
+                provider === '1688' ? 'bg-orange-500 text-white' : 'bg-white text-gray-500 border border-gray-200'
               }`}>
-              <Package className="w-4 h-4" />
-              1688 Wholesale
+              <Package className="w-3.5 h-3.5" />
+              1688
             </button>
           </div>
         )}
 
-        {/* Search Tools - hidden in header but expand here */}
-        {!searched && !loading && provider !== 'shein' && (
-          <div className="mx-4 mt-4">
-            {/* Mode tabs */}
-            <div className="flex bg-gray-100 rounded-2xl p-1 mb-4">
-              <button onClick={() => { setSearchMode('text'); setImageResults([]) }}
-                className={`flex-1 h-10 rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 transition-all ${
-                  searchMode === 'text' || searchMode === 'url' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-400'
-                }`}>
-                <Search className="w-3.5 h-3.5" />
-                بحث بالكلمة
-              </button>
-              <button onClick={() => setSearchMode('image')}
-                className={`flex-1 h-10 rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 transition-all ${
-                  searchMode === 'image' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-400'
-                }`}>
-                <Camera className="w-3.5 h-3.5" />
-                بحث بالصورة
-              </button>
-            </div>
-
-            {/* Keyword expanded tools */}
-            {(searchMode === 'text' || searchMode === 'url') && (
-              <div className="space-y-2.5">
-                <div className="relative">
-                  <LinkIcon className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input type="url" dir="ltr"
-                    placeholder="أو ألصق رابط المنتج هنا..."
-                    value={urlInput}
-                    onChange={e => { setUrlInput(e.target.value); setUrlError('') }}
-                    onKeyDown={e => e.key === 'Enter' && handleUrlSearch()}
-                    className="w-full h-11 pr-10 pl-4 bg-gray-50 rounded-xl text-[13px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-blue-200 border border-gray-200 focus:border-blue-300 placeholder:text-gray-400 text-left"
-                  />
-                </div>
-                {urlError && (
-                  <p className="text-[12px] text-red-500 bg-red-50 px-3.5 py-2 rounded-xl">{urlError}</p>
-                )}
-                <button onClick={() => { if (urlInput.trim()) handleUrlSearch(); else doSearch(0) }}
-                  className={`w-full h-11 ${provAccent} hover:opacity-90 text-white rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 transition-all active:scale-[0.97] shadow-lg`}>
-                  {loading || urlLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                  بحث
-                </button>
-              </div>
-            )}
-
-            {/* Image search */}
-            {searchMode === 'image' && (
-              <div className="space-y-3">
-                <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-4 border-2 border-dashed border-gray-200">
-                  <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center border border-gray-200 shadow-sm">
-                    <ImageIcon className="w-6 h-6 text-gray-300" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[13px] font-bold text-gray-700">ارفع صورة للبحث</p>
-                    <p className="text-[11px] text-gray-400">نجد لك منتجات مشابهة</p>
-                  </div>
-                  <button onClick={() => fileInputRef.current?.click()}
-                    className="px-5 py-2.5 bg-gray-900 text-white text-[13px] font-bold rounded-xl hover:bg-gray-800 transition-all active:scale-95 shadow-sm">
-                    اختر صورة
-                  </button>
-                </div>
-                <div className="relative">
-                  <ImageIcon className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input type="url" dir="ltr" placeholder="أو ألصق رابط الصورة..."
-                    value={imageUrlInput}
-                    onChange={e => setImageUrlInput(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && doImageSearch(imageUrlInput)}
-                    className="w-full h-11 pr-10 pl-4 bg-gray-50 rounded-xl text-[13px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-blue-200 border border-gray-200 focus:border-blue-300 placeholder:text-gray-400 text-left"
-                  />
-                </div>
-                {imageUrlInput && (
-                  <button onClick={() => doImageSearch(imageUrlInput)}
-                    className={`w-full h-11 ${provAccent} hover:opacity-90 text-white rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 transition-all active:scale-[0.97]`}>
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                    بحث بالصورة
-                  </button>
-                )}
-                {urlError && (
-                  <p className="text-[12px] text-red-500 bg-red-50 px-3.5 py-2 rounded-xl">{urlError}</p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Categories + Popular Products */}
-        {!searched && !loading && (
-          <div className="mt-5 px-4 mb-6">
-            {/* المنتجات الرائجة من Supabase */}
-            {popularProducts.length > 0 && (
-              <>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-[15px] font-bold text-gray-800 flex items-center gap-2">
-                    <span className="w-1 h-5 bg-orange-500 rounded-full"></span>
-                    <Flame className="w-4 h-4 text-orange-500" /> الأكثر رواجاً
-                  </h3>
-                  <span className="text-[11px] text-gray-400">{popularProducts.length} منتج</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                  {popularProducts.map(pp => (
-                    <div key={pp.id}
-                      onClick={() => loadProductById(pp.product_id, pp.provider)}
-                      className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all cursor-pointer active:scale-[0.97]">
-                      <div className="relative aspect-square bg-gray-50 overflow-hidden">
-                        <img src={pp.image} alt={pp.title} className="w-full h-full object-contain p-3" loading="lazy"
-                          onError={e => { e.target.style.display = 'none' }} />
-                        {pp.search_count > 3 && (
-                          <span className="absolute top-2 right-2 text-[9px] bg-red-500/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-lg font-bold flex items-center gap-0.5"><Flame className="w-3 h-3" /> رائج</span>
-                        )}
-                      </div>
-                      <div className="p-3">
-                        <p className="text-[12px] text-gray-700 font-medium line-clamp-2 min-h-[34px] leading-snug">{pp.title}</p>
-                        <div className="mt-2">
-                          <p className="text-[15px] font-black text-gray-900">
-                            {formatNum(pp.price_iqd)}
-                            <span className="text-[10px] text-gray-400 font-normal mr-0.5">د.ع</span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-            {/* الكاتيغوريز الثابتة */}
+        {/* Popular Products */}
+        {!searched && !loading && popularProducts.length > 0 && (
+          <div className="mt-4 px-4 mb-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[15px] font-bold text-gray-800 flex items-center gap-2">
-                <span className="w-1 h-5 bg-blue-500 rounded-full"></span>
-                تصفح حسب الفئة
+              <h3 className="text-[14px] font-bold text-gray-800 flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-orange-500" /> الأكثر رواجاً
               </h3>
-              <span className="text-[11px] text-gray-400">اضغط للتصفح</span>
+              <span className="text-[11px] text-gray-400">{popularProducts.length} منتج</span>
             </div>
-            <div className="grid grid-cols-3 gap-2.5">
-              {categories.map((cat, i) => (
-                <button key={cat.label}
-                  onClick={() => { setQuery(cat.q); setTimeout(() => doSearch(0), 100) }}
-                  className="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 rounded-2xl p-3.5 border border-gray-100 transition-all active:scale-[0.97]">
-                  {cat.icon}
-                  <span className="text-[13px] font-semibold text-gray-700">{cat.label}</span>
-                </button>
+            <div className="grid grid-cols-2 gap-2.5">
+              {popularProducts.map(pp => (
+                <div key={pp.id}
+                  onClick={() => loadProductById(pp.product_id, pp.provider)}
+                  className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-md transition-all cursor-pointer active:scale-[0.97]">
+                  <div className="relative aspect-square bg-gray-50 overflow-hidden">
+                    <img src={pp.image} alt={pp.title} className="w-full h-full object-contain p-3" loading="lazy"
+                      onError={e => { e.target.style.display = 'none' }} />
+                    {pp.search_count > 3 && (
+                      <span className="absolute top-2 right-2 text-[9px] bg-red-500/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5"><Flame className="w-2.5 h-2.5" /> رائج</span>
+                    )}
+                  </div>
+                  <div className="p-2.5">
+                    <p className="text-[11px] text-gray-600 font-medium line-clamp-2 min-h-[30px] leading-snug">{pp.title}</p>
+                    <p className="text-[14px] font-black text-gray-900 mt-1.5">
+                      {formatNum(pp.price_iqd)}
+                      <span className="text-[9px] text-gray-400 font-normal mr-0.5">د.ع</span>
+                    </p>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
