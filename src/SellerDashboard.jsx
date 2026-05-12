@@ -93,7 +93,7 @@ export default function SellerDashboard() {
               loadData(data.id)
             } else {
               localStorage.removeItem('afrzli_seller')
-              navigate('/submit', { replace: true })
+              navigate('/', { replace: true })
             }
             setInitLoading(false)
           })
@@ -102,7 +102,7 @@ export default function SellerDashboard() {
       } catch {}
     }
     setInitLoading(false)
-    navigate('/submit', { replace: true })
+    navigate('/', { replace: true })
   }, [navigate])
 
   const loadData = async (storeId) => {
@@ -122,7 +122,7 @@ export default function SellerDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem('afrzli_seller')
-    navigate('/submit', { replace: true })
+    navigate('/', { replace: true })
   }
 
   // ─── Product CRUD ───

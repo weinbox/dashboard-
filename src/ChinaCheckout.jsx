@@ -110,7 +110,7 @@ export default function ChinaCheckout() {
             </p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => navigate('/submit')}
+            <button onClick={() => navigate('/')}
               className="flex-1 h-[52px] bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
               <ArrowRight className="w-4 h-4" />
               الرئيسية
@@ -136,7 +136,7 @@ export default function ChinaCheckout() {
           </div>
           <h2 className="text-xl font-bold text-gray-700 mb-2">السلة فارغة</h2>
           <p className="text-sm text-gray-400 mb-8">أضف منتجات من تاوباو أو 1688 أولاً</p>
-          <button onClick={() => navigate('/submit')}
+          <button onClick={() => navigate('/')}
             className="h-[52px] px-10 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-bold text-sm transition-all active:scale-[0.98]">
             الرجوع للرئيسية
           </button>

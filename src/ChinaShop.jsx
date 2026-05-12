@@ -1095,7 +1095,7 @@ export default function ChinaShop() {
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-gray-100/60">
         <div className="max-w-3xl mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/submit')} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all active:scale-95 flex-shrink-0">
+            <button onClick={() => navigate('/')} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all active:scale-95 flex-shrink-0">
               <ArrowRight className="w-5 h-5 text-gray-600" />
             </button>
             {/* Search bar inline */}
