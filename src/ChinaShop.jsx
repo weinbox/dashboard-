@@ -3,7 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   Search, Loader2, X, ArrowRight, ShoppingCart, Plus, Minus,
   ChevronLeft, ChevronRight, Star, Package, Filter, Heart,
-  Link as LinkIcon, CheckCircle2, ExternalLink, ArrowUpDown, Camera, Image as ImageIcon
+  Link as LinkIcon, CheckCircle2, ExternalLink, ArrowUpDown, Camera, Image as ImageIcon,
+  Flame, Lightbulb, Home, Headphones, Footprints, Briefcase, Sparkles, Smartphone,
+  Watch, Shirt, ToyBrick, ShoppingBag, Truck
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
@@ -14,8 +16,8 @@ const REST_BASE = 'https://rest.otapi.net/v1'
 const PROVIDERS = {
   taobao: { key: 'Taobao', restKey: 'taobao', label: 'تاوباو', color: 'bg-orange-500', emoji: '淘宝', currency: 'CNY' },
   '1688': { key: 'Taobao', restKey: 'alibaba1688', label: '1688', color: 'bg-orange-600', emoji: '1688', currency: 'CNY' },
-  amazon: { key: 'Amazon', restKey: 'amazon', label: 'أمازون', color: 'bg-gray-900', emoji: '🛒', currency: 'USD', useSerpApi: true },
-  shein: { key: 'Shein', restKey: 'shein', label: 'شين', color: 'bg-pink-500', emoji: '👗', currency: 'USD' },
+  amazon: { key: 'Amazon', restKey: 'amazon', label: 'أمازون', color: 'bg-gray-900', emoji: 'AZ', currency: 'USD', useSerpApi: true },
+  shein: { key: 'Shein', restKey: 'shein', label: 'شين', color: 'bg-pink-500', emoji: 'SH', currency: 'USD' },
 }
 
 const CNY_TO_USD = 6.5
@@ -256,7 +258,7 @@ export default function ChinaShop() {
           </div>
         </div>
         <div class="bg-pink-600 rounded-lg p-2 text-xs text-center">
-          💡 يمكنك نسخ عدة روابط وإضافتها للسلة
+          يمكنك نسخ عدة روابط وإضافتها للسلة
         </div>
       </div>
     `
@@ -836,7 +838,7 @@ export default function ChinaShop() {
     const sales = item.FeaturedValues?.find(f => f.Name === 'SalesInLast30Days')?.Value
     const reviews = item.FeaturedValues?.find(f => f.Name === 'reviews')?.Value || item.Reviews
     const provLabel = prov.currency === 'USD' ? 'Amazon' : prov.label
-    const provFlag = prov.currency === 'USD' ? '🛒' : (prov.currency === 'CNY' ? '🇨🇳' : prov.emoji)
+    const provFlag = null
     const discountPercent = item.OldPrice > 0 && item.OldPrice > (item.Price?.OriginalPrice || 0) ? Math.round((1 - (item.Price?.OriginalPrice || 0) / item.OldPrice) * 100) : 0
 
     return (
@@ -951,7 +953,7 @@ export default function ChinaShop() {
               </div>
               {(item.BoughtLastMonth || productDetail?.boughtLastMonth) && (
                 <div className="mt-3 pt-3 border-t border-orange-200/50 flex items-center gap-2">
-                  <span className="text-[12px] text-orange-600 font-bold">🔥 {item.BoughtLastMonth || productDetail?.boughtLastMonth} اشتروه الشهر الماضي</span>
+                  <span className="text-[12px] text-orange-600 font-bold flex items-center gap-1"><Flame className="w-3.5 h-3.5" /> {item.BoughtLastMonth || productDetail?.boughtLastMonth} اشتروه الشهر الماضي</span>
                 </div>
               )}
             </div>
@@ -1030,7 +1032,7 @@ export default function ChinaShop() {
           <div className="mx-5 mb-4 bg-gradient-to-l from-gray-50 to-gray-100/50 rounded-2xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm border border-gray-100">
-                <span className="text-xl">{provFlag}</span>
+                <ShoppingCart className="w-5 h-5 text-gray-600" />
               </div>
               <div>
                 <p className="text-[13px] font-bold text-gray-800">{item.VendorDisplayName || provLabel}</p>
@@ -1058,7 +1060,7 @@ export default function ChinaShop() {
                 </div>
               )}
               <div className="flex items-center gap-1.5 bg-blue-50 rounded-xl px-3.5 py-2.5 border border-blue-100 flex-shrink-0">
-                <span className="text-[11px]">🚚</span>
+                <Truck className="w-3.5 h-3.5 text-blue-500" />
                 <span className="text-[12px] text-blue-700 font-semibold">شحن دولي</span>
               </div>
             </div>
@@ -1188,10 +1190,10 @@ export default function ChinaShop() {
   
   // ─── Search & Results View ───
   const categories = provider === 'amazon'
-    ? [{ icon: '🎧', label: 'إلكترونيات', q: 'electronics' }, { icon: '👟', label: 'أحذية', q: 'shoes' }, { icon: '👜', label: 'حقائب', q: 'bags' }, { icon: '💄', label: 'جمال', q: 'beauty' }, { icon: '🏠', label: 'منزل', q: 'home' }, { icon: '⌚', label: 'ساعات', q: 'watches' }]
+    ? [{ icon: <Headphones className="w-5 h-5 text-blue-500" />, label: 'إلكترونيات', q: 'electronics' }, { icon: <Footprints className="w-5 h-5 text-green-500" />, label: 'أحذية', q: 'shoes' }, { icon: <Briefcase className="w-5 h-5 text-amber-600" />, label: 'حقائب', q: 'bags' }, { icon: <Sparkles className="w-5 h-5 text-pink-500" />, label: 'جمال', q: 'beauty' }, { icon: <Home className="w-5 h-5 text-teal-500" />, label: 'منزل', q: 'home' }, { icon: <Watch className="w-5 h-5 text-gray-600" />, label: 'ساعات', q: 'watches' }]
     : provider === '1688'
-    ? [{ icon: '👗', label: 'أزياء', q: 'ملابس' }, { icon: '👟', label: 'أحذية', q: 'أحذية' }, { icon: '👜', label: 'حقائب', q: 'حقائب' }, { icon: '💄', label: 'جمال', q: 'مكياج' }, { icon: '📱', label: 'إلكترونيات', q: 'إلكترونيات' }, { icon: '🧸', label: 'ألعاب', q: 'العاب اطفال' }]
-    : [{ icon: '👗', label: 'أزياء', q: 'فساتين' }, { icon: '👟', label: 'أحذية', q: 'أحذية' }, { icon: '👜', label: 'حقائب', q: 'حقائب' }, { icon: '💄', label: 'جمال', q: 'عطور' }, { icon: '📱', label: 'إلكترونيات', q: 'سماعات' }, { icon: '🧸', label: 'ألعاب', q: 'العاب اطفال' }]
+    ? [{ icon: <Shirt className="w-5 h-5 text-purple-500" />, label: 'أزياء', q: 'ملابس' }, { icon: <Footprints className="w-5 h-5 text-green-500" />, label: 'أحذية', q: 'أحذية' }, { icon: <Briefcase className="w-5 h-5 text-amber-600" />, label: 'حقائب', q: 'حقائب' }, { icon: <Sparkles className="w-5 h-5 text-pink-500" />, label: 'جمال', q: 'مكياج' }, { icon: <Smartphone className="w-5 h-5 text-blue-500" />, label: 'إلكترونيات', q: 'إلكترونيات' }, { icon: <ToyBrick className="w-5 h-5 text-red-400" />, label: 'ألعاب', q: 'العاب اطفال' }]
+    : [{ icon: <Shirt className="w-5 h-5 text-purple-500" />, label: 'أزياء', q: 'فساتين' }, { icon: <Footprints className="w-5 h-5 text-green-500" />, label: 'أحذية', q: 'أحذية' }, { icon: <Briefcase className="w-5 h-5 text-amber-600" />, label: 'حقائب', q: 'حقائب' }, { icon: <Sparkles className="w-5 h-5 text-pink-500" />, label: 'جمال', q: 'عطور' }, { icon: <Smartphone className="w-5 h-5 text-blue-500" />, label: 'إلكترونيات', q: 'سماعات' }, { icon: <ToyBrick className="w-5 h-5 text-red-400" />, label: 'ألعاب', q: 'العاب اطفال' }]
 
   const provColor = provider === 'amazon' ? 'from-gray-800 to-gray-900' : provider === 'shein' ? 'from-pink-500 to-pink-600' : 'from-orange-500 to-orange-600'
   const provAccent = provider === 'amazon' ? 'bg-amber-500' : provider === 'shein' ? 'bg-pink-500' : 'bg-orange-500'
@@ -1269,14 +1271,14 @@ export default function ChinaShop() {
               className={`flex-1 h-12 rounded-2xl flex items-center justify-center gap-2.5 font-bold text-[13px] transition-all active:scale-[0.97] ${
                 provider === 'taobao' ? 'bg-orange-500 text-white shadow-lg shadow-orange-200/50' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
               }`}>
-              <span className="text-base">🛍️</span>
+              <ShoppingBag className="w-4 h-4" />
               Taobao Retail
             </button>
             <button onClick={() => navigate('/china/1688')}
               className={`flex-1 h-12 rounded-2xl flex items-center justify-center gap-2.5 font-bold text-[13px] transition-all active:scale-[0.97] ${
                 provider === '1688' ? 'bg-orange-500 text-white shadow-lg shadow-orange-200/50' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
               }`}>
-              <span className="text-base">📦</span>
+              <Package className="w-4 h-4" />
               1688 Wholesale
             </button>
           </div>
@@ -1376,7 +1378,7 @@ export default function ChinaShop() {
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-[15px] font-bold text-gray-800 flex items-center gap-2">
                     <span className="w-1 h-5 bg-orange-500 rounded-full"></span>
-                    🔥 الأكثر رواجاً
+                    <Flame className="w-4 h-4 text-orange-500" /> الأكثر رواجاً
                   </h3>
                   <span className="text-[11px] text-gray-400">{popularProducts.length} منتج</span>
                 </div>
@@ -1389,7 +1391,7 @@ export default function ChinaShop() {
                         <img src={pp.image} alt={pp.title} className="w-full h-full object-contain p-3" loading="lazy"
                           onError={e => { e.target.style.display = 'none' }} />
                         {pp.search_count > 3 && (
-                          <span className="absolute top-2 right-2 text-[9px] bg-red-500/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-lg font-bold">🔥 رائج</span>
+                          <span className="absolute top-2 right-2 text-[9px] bg-red-500/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-lg font-bold flex items-center gap-0.5"><Flame className="w-3 h-3" /> رائج</span>
                         )}
                       </div>
                       <div className="p-3">
@@ -1419,7 +1421,7 @@ export default function ChinaShop() {
                 <button key={cat.label}
                   onClick={() => { setQuery(cat.q); setTimeout(() => doSearch(0), 100) }}
                   className="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 rounded-2xl p-3.5 border border-gray-100 transition-all active:scale-[0.97]">
-                  <span className="text-2xl">{cat.icon}</span>
+                  {cat.icon}
                   <span className="text-[13px] font-semibold text-gray-700">{cat.label}</span>
                 </button>
               ))}
@@ -1438,11 +1440,11 @@ export default function ChinaShop() {
               <div className="flex items-center gap-2">
                 <button onClick={() => setSheinUrl('/.netlify/functions/shein-proxy-page?url=' + encodeURIComponent('https://ar.shein.com'))}
                   className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors">
-                  🏠 الرئيسية
+                  <Home className="w-3.5 h-3.5 inline" /> الرئيسية
                 </button>
                 <button onClick={() => setShowCart(true)}
                   className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
-                  🛒 السلة ({cart.length})
+                  <ShoppingCart className="w-3.5 h-3.5 inline" /> السلة ({cart.length})
                 </button>
               </div>
             </div>
@@ -1450,7 +1452,7 @@ export default function ChinaShop() {
               <iframe src={sheinUrl} className="w-full h-full border-0" title="Shein Arabic" loading="lazy" />
             </div>
             <div className="bg-gray-50 border-t border-pink-100 p-3">
-              <p className="text-xs text-gray-500 text-center">💡 انسخ رابط المنتج من الموقع وألصقه في البحث</p>
+              <p className="text-xs text-gray-500 text-center flex items-center justify-center gap-1"><Lightbulb className="w-3.5 h-3.5" /> انسخ رابط المنتج من الموقع وألصقه في البحث</p>
             </div>
           </div>
         )}
@@ -1583,7 +1585,7 @@ export default function ChinaShop() {
                           </div>
                         )}
                         {sales && parseInt(sales) > 1000 && (
-                          <span className="absolute bottom-2.5 left-2.5 bg-red-500/90 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-lg">🔥 HOT</span>
+                          <span className="absolute bottom-2.5 left-2.5 bg-red-500/90 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-0.5"><Flame className="w-3 h-3" /> HOT</span>
                         )}
                       </div>
                       {/* Info */}
