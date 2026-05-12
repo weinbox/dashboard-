@@ -837,10 +837,6 @@ export default function ChinaShop() {
                     <span className="text-sm text-gray-400 line-through">{formatNum(applyCommission(Math.round(item.OldPrice * (prov.currency === 'USD' ? USD_TO_IQD : USD_TO_IQD / CNY_TO_USD))))} د.ع</span>
                   )}
                 </div>
-                <div className="text-left">
-                  <p className="text-[11px] text-gray-400 font-medium mb-0.5">بالدولار</p>
-                  <span className="text-lg font-bold text-gray-600">${price.usd?.toFixed(2)}</span>
-                </div>
               </div>
               {(item.BoughtLastMonth || productDetail?.boughtLastMonth) && (
                 <div className="mt-3 pt-3 border-t border-orange-200/50 flex items-center gap-2">
@@ -1098,29 +1094,31 @@ export default function ChinaShop() {
             <button onClick={() => navigate('/')} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all active:scale-95 flex-shrink-0">
               <ArrowRight className="w-5 h-5 text-gray-600" />
             </button>
-            {/* Search bar inline */}
-            <div className="flex-1 relative" onClick={() => { if (searchMode === 'image') { setSearchMode('text'); setImageResults([]) } }}>
-              <Search className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                ref={searchRef}
-                type="text"
-                dir="auto"
-                placeholder={`ابحث في ${prov.label}...`}
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && doSearch(0)}
-                className="w-full h-10 pr-10 pl-10 bg-gray-100 rounded-full text-[13px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-300 border border-transparent placeholder:text-gray-400"
-              />
-              {query ? (
-                <button onClick={(e) => { e.stopPropagation(); setQuery(''); searchRef.current?.focus() }} className="absolute left-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-200 rounded-full transition">
-                  <X className="w-4 h-4 text-gray-400" />
-                </button>
-              ) : (
-                <button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }} className="absolute left-3 top-1/2 -translate-y-1/2 p-0.5">
-                  <Camera className="w-4 h-4 text-gray-400" />
-                </button>
-              )}
-            </div>
+            {/* Search bar inline - يظهر فقط بعد البحث أو لغير أمازون */}
+            {(searched || provider !== 'amazon') && (
+              <div className="flex-1 relative" onClick={() => { if (searchMode === 'image') { setSearchMode('text'); setImageResults([]) } }}>
+                <Search className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  ref={searchRef}
+                  type="text"
+                  dir="auto"
+                  placeholder={`ابحث في ${prov.label}...`}
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && doSearch(0)}
+                  className="w-full h-10 pr-10 pl-10 bg-gray-100 rounded-full text-[13px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-300 border border-transparent placeholder:text-gray-400"
+                />
+                {query ? (
+                  <button onClick={(e) => { e.stopPropagation(); setQuery(''); searchRef.current?.focus() }} className="absolute left-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-200 rounded-full transition">
+                    <X className="w-4 h-4 text-gray-400" />
+                  </button>
+                ) : (
+                  <button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }} className="absolute left-3 top-1/2 -translate-y-1/2 p-0.5">
+                    <Camera className="w-4 h-4 text-gray-400" />
+                  </button>
+                )}
+              </div>
+            )}
             <button onClick={() => setShowCart(true)} className="relative w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all active:scale-95 flex-shrink-0">
               <ShoppingCart className="w-[18px] h-[18px] text-gray-600" />
               {cartCount > 0 && (
@@ -1349,7 +1347,7 @@ export default function ChinaShop() {
                   <div className="p-3">
                     <p className="text-[12px] text-gray-700 font-medium line-clamp-2 mb-2 leading-snug">{item.title}</p>
                     {item.price > 0 && (
-                      <p className="text-[14px] font-black text-gray-900">${item.price}</p>
+                      <p className="text-[14px] font-black text-gray-900">{formatNum(applyCommission(Math.round(item.price * USD_TO_IQD)))} <span className="text-[10px] text-gray-400 font-normal">د.ع</span></p>
                     )}
                   </div>
                 </div>
@@ -1445,8 +1443,8 @@ export default function ChinaShop() {
                         <p className="text-[12px] text-gray-700 font-medium line-clamp-2 min-h-[34px] leading-snug">{item.Title}</p>
                         <div className="mt-2.5 flex items-end justify-between">
                           <p className="text-[15px] font-black text-gray-900">
-                            {prov.currency === 'USD' ? `$${price.usd?.toFixed(2)}` : `${formatNum(iqd)}`}
-                            {prov.currency !== 'USD' && <span className="text-[10px] text-gray-400 font-normal mr-0.5">د.ع</span>}
+                            {formatNum(iqd)}
+                            <span className="text-[10px] text-gray-400 font-normal mr-0.5">د.ع</span>
                           </p>
                           <div className={`w-7 h-7 ${provAccent} rounded-lg flex items-center justify-center shadow-sm`}>
                             <Plus className="w-4 h-4 text-white" />
