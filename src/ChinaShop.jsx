@@ -1208,7 +1208,7 @@ export default function ChinaShop() {
         { img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=120&h=120&fit=crop', label: 'أحذية', q: 'shoes' },
         { img: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=120&h=120&fit=crop', label: 'حقائب', q: 'bags' },
         { img: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=120&h=120&fit=crop', label: 'جمال', q: 'beauty' },
-        { img: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=120&h=120&fit=crop', label: 'مكملات', q: 'supplements vitamins' },
+        { img: 'https://images.unsplash.com/photo-1616671276441-2f2c277b8bf6?w=120&h=120&fit=crop', label: 'مكملات', q: 'supplements vitamins' },
         { img: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=120&h=120&fit=crop', label: 'منزل', q: 'home kitchen' },
         { img: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=120&h=120&fit=crop', label: 'ساعات', q: 'watches' },
       ]
@@ -1254,16 +1254,9 @@ export default function ChinaShop() {
             {/* Provider Logo */}
             <div className="flex-1 flex items-center justify-center">
               {provider === 'amazon' ? (
-                <div className="flex items-center gap-1.5">
-                  <svg viewBox="0 0 603 182" className="h-5 w-auto" fill="none">
-                    <path d="M374.00 142.06C339.63 167.42 289.62 181 247.04 181C186.67 181 132.55 158.62 91.04 121.87C87.84 118.97 90.70 115.05 94.54 117.35C139.27 143.27 194.72 158.91 252.15 158.91C290.78 158.91 333.05 150.89 371.87 134.13C377.63 131.72 382.50 137.92 374.00 142.06Z" fill="#FF9900"/>
-                    <path d="M389.76 124.17C385.47 118.69 360.72 121.63 349.63 122.97C346.29 123.37 345.79 120.43 348.83 118.30C368.60 104.30 401.34 108.37 405.03 112.91C408.72 117.49 404.03 150.30 385.47 165.97C382.63 168.37 379.93 167.09 381.23 163.92C385.27 154.17 394.09 129.69 389.76 124.17Z" fill="#FF9900"/>
-                    <path d="M350.43 19.57V6.11C350.43 4.11 351.93 2.78 353.73 2.78H415.43C417.30 2.78 418.80 4.14 418.80 6.11V17.71C418.76 19.61 417.17 22.11 414.33 26.04L382.17 72.51C393.80 72.24 406.10 73.97 416.53 79.91C418.80 81.21 419.43 83.11 419.60 85.01V99.37C419.60 101.31 417.47 103.57 415.23 102.37C394.10 91.21 365.93 89.97 342.63 102.51C340.60 103.61 338.43 101.41 338.43 99.47V85.78C338.43 83.61 338.47 79.78 340.63 76.51L378.03 22.24H353.80C351.93 22.24 350.43 20.91 350.43 19.57Z" fill="#232F3E"/>
-                    <path d="M124.80 105.37H105.47C103.77 105.24 102.43 103.97 102.30 102.34V6.24C102.30 4.37 103.87 2.88 105.77 2.78H123.77C125.50 2.84 126.87 4.17 127.00 5.84V18.71H127.33C131.63 6.51 139.80 0.78 150.97 0.78C162.30 0.78 169.47 6.51 174.43 18.71C178.70 6.51 188.63 0.78 199.33 0.78C206.83 0.78 215.10 3.84 219.93 10.71C225.43 18.51 224.26 29.97 224.26 39.64L224.23 102.04C224.23 103.91 222.66 105.37 220.76 105.37H201.47C199.70 105.24 198.30 103.81 198.30 102.04V48.78C198.30 45.44 198.60 37.64 198.10 34.44C197.23 28.71 193.93 27.11 189.80 27.11C186.30 27.11 182.63 29.51 181.13 33.24C179.63 36.97 179.80 43.44 179.80 48.78V102.04C179.80 103.91 178.23 105.37 176.33 105.37H157.03C155.23 105.24 153.87 103.81 153.87 102.04V48.78C153.87 38.44 155.53 26.88 145.37 26.88C135.03 26.88 135.40 38.17 135.40 48.78V102.04C135.40 103.91 133.83 105.37 131.93 105.37H124.80Z" fill="#232F3E"/>
-                    <path d="M462.20 0.78C489.73 0.78 504.60 27.11 504.60 60.24C504.60 92.37 487.87 117.78 462.20 117.78C435.53 117.78 420.83 91.44 420.83 59.24C420.83 26.88 435.70 0.78 462.20 0.78ZM462.37 22.91C448.37 22.91 447.53 42.24 447.53 54.44C447.53 66.68 447.37 95.51 462.20 95.51C476.87 95.51 477.53 74.64 477.53 61.78C477.53 53.44 477.20 43.51 474.53 35.71C472.23 28.84 467.93 22.91 462.37 22.91Z" fill="#232F3E"/>
-                    <path d="M543.43 105.37H524.20C522.40 105.24 520.97 103.81 520.97 102.04L520.93 5.91C521.10 4.21 522.60 2.88 524.37 2.78H542.23C543.77 2.84 545.03 3.91 545.40 5.37V20.44H545.73C550.70 7.04 557.53 0.78 569.20 0.78C577.37 0.78 585.33 3.84 590.17 12.04C594.67 19.57 594.67 32.44 594.67 41.44V102.44C594.43 104.04 592.93 105.37 591.20 105.37H571.77C570.13 105.24 568.80 104.01 568.63 102.44V47.44C568.63 37.37 569.80 26.64 559.83 26.64C556.33 26.64 553.10 28.84 551.43 32.44C549.30 37.04 549.03 41.60 549.03 47.44V102.04C549.00 103.91 547.40 105.37 543.43 105.37Z" fill="#232F3E"/>
-                    <path d="M47.40 60.64C47.40 66.24 47.57 70.91 44.73 75.97C42.43 80.11 38.73 82.68 34.60 82.68C28.87 82.68 25.53 78.28 25.53 71.78C25.53 59.04 37.00 56.44 47.40 56.44V60.64ZM71.27 104.91C69.73 106.28 67.47 106.37 65.73 105.44C57.87 98.88 56.43 96.01 52.13 89.78C39.87 102.34 31.10 106.14 14.87 106.14C-4.53 106.14 -19.37 94.37 -19.37 70.91C-19.37 52.88 -9.47 40.88 5.93 35.01C19.33 29.78 38.40 28.88 47.40 27.78V26.11C47.40 22.78 47.67 18.84 45.70 16.01C44.03 13.44 40.83 12.38 38.03 12.38C32.83 12.38 28.20 15.04 27.07 20.64C26.83 21.91 25.90 23.17 24.63 23.24L5.87 21.17C4.73 20.91 3.47 19.97 3.77 18.28C8.13 -4.19 28.70 -11 47.27 -11C56.77 -11 69.37 -8.37 77.03 -1.00C86.77 8.21 85.83 20.44 85.83 33.78V63.44C85.83 72.78 89.63 76.91 93.20 82.11C94.43 83.91 94.70 86.04 93.13 87.34C89.27 90.61 82.37 96.61 78.57 99.97L71.27 104.91Z" fill="#232F3E" transform="translate(19,2)"/>
-                  </svg>
+                <div className="flex items-center gap-0">
+                  <span className="text-[20px] font-black text-gray-900 tracking-tight" style={{ fontFamily: 'Arial, sans-serif' }}>amazon</span>
+                  <svg viewBox="0 0 40 16" className="w-8 h-3 mt-1" fill="none"><path d="M2 8C8 14 16 16 24 12C28 10 32 7 38 6" stroke="#FF9900" strokeWidth="3" strokeLinecap="round" fill="none"/><path d="M30 2L38 6L30 8" fill="#FF9900"/></svg>
                 </div>
               ) : (
                 <h1 className="text-[16px] font-black text-gray-900 tracking-tight">{prov.label}</h1>
@@ -1286,7 +1279,7 @@ export default function ChinaShop() {
         <div className="bg-white px-4 pt-4 pb-2">
           {/* Search Bar */}
           <div className="relative" onClick={() => { if (searchMode === 'image') { setSearchMode('text'); setImageResults([]) } }}>
-            <Search className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 z-10" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 z-10" />
             <input
               ref={searchRef}
               type="text"
@@ -1295,14 +1288,14 @@ export default function ChinaShop() {
               value={query}
               onChange={e => handleQueryChange(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && doSearch(0)}
-              className="w-full h-11 pr-10 pl-10 bg-gray-100 rounded-xl text-[13px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-gray-200 border border-gray-200 focus:border-gray-300 placeholder:text-gray-400"
+              className="w-full h-11 pl-10 pr-10 bg-gray-100 rounded-xl text-[14px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-gray-300 border border-gray-200 focus:border-gray-400 placeholder:text-gray-400"
             />
             {query ? (
-              <button onClick={(e) => { e.stopPropagation(); setQuery(''); setSearched(false); setResults([]); searchRef.current?.focus() }} className="absolute left-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-200 rounded-full transition">
+              <button onClick={(e) => { e.stopPropagation(); setQuery(''); setSearched(false); setResults([]); searchRef.current?.focus() }} className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-200 rounded-full transition">
                 <X className="w-4 h-4 text-gray-400" />
               </button>
             ) : (
-              <button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }} className="absolute left-3 top-1/2 -translate-y-1/2 p-0.5">
+              <button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }} className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5">
                 <Camera className="w-4 h-4 text-gray-400" />
               </button>
             )}
@@ -1311,13 +1304,13 @@ export default function ChinaShop() {
           {!searched && !loading && provider !== 'shein' && (searchMode === 'text' || searchMode === 'url') && (
             <div className="mt-2.5">
               <div className="relative">
-                <LinkIcon className="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-300" />
+                <LinkIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input type="url" dir="ltr"
-                  placeholder="...Paste product link"
+                  placeholder="Paste product link here..."
                   value={urlInput}
                   onChange={e => { setUrlInput(e.target.value); setUrlError('') }}
                   onKeyDown={e => e.key === 'Enter' && handleUrlSearch()}
-                  className="w-full h-10 pr-9 pl-4 bg-gray-50 rounded-xl text-[12px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-gray-200 border border-gray-100 focus:border-gray-300 placeholder:text-gray-300 text-left"
+                  className="w-full h-10 pl-10 pr-4 bg-gray-100 rounded-xl text-[13px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-gray-300 border border-gray-200 focus:border-gray-400 placeholder:text-gray-400 text-left"
                 />
               </div>
               {urlError && <p className="text-[11px] text-red-500 mt-1.5 px-1">{urlError}</p>}
@@ -1376,8 +1369,8 @@ export default function ChinaShop() {
             <div className="flex justify-center mt-3 pb-2">
               <button
                 onClick={() => searchMode === 'image' ? (() => { setSearchMode('text'); setImageResults([]) })() : setSearchMode('image')}
-                className="flex items-center gap-2 text-[12px] text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full transition-all active:scale-95">
-                {searchMode === 'image' ? <Search className="w-3.5 h-3.5" /> : <Camera className="w-3.5 h-3.5" />}
+                className="flex items-center gap-2 text-[13px] font-medium text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 px-5 py-2.5 rounded-full transition-all active:scale-95 shadow-sm">
+                {searchMode === 'image' ? <Search className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
                 {searchMode === 'image' ? 'بحث بالكلمة' : 'بحث بالصورة'}
               </button>
             </div>
