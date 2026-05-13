@@ -1766,7 +1766,7 @@ function AiChat({ provider }) {
   }, [open])
 
   const sendMessage = async (directText) => {
-    const text = (directText || input).trim()
+    const text = (typeof directText === 'string' ? directText : input).trim()
     if (!text || loading) return
     
     const userMsg = { role: 'user', content: text }
@@ -1909,11 +1909,11 @@ function AiChat({ provider }) {
               placeholder="اكتب سؤالك هنا..."
               value={input}
               onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && sendMessage()}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); sendMessage() } }}
               className="flex-1 h-11 px-4 bg-gray-100 rounded-full text-[14px] outline-none focus:bg-white focus:ring-2 focus:ring-blue-200 border border-gray-200 focus:border-blue-300 placeholder:text-gray-400"
             />
             <button 
-              onClick={sendMessage}
+              onClick={() => sendMessage()}
               disabled={!input.trim() || loading}
               className="w-11 h-11 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 rounded-full flex items-center justify-center transition-all active:scale-90 flex-shrink-0">
               {loading ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Send className="w-5 h-5 text-white" />}
