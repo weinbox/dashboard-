@@ -1234,11 +1234,17 @@ export default function ChinaShop() {
   const provColor = provider === 'amazon' ? 'from-gray-800 to-gray-900' : provider === 'shein' ? 'from-pink-500 to-pink-600' : 'from-orange-500 to-orange-600'
   const provAccent = provider === 'amazon' ? 'bg-amber-500' : provider === 'shein' ? 'bg-pink-500' : 'bg-orange-500'
 
-  // دالة البحث بعد التوقف عن الكتابة
-  const handleQueryChange = (val) => {
+  // دالة البحث بعد التوقف عن الكتابة - حقل ذكي يكتشف نص أو رابط
+  const isUrl = (text) => /^https?:\/\//i.test(text.trim()) || /^(e|m)\.tb\.cn\//i.test(text.trim()) || /^a\.co\//i.test(text.trim())
+  const handleSmartInput = (val) => {
     setQuery(val)
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (val.trim().length >= 2) {
+    const trimmed = val.trim()
+    if (trimmed.length < 2) return
+    if (isUrl(trimmed)) {
+      setUrlInput(trimmed)
+      debounceRef.current = setTimeout(() => handleUrlSearch(), 600)
+    } else {
       debounceRef.current = setTimeout(() => doSearch(0), 800)
     }
   }
@@ -1278,46 +1284,48 @@ export default function ChinaShop() {
       <div className="max-w-3xl mx-auto">
         {/* Search Section */}
         <div className="bg-white px-4 pt-4 pb-2">
-          {/* Search Bar */}
-          <div className="relative" onClick={() => { if (searchMode === 'image') { setSearchMode('text'); setImageResults([]) } }}>
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 z-10" />
+          {/* Smart Search Bar */}
+          <div className="relative">
+            <Search className="w-[18px] h-[18px] absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 z-10" />
             <input
               ref={searchRef}
               type="text"
               dir="auto"
-              placeholder={provider === 'amazon' ? 'Search Amazon...' : `ابحث في ${prov.label}...`}
-              style={{ textAlign: provider === 'amazon' ? 'left' : 'right' }}
+              placeholder={provider === 'amazon' ? 'بحث أو لصق رابط منتج...' : `بحث أو لصق رابط منتج...`}
               value={query}
-              onChange={e => handleQueryChange(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && doSearch(0)}
-              className="w-full h-11 pl-10 pr-10 bg-gray-100 rounded-xl text-[14px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-gray-300 border border-gray-200 focus:border-gray-400 placeholder:text-gray-400"
+              onChange={e => handleSmartInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const t = query.trim(); if (isUrl(t)) { setUrlInput(t); setTimeout(() => handleUrlSearch(), 50) } else { doSearch(0) } } }}
+              className="w-full h-12 pl-11 pr-12 bg-gray-100 rounded-2xl text-[14px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-gray-300 border border-gray-200 focus:border-gray-400 placeholder:text-gray-400"
             />
-            {query ? (
-              <button onClick={(e) => { e.stopPropagation(); setQuery(''); setSearched(false); setResults([]); searchRef.current?.focus() }} className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-200 rounded-full transition">
-                <X className="w-4 h-4 text-gray-400" />
-              </button>
-            ) : (
-              <button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }} className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5">
-                <Camera className="w-4 h-4 text-gray-400" />
-              </button>
-            )}
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              {query ? (
+                <button onClick={() => { setQuery(''); setUrlInput(''); setUrlError(''); setSearched(false); setResults([]); searchRef.current?.focus() }} className="p-1.5 hover:bg-gray-200 rounded-full transition">
+                  <X className="w-4 h-4 text-gray-400" />
+                </button>
+              ) : (
+                <button onClick={() => fileInputRef.current?.click()} className="p-1.5 hover:bg-gray-200 rounded-full transition" title="بحث بالصورة">
+                  <Camera className="w-5 h-5 text-gray-500" />
+                </button>
+              )}
+            </div>
           </div>
-          {/* URL input */}
-          {!searched && !loading && provider !== 'shein' && (searchMode === 'text' || searchMode === 'url') && (
-            <div className="mt-2.5">
-              <div className="relative">
-                <LinkIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input type="url" dir="ltr"
-                  placeholder="ألصق رابط المنتج هنا..."
-                  value={urlInput}
-                  onChange={e => { setUrlInput(e.target.value); setUrlError('') }}
-                  onKeyDown={e => e.key === 'Enter' && handleUrlSearch()}
-                  className="w-full h-10 pl-10 pr-4 bg-gray-100 rounded-xl text-[13px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-gray-300 border border-gray-200 focus:border-gray-400 placeholder:text-gray-400 text-left"
-                />
-              </div>
-              {urlError && <p className="text-[11px] text-red-500 mt-1.5 px-1">{urlError}</p>}
+          {/* Smart hint */}
+          {!searched && !loading && !query && (
+            <div className="flex items-center justify-center gap-3 mt-2 text-[11px] text-gray-400">
+              <span className="flex items-center gap-1"><Search className="w-3 h-3" /> اكتب للبحث</span>
+              <span>·</span>
+              <span className="flex items-center gap-1"><LinkIcon className="w-3 h-3" /> ألصق رابط</span>
+              <span>·</span>
+              <span className="flex items-center gap-1"><Camera className="w-3 h-3" /> صورة</span>
             </div>
           )}
+          {isUrl(query.trim()) && !loading && (
+            <div className="flex items-center gap-2 mt-2 px-1">
+              <LinkIcon className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+              <span className="text-[11px] text-blue-600">تم الكشف عن رابط - اضغط Enter لفتح المنتج</span>
+            </div>
+          )}
+          {urlError && <p className="text-[11px] text-red-500 mt-1.5 px-1">{urlError}</p>}
           {/* Categories - Grid */}
           {!searched && !loading && provider !== 'shein' && (
             <div className="mt-5 pb-2">
@@ -1333,48 +1341,6 @@ export default function ChinaShop() {
                   </button>
                 ))}
               </div>
-            </div>
-          )}
-          {/* Image search section */}
-          {!searched && !loading && provider !== 'shein' && searchMode === 'image' && (
-            <div className="mt-4 space-y-3">
-              <button onClick={() => fileInputRef.current?.click()}
-                className="w-full bg-gradient-to-l from-gray-800 to-gray-900 rounded-2xl p-5 flex items-center gap-4 active:scale-[0.98] transition-all shadow-lg">
-                <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                  <Camera className="w-7 h-7 text-white" />
-                </div>
-                <div className="flex-1 text-right">
-                  <p className="text-[14px] font-bold text-white">ارفع صورة للبحث</p>
-                  <p className="text-[12px] text-gray-400 mt-0.5">التقط أو اختر صورة ونجد لك منتجات مشابهة</p>
-                </div>
-              </button>
-              <div className="relative">
-                <ImageIcon className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input type="url" dir="ltr" placeholder="أو ألصق رابط الصورة هنا..."
-                  value={imageUrlInput}
-                  onChange={e => setImageUrlInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && doImageSearch(imageUrlInput)}
-                  className="w-full h-11 pr-10 pl-4 bg-gray-100 rounded-xl text-[13px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-gray-200 border border-gray-200 focus:border-gray-300 placeholder:text-gray-400 text-left"
-                />
-              </div>
-              {imageUrlInput && (
-                <button onClick={() => doImageSearch(imageUrlInput)}
-                  className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 transition-all active:scale-[0.97] shadow-md">
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                  بحث بالصورة
-                </button>
-              )}
-            </div>
-          )}
-          {/* Search mode toggle */}
-          {!searched && !loading && provider !== 'shein' && (
-            <div className="flex justify-center mt-3 pb-2">
-              <button
-                onClick={() => searchMode === 'image' ? (() => { setSearchMode('text'); setImageResults([]) })() : setSearchMode('image')}
-                className="flex items-center gap-2 text-[13px] font-medium text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 px-5 py-2.5 rounded-full transition-all active:scale-95 shadow-sm">
-                {searchMode === 'image' ? <Search className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
-                {searchMode === 'image' ? 'بحث بالكلمة' : 'بحث بالصورة'}
-              </button>
             </div>
           )}
         </div>
