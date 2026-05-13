@@ -996,8 +996,10 @@ export default function ChinaShop() {
           <div className="px-5 pb-4">
             <div className="grid grid-cols-2 gap-2.5">
               <button onClick={() => {
-                const msg = `اشرح لي هذا المنتج بالعربي بشكل مبسط:\n\nاسم المنتج: ${item.Title}\nالسعر: ${formatNum(iqd)} دينار عراقي${item.Rating ? `\nالتقييم: ${item.Rating}` : ''}${item.Badge ? `\nملاحظة: ${item.Badge}` : ''}`
-                setAiInitialMessage(msg)
+                setAiInitialMessage({
+                  displayText: 'اشرح لي هذا المنتج 🤖',
+                  context: `المستخدم يسأل عن هذا المنتج. اشرح له بالعربي العراقي بشكل مبسط وواضح شنو هذا المنتج وشنو فوائده ولمن مناسب:\n\nProduct: ${item.Title}\nPrice: ${formatNum(iqd)} IQD\nRating: ${item.Rating || 'N/A'}${item.Badge ? `\nBadge: ${item.Badge}` : ''}`
+                })
                 setOpenAiChat(true)
               }} className="flex items-center gap-2.5 bg-gradient-to-l from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl px-4 py-3.5 active:scale-95 transition-all group">
                 <div className="w-9 h-9 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm shadow-blue-200/50">
@@ -1012,8 +1014,10 @@ export default function ChinaShop() {
               </button>
 
               <button onClick={() => {
-                const msg = `ساعدني اختار المقاس المناسب لهذا المنتج:\n\nاسم المنتج: ${item.Title}\n\nاسألني عن طولي ووزني واقترح لي المقاس الصحيح`
-                setAiInitialMessage(msg)
+                setAiInitialMessage({
+                  displayText: 'ساعدني باختيار المقاس 📏',
+                  context: `المستخدم يريد مساعدة باختيار المقاس المناسب. اسأله عن طوله ووزنه ثم اقترح المقاس الصحيح بالعربي العراقي:\n\nProduct: ${item.Title}`
+                })
                 setOpenAiChat(true)
               }} className="flex items-center gap-2.5 bg-gradient-to-l from-emerald-50 to-green-50 border border-emerald-100 rounded-2xl px-4 py-3.5 active:scale-95 transition-all group">
                 <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm shadow-emerald-200/50">
@@ -1028,8 +1032,10 @@ export default function ChinaShop() {
               </button>
 
               <button onClick={() => {
-                const msg = `قارن لي هذا المنتج بمنتجات مشابهة وانصحني:\n\nاسم المنتج: ${item.Title}\nالسعر: ${formatNum(iqd)} دينار عراقي${item.Rating ? `\nالتقييم: ${item.Rating}` : ''}`
-                setAiInitialMessage(msg)
+                setAiInitialMessage({
+                  displayText: 'قارن لي بمنتج ثاني 🔄',
+                  context: `المستخدم يريد مقارنة هذا المنتج مع بدائل مشابهة. انصحه بالعربي العراقي:\n\nProduct: ${item.Title}\nPrice: ${formatNum(iqd)} IQD\nRating: ${item.Rating || 'N/A'}`
+                })
                 setOpenAiChat(true)
               }} className="flex items-center gap-2.5 bg-gradient-to-l from-purple-50 to-violet-50 border border-purple-100 rounded-2xl px-4 py-3.5 active:scale-95 transition-all group">
                 <div className="w-9 h-9 bg-purple-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm shadow-purple-200/50">
@@ -1044,8 +1050,10 @@ export default function ChinaShop() {
               </button>
 
               <button onClick={() => {
-                const msg = `هل هذا المنتج يستاهل الشراء؟ اعطيني رأيك بصراحة:\n\nاسم المنتج: ${item.Title}\nالسعر: ${formatNum(iqd)} دينار عراقي${item.Rating ? `\nالتقييم: ${item.Rating}` : ''}${reviews ? `\nعدد التقييمات: ${reviews}` : ''}${item.BoughtLastMonth ? `\nمبيعات الشهر: ${item.BoughtLastMonth}` : ''}`
-                setAiInitialMessage(msg)
+                setAiInitialMessage({
+                  displayText: 'يستاهل الشراء؟ ✨',
+                  context: `المستخدم يسأل هل هذا المنتج يستاهل الشراء. اعطيه رأيك بصراحة بالعربي العراقي بناءً على المعلومات:\n\nProduct: ${item.Title}\nPrice: ${formatNum(iqd)} IQD\nRating: ${item.Rating || 'N/A'}\nReviews: ${reviews || 'N/A'}${item.BoughtLastMonth ? `\nBought last month: ${item.BoughtLastMonth}` : ''}`
+                })
                 setOpenAiChat(true)
               }} className="flex items-center gap-2.5 bg-gradient-to-l from-amber-50 to-orange-50 border border-amber-100 rounded-2xl px-4 py-3.5 active:scale-95 transition-all group">
                 <div className="w-9 h-9 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm shadow-amber-200/50">
@@ -1969,7 +1977,11 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, init
     if (open && initialMessage && !initialMsgSentRef.current && !loading) {
       initialMsgSentRef.current = true
       setTimeout(() => {
-        sendMessage(initialMessage)
+        if (typeof initialMessage === 'object' && initialMessage.displayText) {
+          sendMessage(initialMessage.displayText, initialMessage.context)
+        } else if (typeof initialMessage === 'string') {
+          sendMessage(initialMessage)
+        }
         if (onInitialMessageSent) onInitialMessageSent()
         initialMsgSentRef.current = false
       }, 500)
@@ -1984,7 +1996,7 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, init
     if (open) inputRef.current?.focus()
   }, [open])
 
-  const sendMessage = async (directText) => {
+  const sendMessage = async (directText, hiddenContext) => {
     const text = (typeof directText === 'string' ? directText : input).trim()
     if (!text || loading) return
     
@@ -1994,12 +2006,17 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, init
     setInput('')
     setLoading(true)
 
+    const apiMessages = newMessages.filter(m => m.role !== 'system')
+    if (hiddenContext) {
+      apiMessages.push({ role: 'user', content: `[سياق المنتج - لا تعرضه للمستخدم، استخدمه فقط للإجابة]:\n${hiddenContext}` })
+    }
+
     try {
       const res = await fetch('/.netlify/functions/ai-assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: newMessages.filter(m => m.role !== 'system'),
+          messages: apiMessages,
         })
       })
       const data = await res.json()
@@ -2053,7 +2070,7 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, init
     <>
       {/* Chat Window */}
       {open && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white" dir="rtl">
+        <div className="fixed inset-0 z-[60] flex flex-col bg-white" dir="rtl">
           {/* Chat Header */}
           <div className="bg-gradient-to-l from-blue-500 to-blue-600 px-4 py-3 flex items-center gap-3 flex-shrink-0">
             <button onClick={closeChat} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
