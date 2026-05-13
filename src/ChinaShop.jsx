@@ -198,6 +198,11 @@ export default function ChinaShop() {
   })
   const [showCart, setShowCart] = useState(false)
   const [addedToast, setAddedToast] = useState(false)
+  const [favorites, setFavorites] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('china_favorites') || '[]') } catch { return [] }
+  })
+  const [showFavorites, setShowFavorites] = useState(false)
+  const [openAiChat, setOpenAiChat] = useState(false)
   const [extractedProducts, setExtractedProducts] = useState([])
   const [popularProducts, setPopularProducts] = useState([])
   const [sheinUrl, setSheinUrl] = useState('/.netlify/functions/shein-proxy-page?url=' + encodeURIComponent('https://ar.shein.com'))
@@ -209,6 +214,20 @@ export default function ChinaShop() {
   useEffect(() => {
     localStorage.setItem('china_cart', JSON.stringify(cart))
   }, [cart])
+
+  useEffect(() => {
+    localStorage.setItem('china_favorites', JSON.stringify(favorites))
+  }, [favorites])
+
+  const toggleFavorite = (product) => {
+    setFavorites(prev => {
+      const exists = prev.find(f => f.Id === product.Id)
+      if (exists) return prev.filter(f => f.Id !== product.Id)
+      return [...prev, product]
+    })
+  }
+
+  const isFavorite = (productId) => favorites.some(f => f.Id === productId)
 
   // تنظيف البيانات القديمة + تحميل المنتجات الرائجة (أقل من 24 ساعة فقط)
   useEffect(() => {
@@ -1611,22 +1630,14 @@ export default function ChinaShop() {
         </div>
       )}
 
-      {/* Fixed Cart Bar */}
-      {cartCount > 0 && !showCart && !addedToast && (
-        <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/80 backdrop-blur-xl border-t border-gray-100">
-          <div className="max-w-3xl mx-auto px-4 py-3">
-            <button onClick={() => setShowCart(true)}
-              className={`w-full h-[52px] bg-gradient-to-l ${provColor} text-white rounded-2xl font-bold text-[14px] flex items-center justify-between px-5 shadow-xl transition-all active:scale-[0.97]`}>
-              <div className="flex items-center gap-2.5">
-                <ShoppingCart className="w-5 h-5" />
-                <span>السلة</span>
-                <span className="min-w-[22px] h-[22px] bg-white/20 rounded-lg text-[11px] flex items-center justify-center px-1.5 font-bold">{cartCount}</span>
-              </div>
-              <span className="font-black">{formatNum(cartTotal)} د.ع</span>
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Bottom Tab Bar */}
+      <BottomTabBar
+        cartCount={cartCount}
+        favCount={favorites.length}
+        onCartClick={() => setShowCart(true)}
+        onFavClick={() => setShowFavorites(true)}
+        onAiClick={() => setOpenAiChat(true)}
+      />
 
       {/* Cart Sheet */}
       {showCart && (
@@ -1732,7 +1743,59 @@ export default function ChinaShop() {
       )}
 
       {/* AI Shopping Assistant Chat */}
-      <AiChat provider={provider} onSearchResults={(serpResults, totalCount) => {
+      {/* Favorites Sheet */}
+      {showFavorites && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={() => setShowFavorites(false)}>
+          <div className="bg-white rounded-t-[28px] sm:rounded-[28px] w-full max-w-lg max-h-[90vh] overflow-y-auto will-change-transform" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-center pt-3 pb-1 sm:hidden">
+              <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
+            </div>
+            <div className="sticky top-0 bg-white/95 backdrop-blur-lg z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-pink-50 rounded-xl flex items-center justify-center">
+                  <Heart className="w-5 h-5 text-pink-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">المفضلة</h3>
+                  <p className="text-[12px] text-gray-400">{favorites.length} منتج</p>
+                </div>
+              </div>
+              <button onClick={() => setShowFavorites(false)} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all active:scale-95">
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+            {favorites.length === 0 ? (
+              <div className="text-center py-20 px-6">
+                <div className="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                  <Heart className="w-10 h-10 text-gray-300" />
+                </div>
+                <p className="text-base font-bold text-gray-600">لا توجد منتجات مفضلة</p>
+                <p className="text-sm text-gray-400 mt-1">اضغط على القلب لإضافة منتجات</p>
+              </div>
+            ) : (
+              <div className="p-4 space-y-3 pb-8">
+                {favorites.map(item => {
+                  const pr = formatPrice(item.Price, item.isSerpApi ? 'USD' : provCurrency)
+                  return (
+                    <div key={item.Id} className="flex gap-3 bg-gray-50 rounded-2xl p-3">
+                      <img src={item.MainPictureUrl} alt="" className="w-20 h-20 rounded-xl object-cover bg-white flex-shrink-0 cursor-pointer" onClick={() => { setShowFavorites(false); setSelectedProduct(item) }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-semibold text-gray-800 line-clamp-2 cursor-pointer" onClick={() => { setShowFavorites(false); setSelectedProduct(item) }}>{item.Title}</p>
+                        <p className="text-[14px] font-black text-blue-600 mt-1">{formatNum(pr.iqd)} د.ع</p>
+                      </div>
+                      <button onClick={() => toggleFavorite(item)} className="w-8 h-8 flex-shrink-0 flex items-center justify-center">
+                        <Heart className="w-5 h-5 text-red-500 fill-red-500" />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <AiChat provider={provider} externalOpen={openAiChat} onExternalClose={() => setOpenAiChat(false)} onSearchResults={(serpResults, totalCount) => {
         const formatted = serpResults.map(item => ({
           Id: item.asin,
           Title: item.title,
@@ -1755,14 +1818,69 @@ export default function ChinaShop() {
   )
 }
 
+// ─── Bottom Tab Bar Component ───
+function BottomTabBar({ cartCount, favCount, onCartClick, onFavClick, onAiClick }) {
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-gray-200/80" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <div className="max-w-lg mx-auto flex items-center justify-around px-2 py-1.5">
+        {/* السلة */}
+        <button onClick={onCartClick} className="flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl transition-all active:scale-90 group">
+          <div className="relative">
+            <svg className="w-6 h-6 text-gray-500 group-active:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+            </svg>
+            {cartCount > 0 && (
+              <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">{cartCount}</span>
+            )}
+          </div>
+          <span className="text-[10px] font-medium text-gray-500 group-active:text-blue-600">السلة</span>
+        </button>
+
+        {/* المفضلة */}
+        <button onClick={onFavClick} className="flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl transition-all active:scale-90 group">
+          <div className="relative">
+            <svg className="w-6 h-6 text-gray-500 group-active:text-pink-500 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+            </svg>
+            {favCount > 0 && (
+              <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] bg-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">{favCount}</span>
+            )}
+          </div>
+          <span className="text-[10px] font-medium text-gray-500 group-active:text-pink-500">المفضلة</span>
+        </button>
+
+        {/* المساعد الذكي */}
+        <button onClick={onAiClick} className="flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl transition-all active:scale-90 group">
+          <div className="relative">
+            <svg className="w-6 h-6 text-gray-500 group-active:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+            </svg>
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">AI</span>
+          </div>
+          <span className="text-[10px] font-medium text-gray-500 group-active:text-blue-600">المساعد</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ─── AI Chat Component ───
-function AiChat({ provider, onSearchResults }) {
+function AiChat({ provider, onSearchResults, externalOpen, onExternalClose }) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
+
+  useEffect(() => {
+    if (externalOpen) setOpen(true)
+  }, [externalOpen])
+
+  const closeChat = () => {
+    setOpen(false)
+    if (onExternalClose) onExternalClose()
+  }
 
   useEffect(() => {
     if (open && messages.length === 0) {
@@ -1814,7 +1932,7 @@ function AiChat({ provider, onSearchResults }) {
               updated[updated.length - 1] = { role: 'assistant', content: data.reply + '\n\n📦 تم عرض المنتجات في صفحة البحث!' }
               return updated
             })
-            setTimeout(() => setOpen(false), 1200)
+            setTimeout(() => closeChat(), 1200)
           } else {
             setMessages(prev => {
               const updated = [...prev]
@@ -1848,23 +1966,12 @@ function AiChat({ provider, onSearchResults }) {
 
   return (
     <>
-      {/* Chat Bubble */}
-      {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          className="fixed bottom-20 left-4 z-50 w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full shadow-lg shadow-blue-300/40 flex items-center justify-center active:scale-90 transition-all hover:shadow-xl"
-        >
-          <MessageCircle className="w-6 h-6 text-white" />
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">AI</span>
-        </button>
-      )}
-
       {/* Chat Window */}
       {open && (
         <div className="fixed inset-0 z-50 flex flex-col bg-white" dir="rtl">
           {/* Chat Header */}
           <div className="bg-gradient-to-l from-blue-500 to-blue-600 px-4 py-3 flex items-center gap-3 flex-shrink-0">
-            <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+            <button onClick={closeChat} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
               <X className="w-4 h-4 text-white" />
             </button>
             <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
