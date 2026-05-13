@@ -1732,14 +1732,28 @@ export default function ChinaShop() {
       )}
 
       {/* AI Shopping Assistant Chat */}
-      <AiChat provider={provider} />
+      <AiChat provider={provider} onProductsFound={(products) => {
+        const formatted = products.map(item => ({
+          Id: item.asin,
+          Title: item.title,
+          MainPictureUrl: item.image,
+          Price: { OriginalPrice: parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0, OriginalCurrencyCode: 'USD' },
+          Rating: item.rating,
+          Reviews: item.reviews,
+          Url: `https://www.amazon.com/dp/${item.asin}`,
+          isSerpApi: true,
+        }))
+        setResults(formatted)
+        setTotalCount(formatted.length)
+        setSearched(true)
+      }} />
 
   </div>
   )
 }
 
 // ─── AI Chat Component ───
-function AiChat({ provider }) {
+function AiChat({ provider, onProductsFound }) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
@@ -1786,7 +1800,15 @@ function AiChat({ provider }) {
       const data = await res.json()
       
       if (data.reply) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.reply, products: data.products || [] }])
+        const hasProducts = data.products && data.products.length > 0
+        const replyText = hasProducts 
+          ? data.reply + '\n\n📦 تم عرض المنتجات في صفحة البحث!' 
+          : data.reply
+        setMessages(prev => [...prev, { role: 'assistant', content: replyText }])
+        if (hasProducts && onProductsFound) {
+          onProductsFound(data.products)
+          setTimeout(() => setOpen(false), 1500)
+        }
       }
     } catch (e) {
       setMessages(prev => [...prev, { role: 'assistant', content: 'عذراً، حدث خطأ. حاول مرة ثانية 🙏' }])
@@ -1844,27 +1866,6 @@ function AiChat({ provider }) {
                     {msg.content}
                   </div>
                 </div>
-                {/* Product Cards attached to this message */}
-                {msg.products && msg.products.length > 0 && (
-                  <div className="space-y-2 mt-2">
-                    {msg.products.map((p, j) => (
-                      <a key={j} href={`https://www.amazon.com/dp/${p.asin}`} target="_blank" rel="noopener noreferrer"
-                        className="bg-white rounded-xl border border-gray-100 p-3 flex gap-3 shadow-sm hover:shadow-md transition-all active:scale-[0.98] block">
-                        {p.image && (
-                          <img src={p.image} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-gray-50" />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[12px] font-semibold text-gray-800 line-clamp-2" dir="auto">{p.title}</p>
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <span className="text-[12px] font-bold text-green-600">{p.price}</span>
-                            {p.rating && <span className="text-[10px] text-amber-500 flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400" />{p.rating}</span>}
-                          </div>
-                          <span className="text-[10px] text-blue-500 mt-1 inline-block">عرض المنتج ←</span>
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                )}
               </div>
             ))}
 
