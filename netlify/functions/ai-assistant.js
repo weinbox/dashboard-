@@ -20,12 +20,15 @@ const fetchJson = (url) => {
 const postJson = (url, body, headers = {}) => {
   return new Promise((resolve, reject) => {
     const urlObj = new URL(url)
+    const bodyStr = JSON.stringify(body)
+    const bodyBuffer = Buffer.from(bodyStr, 'utf-8')
     const options = {
       hostname: urlObj.hostname,
       path: urlObj.pathname,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Content-Length': bodyBuffer.length,
         ...headers,
       },
     }
@@ -34,11 +37,14 @@ const postJson = (url, body, headers = {}) => {
       res.on('data', chunk => data += chunk)
       res.on('end', () => {
         try { resolve(JSON.parse(data)) }
-        catch (e) { reject(new Error('Invalid JSON response')) }
+        catch (e) { 
+          console.error('postJson parse error, raw:', data.substring(0, 500))
+          reject(new Error('Invalid JSON response: ' + data.substring(0, 200))) 
+        }
       })
     })
     req.on('error', reject)
-    req.write(JSON.stringify(body))
+    req.write(bodyBuffer)
     req.end()
   })
 }
@@ -180,8 +186,8 @@ const handler = async (event) => {
     }
 
   } catch (e) {
-    console.error('AI Assistant error:', e)
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Internal error' }) }
+    console.error('AI Assistant error:', e.message || e)
+    return { statusCode: 500, headers, body: JSON.stringify({ error: e.message || 'Internal error', reply: 'عذراً، حدث خطأ تقني. حاول مرة ثانية 🙏' }) }
   }
 }
 
