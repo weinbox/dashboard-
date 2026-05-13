@@ -1204,30 +1204,31 @@ export default function ChinaShop() {
   // ─── Search & Results View ───
   const categories = provider === 'amazon'
     ? [
-        { img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=120&h=120&fit=crop', label: 'إلكترونيات', q: 'electronics' },
-        { img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=120&h=120&fit=crop', label: 'أحذية', q: 'shoes' },
-        { img: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=120&h=120&fit=crop', label: 'حقائب', q: 'bags' },
-        { img: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=120&h=120&fit=crop', label: 'جمال', q: 'beauty' },
-        { img: 'https://images.unsplash.com/photo-1616671276441-2f2c277b8bf6?w=120&h=120&fit=crop', label: 'مكملات', q: 'supplements vitamins' },
-        { img: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=120&h=120&fit=crop', label: 'منزل', q: 'home kitchen' },
-        { img: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=120&h=120&fit=crop', label: 'ساعات', q: 'watches' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'إلكترونيات', q: 'electronics', bg: 'bg-blue-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'أحذية', q: 'shoes', bg: 'bg-orange-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'حقائب', q: 'bags', bg: 'bg-amber-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'جمال', q: 'beauty', bg: 'bg-pink-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3159/3159960.png', label: 'مكملات', q: 'supplements vitamins', bg: 'bg-green-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/1261/1261163.png', label: 'منزل', q: 'home kitchen', bg: 'bg-teal-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/2972/2972531.png', label: 'ساعات', q: 'watches', bg: 'bg-gray-100' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3163/3163186.png', label: 'رياضة', q: 'sports fitness', bg: 'bg-emerald-50' },
       ]
     : provider === '1688'
     ? [
-        { img: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=120&h=120&fit=crop', label: 'أزياء', q: 'ملابس' },
-        { img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=120&h=120&fit=crop', label: 'أحذية', q: 'أحذية' },
-        { img: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=120&h=120&fit=crop', label: 'حقائب', q: 'حقائب' },
-        { img: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=120&h=120&fit=crop', label: 'جمال', q: 'مكياج' },
-        { img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=120&h=120&fit=crop', label: 'إلكترونيات', q: 'إلكترونيات' },
-        { img: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=120&h=120&fit=crop', label: 'ألعاب', q: 'العاب اطفال' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/863/863684.png', label: 'أزياء', q: 'ملابس', bg: 'bg-purple-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'أحذية', q: 'أحذية', bg: 'bg-orange-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'حقائب', q: 'حقائب', bg: 'bg-amber-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'جمال', q: 'مكياج', bg: 'bg-pink-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'إلكترونيات', q: 'إلكترونيات', bg: 'bg-blue-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3082/3082044.png', label: 'ألعاب', q: 'العاب اطفال', bg: 'bg-red-50' },
       ]
     : [
-        { img: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=120&h=120&fit=crop', label: 'أزياء', q: 'فساتين' },
-        { img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=120&h=120&fit=crop', label: 'أحذية', q: 'أحذية' },
-        { img: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=120&h=120&fit=crop', label: 'حقائب', q: 'حقائب' },
-        { img: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=120&h=120&fit=crop', label: 'جمال', q: 'عطور' },
-        { img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=120&h=120&fit=crop', label: 'إلكترونيات', q: 'سماعات' },
-        { img: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=120&h=120&fit=crop', label: 'ألعاب', q: 'العاب اطفال' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/863/863684.png', label: 'أزياء', q: 'فساتين', bg: 'bg-purple-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'أحذية', q: 'أحذية', bg: 'bg-orange-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'حقائب', q: 'حقائب', bg: 'bg-amber-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'جمال', q: 'عطور', bg: 'bg-pink-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'إلكترونيات', q: 'سماعات', bg: 'bg-blue-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3082/3082044.png', label: 'ألعاب', q: 'العاب اطفال', bg: 'bg-red-50' },
       ]
 
   const provColor = provider === 'amazon' ? 'from-gray-800 to-gray-900' : provider === 'shein' ? 'from-pink-500 to-pink-600' : 'from-orange-500 to-orange-600'
@@ -1285,6 +1286,7 @@ export default function ChinaShop() {
               type="text"
               dir="auto"
               placeholder={provider === 'amazon' ? 'Search Amazon...' : `ابحث في ${prov.label}...`}
+              style={{ textAlign: provider === 'amazon' ? 'left' : 'right' }}
               value={query}
               onChange={e => handleQueryChange(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && doSearch(0)}
@@ -1306,7 +1308,7 @@ export default function ChinaShop() {
               <div className="relative">
                 <LinkIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input type="url" dir="ltr"
-                  placeholder="Paste product link here..."
+                  placeholder="ألصق رابط المنتج هنا..."
                   value={urlInput}
                   onChange={e => { setUrlInput(e.target.value); setUrlError('') }}
                   onKeyDown={e => e.key === 'Enter' && handleUrlSearch()}
@@ -1316,18 +1318,18 @@ export default function ChinaShop() {
               {urlError && <p className="text-[11px] text-red-500 mt-1.5 px-1">{urlError}</p>}
             </div>
           )}
-          {/* Categories - Circular scrollable */}
+          {/* Categories - Grid */}
           {!searched && !loading && provider !== 'shein' && (
-            <div className="mt-4 pb-1">
-              <div className="flex gap-5 overflow-x-auto pb-2 px-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+            <div className="mt-5 pb-2">
+              <div className="grid grid-cols-4 gap-3">
                 {categories.map(cat => (
                   <button key={cat.label}
                     onClick={() => { setQuery(cat.q); doSearch(0) }}
-                    className="flex flex-col items-center gap-2 flex-shrink-0 active:scale-95 transition-all">
-                    <div className="w-[60px] h-[60px] rounded-full overflow-hidden ring-2 ring-gray-100 shadow-sm">
-                      <img src={cat.img} alt={cat.label} className="w-full h-full object-cover" loading="lazy" />
+                    className="flex flex-col items-center gap-2 active:scale-95 transition-all">
+                    <div className={`w-16 h-16 rounded-full ${cat.bg} flex items-center justify-center shadow-sm border border-gray-100`}>
+                      <img src={cat.img} alt={cat.label} className="w-9 h-9 object-contain" loading="lazy" />
                     </div>
-                    <span className="text-[11px] font-semibold text-gray-700 whitespace-nowrap">{cat.label}</span>
+                    <span className="text-[11px] font-semibold text-gray-700">{cat.label}</span>
                   </button>
                 ))}
               </div>
