@@ -1732,19 +1732,22 @@ export default function ChinaShop() {
       )}
 
       {/* AI Shopping Assistant Chat */}
-      <AiChat provider={provider} onProductsFound={(products) => {
-        const formatted = products.map(item => ({
+      <AiChat provider={provider} onSearchResults={(serpResults, totalCount) => {
+        const formatted = serpResults.map(item => ({
           Id: item.asin,
           Title: item.title,
           MainPictureUrl: item.image,
-          Price: { OriginalPrice: parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0, OriginalCurrencyCode: 'USD' },
+          Price: { OriginalPrice: item.price, OriginalCurrencyCode: 'USD' },
+          OldPrice: item.oldPrice,
           Rating: item.rating,
           Reviews: item.reviews,
-          Url: `https://www.amazon.com/dp/${item.asin}`,
+          Url: item.link,
+          Badge: item.badge,
+          BoughtLastMonth: item.boughtLastMonth,
           isSerpApi: true,
         }))
         setResults(formatted)
-        setTotalCount(formatted.length)
+        setTotalCount(totalCount || formatted.length)
         setSearched(true)
       }} />
 
@@ -1753,7 +1756,7 @@ export default function ChinaShop() {
 }
 
 // ─── AI Chat Component ───
-function AiChat({ provider, onProductsFound }) {
+function AiChat({ provider, onSearchResults }) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
@@ -1794,21 +1797,41 @@ function AiChat({ provider, onProductsFound }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: newMessages.filter(m => m.role !== 'system'),
-          provider,
         })
       })
       const data = await res.json()
       
-      if (data.reply) {
-        const hasProducts = data.products && data.products.length > 0
-        const replyText = hasProducts 
-          ? data.reply + '\n\n📦 تم عرض المنتجات في صفحة البحث!' 
-          : data.reply
-        setMessages(prev => [...prev, { role: 'assistant', content: replyText }])
-        if (hasProducts && onProductsFound) {
-          onProductsFound(data.products)
-          setTimeout(() => setOpen(false), 1500)
+      if (data.action === 'search' && data.searchQuery) {
+        setMessages(prev => [...prev, { role: 'assistant', content: data.reply + '\n\n🔍 جاري البحث...' }])
+        // Search using existing amazon-serpapi function and show in main page
+        try {
+          const searchRes = await fetch(`/.netlify/functions/amazon-serpapi?action=search&query=${encodeURIComponent(data.searchQuery)}&page=1`)
+          const searchData = await searchRes.json()
+          if (searchData.success && searchData.results && searchData.results.length > 0 && onSearchResults) {
+            onSearchResults(searchData.results, searchData.totalResults || searchData.results.length)
+            setMessages(prev => {
+              const updated = [...prev]
+              updated[updated.length - 1] = { role: 'assistant', content: data.reply + '\n\n📦 تم عرض المنتجات في صفحة البحث!' }
+              return updated
+            })
+            setTimeout(() => setOpen(false), 1200)
+          } else {
+            setMessages(prev => {
+              const updated = [...prev]
+              updated[updated.length - 1] = { role: 'assistant', content: data.reply + '\n\n⚠️ لم يتم العثور على نتائج، جرب وصف مختلف.' }
+              return updated
+            })
+          }
+        } catch (searchErr) {
+          console.error('Search error:', searchErr)
+          setMessages(prev => {
+            const updated = [...prev]
+            updated[updated.length - 1] = { role: 'assistant', content: data.reply + '\n\n⚠️ حدث خطأ بالبحث.' }
+            return updated
+          })
         }
+      } else if (data.reply) {
+        setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
       }
     } catch (e) {
       setMessages(prev => [...prev, { role: 'assistant', content: 'عذراً، حدث خطأ. حاول مرة ثانية 🙏' }])
