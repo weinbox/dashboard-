@@ -874,7 +874,7 @@ export default function ChinaShop() {
     const discountPercent = item.OldPrice > 0 && item.OldPrice > (item.Price?.OriginalPrice || 0) ? Math.round((1 - (item.Price?.OriginalPrice || 0) / item.OldPrice) * 100) : 0
 
     return (
-      <div className="min-h-screen bg-white" dir="rtl">
+      <div className="min-h-screen bg-white pb-20" dir="rtl">
         {/* Floating Header */}
         <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-100/50">
           <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
@@ -883,8 +883,8 @@ export default function ChinaShop() {
             </button>
             <p className="text-[13px] font-semibold text-gray-600 truncate max-w-[45%]">{item.Title?.substring(0, 25)}</p>
             <div className="flex items-center gap-1.5">
-              <button className="w-9 h-9 bg-gray-100/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-gray-200/80 transition-all active:scale-95">
-                <Heart className="w-[18px] h-[18px] text-gray-600" />
+              <button onClick={() => toggleFavorite(item)} className="w-9 h-9 bg-gray-100/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-gray-200/80 transition-all active:scale-95">
+                <Heart className={`w-[18px] h-[18px] ${isFavorite(item.Id) ? 'text-red-500 fill-red-500' : 'text-gray-600'}`} />
               </button>
               <button onClick={() => setShowCart(true)} className="relative w-9 h-9 bg-gray-100/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-gray-200/80 transition-all active:scale-95">
                 <ShoppingCart className="w-[18px] h-[18px] text-gray-600" />
@@ -1269,7 +1269,7 @@ export default function ChinaShop() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50" dir="rtl">
+    <div className="min-h-screen bg-gray-50 pb-20" dir="rtl">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-100">
         <div className="max-w-3xl mx-auto px-4 py-2.5">
@@ -1568,8 +1568,13 @@ export default function ChinaShop() {
                         <span className={`absolute top-2.5 right-2.5 text-[9px] ${prov.color}/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-lg font-bold`}>
                           {prov.label}
                         </span>
+                        {/* Favorite button */}
+                        <button onClick={(e) => { e.stopPropagation(); toggleFavorite(item) }}
+                          className="absolute top-2.5 left-2.5 w-8 h-8 bg-white/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm active:scale-90 transition-all z-10">
+                          <Heart className={`w-4 h-4 ${isFavorite(item.Id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+                        </button>
                         {inCart && (
-                          <div className="absolute top-2.5 left-2.5 w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                          <div className="absolute top-12 left-2.5 w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm z-10">
                             <span className="text-white text-[10px] font-bold">{inCart.qty}</span>
                           </div>
                         )}
@@ -1639,39 +1644,38 @@ export default function ChinaShop() {
         onAiClick={() => setOpenAiChat(true)}
       />
 
-      {/* Cart Sheet */}
+      {/* Cart Full Page */}
       {showCart && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={() => setShowCart(false)}>
-          <div className="bg-white rounded-t-[28px] sm:rounded-[28px] w-full max-w-lg max-h-[90vh] overflow-y-auto will-change-transform" onClick={e => e.stopPropagation()}>
-            {/* Handle bar */}
-            <div className="flex justify-center pt-3 pb-1 sm:hidden">
-              <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
-            </div>
-            <div className="sticky top-0 bg-white/95 backdrop-blur-lg z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                  <ShoppingCart className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">سلة التسوق</h3>
-                  <p className="text-[12px] text-gray-400">{cartCount} منتج</p>
-                </div>
+        <div className="fixed inset-0 z-50 flex flex-col bg-white" dir="rtl">
+          <div className="bg-white flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-100 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                <ShoppingCart className="w-5 h-5 text-blue-600" />
               </div>
-              <button onClick={() => setShowCart(false)} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all active:scale-95">
-                <X className="w-4 h-4 text-gray-500" />
-              </button>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">سلة التسوق</h3>
+                <p className="text-[12px] text-gray-400">{cartCount} منتج</p>
+              </div>
             </div>
+            <button onClick={() => setShowCart(false)} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all active:scale-95">
+              <X className="w-4 h-4 text-gray-500" />
+            </button>
+          </div>
 
+          <div className="flex-1 overflow-y-auto">
             {cart.length === 0 ? (
-              <div className="text-center py-20 px-6">
-                <div className="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
-                  <ShoppingCart className="w-10 h-10 text-gray-300" />
+              <div className="text-center py-32 px-6">
+                <div className="w-24 h-24 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
+                  <ShoppingCart className="w-12 h-12 text-gray-300" />
                 </div>
-                <p className="text-base font-bold text-gray-600">السلة فارغة</p>
-                <p className="text-[13px] text-gray-400 mt-1">أضف منتجات للبدء بالتسوق</p>
+                <p className="text-lg font-bold text-gray-600">السلة فارغة</p>
+                <p className="text-sm text-gray-400 mt-2">أضف منتجات للبدء بالتسوق</p>
+                <button onClick={() => setShowCart(false)} className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all">
+                  تصفح المنتجات
+                </button>
               </div>
             ) : (
-              <div className="p-4 space-y-3">
+              <div className="p-4 space-y-3 pb-6">
                 {cart.map(c => (
                   <div key={c.uniqueId || c.id} className="flex gap-3 bg-white rounded-2xl p-3 border border-gray-100 shadow-sm">
                     <img src={c.image} alt="" className="w-20 h-20 rounded-xl object-cover flex-shrink-0 bg-gray-50" />
@@ -1679,7 +1683,6 @@ export default function ChinaShop() {
                       <p className="text-[13px] font-semibold text-gray-700 line-clamp-2 leading-snug">{c.title}</p>
                       <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-semibold inline-block mt-1">{c.providerLabel}</span>
                       
-                      {/* عرض الأنواع المختارة */}
                       {c.selectedOptions && Object.keys(c.selectedOptions).length > 0 && (
                         <div className="mt-1.5 flex flex-wrap gap-1">
                           {Object.entries(c.selectedOptions).map(([pid, vid]) => {
@@ -1709,68 +1712,68 @@ export default function ChinaShop() {
                     </div>
                   </div>
                 ))}
-
-                {/* Cart Total */}
-                <div className="bg-gray-50 rounded-2xl p-4 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[13px] text-gray-500">المنتجات ({cartCount})</span>
-                    <span className="text-[13px] font-bold text-gray-700">{formatNum(cartTotal)} د.ع</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[13px] text-gray-500">الشحن</span>
-                    <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg font-semibold">عند الاستلام</span>
-                  </div>
-                  <div className="border-t border-gray-200 pt-2.5 flex items-center justify-between">
-                    <span className="text-[14px] font-bold text-gray-800">المجموع</span>
-                    <span className="text-xl font-black text-gray-900">{formatNum(cartTotal)} <span className="text-[12px] font-bold text-gray-500">د.ع</span></span>
-                  </div>
-                </div>
-
-                <button onClick={() => { setShowCart(false); navigate('/china-checkout') }}
-                  className="w-full h-[52px] bg-gradient-to-l from-blue-600 to-blue-700 text-white rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] shadow-lg shadow-blue-200/50">
-                  <ShoppingCart className="w-5 h-5" />
-                  إتمام الطلب — {formatNum(cartTotal)} د.ع
-                </button>
-
-                <button onClick={() => { setCart([]); setShowCart(false) }}
-                  className="w-full text-[13px] text-red-400 hover:text-red-500 py-2 transition-colors font-medium">
-                  تفريغ السلة
-                </button>
               </div>
             )}
           </div>
+
+          {/* Cart Footer */}
+          {cart.length > 0 && (
+            <div className="bg-white border-t border-gray-100 px-5 py-4 flex-shrink-0 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">المنتجات ({cartCount})</span>
+                <span className="text-sm font-bold text-gray-700">{formatNum(cartTotal)} د.ع</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">الشحن</span>
+                <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg font-semibold">عند الاستلام</span>
+              </div>
+              <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
+                <span className="text-base font-bold text-gray-800">المجموع</span>
+                <span className="text-xl font-black text-gray-900">{formatNum(cartTotal)} <span className="text-[12px] font-bold text-gray-500">د.ع</span></span>
+              </div>
+              <button onClick={() => { setShowCart(false); navigate('/china-checkout') }}
+                className="w-full h-[52px] bg-gradient-to-l from-blue-600 to-blue-700 text-white rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] shadow-lg shadow-blue-200/50">
+                <ShoppingCart className="w-5 h-5" />
+                إتمام الطلب — {formatNum(cartTotal)} د.ع
+              </button>
+              <button onClick={() => { setCart([]); setShowCart(false) }}
+                className="w-full text-[13px] text-red-400 hover:text-red-500 py-1 transition-colors font-medium">
+                تفريغ السلة
+              </button>
+            </div>
+          )}
         </div>
       )}
 
-      {/* AI Shopping Assistant Chat */}
-      {/* Favorites Sheet */}
+      {/* Favorites Full Page */}
       {showFavorites && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={() => setShowFavorites(false)}>
-          <div className="bg-white rounded-t-[28px] sm:rounded-[28px] w-full max-w-lg max-h-[90vh] overflow-y-auto will-change-transform" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-center pt-3 pb-1 sm:hidden">
-              <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
-            </div>
-            <div className="sticky top-0 bg-white/95 backdrop-blur-lg z-10 flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-pink-50 rounded-xl flex items-center justify-center">
-                  <Heart className="w-5 h-5 text-pink-500" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">المفضلة</h3>
-                  <p className="text-[12px] text-gray-400">{favorites.length} منتج</p>
-                </div>
+        <div className="fixed inset-0 z-50 flex flex-col bg-white" dir="rtl">
+          <div className="bg-white flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-100 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-pink-50 rounded-xl flex items-center justify-center">
+                <Heart className="w-5 h-5 text-pink-500" />
               </div>
-              <button onClick={() => setShowFavorites(false)} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all active:scale-95">
-                <X className="w-4 h-4 text-gray-500" />
-              </button>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">المفضلة</h3>
+                <p className="text-[12px] text-gray-400">{favorites.length} منتج</p>
+              </div>
             </div>
+            <button onClick={() => setShowFavorites(false)} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all active:scale-95">
+              <X className="w-4 h-4 text-gray-500" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
             {favorites.length === 0 ? (
-              <div className="text-center py-20 px-6">
-                <div className="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
-                  <Heart className="w-10 h-10 text-gray-300" />
+              <div className="text-center py-32 px-6">
+                <div className="w-24 h-24 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
+                  <Heart className="w-12 h-12 text-gray-300" />
                 </div>
-                <p className="text-base font-bold text-gray-600">لا توجد منتجات مفضلة</p>
-                <p className="text-sm text-gray-400 mt-1">اضغط على القلب لإضافة منتجات</p>
+                <p className="text-lg font-bold text-gray-600">لا توجد منتجات مفضلة</p>
+                <p className="text-sm text-gray-400 mt-2">اضغط على القلب لإضافة منتجات</p>
+                <button onClick={() => setShowFavorites(false)} className="mt-6 px-6 py-3 bg-pink-500 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all">
+                  تصفح المنتجات
+                </button>
               </div>
             ) : (
               <div className="p-4 space-y-3 pb-8">
@@ -1988,7 +1991,7 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose }) {
             {messages.map((msg, i) => (
               <div key={i}>
                 <div className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap ${
+                  <div className={`max-w-[85%] rounded-2xl px-5 py-3 text-[15px] leading-relaxed whitespace-pre-wrap ${
                     msg.role === 'user' 
                       ? 'bg-blue-500 text-white rounded-tl-sm' 
                       : 'bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tr-sm'
