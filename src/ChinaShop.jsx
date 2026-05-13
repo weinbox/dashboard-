@@ -275,6 +275,16 @@ export default function ChinaShop() {
     return null
   }
 
+  // ترجمة النص العربي للإنكليزي تلقائياً
+  const translateToEn = async (text) => {
+    if (!/[\u0600-\u06FF]/.test(text)) return text
+    try {
+      const res = await fetch(`/.netlify/functions/translate?text=${encodeURIComponent(text)}&from=ar&to=en`)
+      const data = await res.json()
+      return data.success ? data.translated : text
+    } catch { return text }
+  }
+
   const doSearch = async (pageNum = 0, sortOverride) => {
     if (!query.trim()) return
     setImageResults([])
@@ -286,23 +296,25 @@ export default function ChinaShop() {
       return
     }
 
-    // Amazon: استخدام SerpApi مع Cache
+    // Amazon: استخدام SerpApi مع Cache - ترجمة عربي→إنكليزي
     if (prov.useSerpApi) {
       setSearched(true)
       setPage(pageNum)
       setSelectedProduct(null)
       setProductDetail(null)
+      setLoading(true)
       const sort = sortOverride ?? sortBy
+      const searchQuery = await translateToEn(query.trim())
       // التحقق من Cache أولاً
-      const cached = await getCache(provider, query.trim(), sort, pageNum)
+      const cached = await getCache(provider, searchQuery, sort, pageNum)
       if (cached) {
         setResults(cached.results)
         setTotalCount(cached.totalCount)
+        setLoading(false)
         return
       }
-      setLoading(true)
       try {
-        const res = await fetch(`/.netlify/functions/amazon-serpapi?action=search&query=${encodeURIComponent(query.trim())}&page=${pageNum + 1}`)
+        const res = await fetch(`/.netlify/functions/amazon-serpapi?action=search&query=${encodeURIComponent(searchQuery)}&page=${pageNum + 1}`)
         const data = await res.json()
         if (data.success && data.results) {
           const formatted = data.results.map(item => ({
@@ -321,7 +333,7 @@ export default function ChinaShop() {
           setResults(formatted)
           setTotalCount(data.totalResults || formatted.length)
           // حفظ في Cache
-          setCache(provider, query.trim(), sort, pageNum, formatted, data.totalResults || formatted.length)
+          setCache(provider, searchQuery, sort, pageNum, formatted, data.totalResults || formatted.length)
         } else {
           setResults([])
           setTotalCount(0)
@@ -1192,30 +1204,30 @@ export default function ChinaShop() {
   // ─── Search & Results View ───
   const categories = provider === 'amazon'
     ? [
-        { icon: <Headphones className="w-5 h-5" />, label: 'إلكترونيات', q: 'electronics', bg: 'bg-blue-50', color: 'text-blue-600' },
-        { icon: <Footprints className="w-5 h-5" />, label: 'أحذية', q: 'shoes', bg: 'bg-green-50', color: 'text-green-600' },
-        { icon: <Briefcase className="w-5 h-5" />, label: 'حقائب', q: 'bags', bg: 'bg-amber-50', color: 'text-amber-600' },
-        { icon: <Sparkles className="w-5 h-5" />, label: 'جمال', q: 'beauty', bg: 'bg-pink-50', color: 'text-pink-600' },
-        { icon: <Pill className="w-5 h-5" />, label: 'مكملات', q: 'supplements vitamins', bg: 'bg-emerald-50', color: 'text-emerald-600' },
-        { icon: <Home className="w-5 h-5" />, label: 'منزل', q: 'home', bg: 'bg-teal-50', color: 'text-teal-600' },
-        { icon: <Watch className="w-5 h-5" />, label: 'ساعات', q: 'watches', bg: 'bg-gray-100', color: 'text-gray-600' },
+        { img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=120&h=120&fit=crop', label: 'إلكترونيات', q: 'electronics' },
+        { img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=120&h=120&fit=crop', label: 'أحذية', q: 'shoes' },
+        { img: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=120&h=120&fit=crop', label: 'حقائب', q: 'bags' },
+        { img: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=120&h=120&fit=crop', label: 'جمال', q: 'beauty' },
+        { img: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=120&h=120&fit=crop', label: 'مكملات', q: 'supplements vitamins' },
+        { img: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=120&h=120&fit=crop', label: 'منزل', q: 'home kitchen' },
+        { img: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=120&h=120&fit=crop', label: 'ساعات', q: 'watches' },
       ]
     : provider === '1688'
     ? [
-        { icon: <Shirt className="w-5 h-5" />, label: 'أزياء', q: 'ملابس', bg: 'bg-purple-50', color: 'text-purple-600' },
-        { icon: <Footprints className="w-5 h-5" />, label: 'أحذية', q: 'أحذية', bg: 'bg-green-50', color: 'text-green-600' },
-        { icon: <Briefcase className="w-5 h-5" />, label: 'حقائب', q: 'حقائب', bg: 'bg-amber-50', color: 'text-amber-600' },
-        { icon: <Sparkles className="w-5 h-5" />, label: 'جمال', q: 'مكياج', bg: 'bg-pink-50', color: 'text-pink-600' },
-        { icon: <Smartphone className="w-5 h-5" />, label: 'إلكترونيات', q: 'إلكترونيات', bg: 'bg-blue-50', color: 'text-blue-600' },
-        { icon: <ToyBrick className="w-5 h-5" />, label: 'ألعاب', q: 'العاب اطفال', bg: 'bg-red-50', color: 'text-red-500' },
+        { img: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=120&h=120&fit=crop', label: 'أزياء', q: 'ملابس' },
+        { img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=120&h=120&fit=crop', label: 'أحذية', q: 'أحذية' },
+        { img: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=120&h=120&fit=crop', label: 'حقائب', q: 'حقائب' },
+        { img: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=120&h=120&fit=crop', label: 'جمال', q: 'مكياج' },
+        { img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=120&h=120&fit=crop', label: 'إلكترونيات', q: 'إلكترونيات' },
+        { img: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=120&h=120&fit=crop', label: 'ألعاب', q: 'العاب اطفال' },
       ]
     : [
-        { icon: <Shirt className="w-5 h-5" />, label: 'أزياء', q: 'فساتين', bg: 'bg-purple-50', color: 'text-purple-600' },
-        { icon: <Footprints className="w-5 h-5" />, label: 'أحذية', q: 'أحذية', bg: 'bg-green-50', color: 'text-green-600' },
-        { icon: <Briefcase className="w-5 h-5" />, label: 'حقائب', q: 'حقائب', bg: 'bg-amber-50', color: 'text-amber-600' },
-        { icon: <Sparkles className="w-5 h-5" />, label: 'جمال', q: 'عطور', bg: 'bg-pink-50', color: 'text-pink-600' },
-        { icon: <Smartphone className="w-5 h-5" />, label: 'إلكترونيات', q: 'سماعات', bg: 'bg-blue-50', color: 'text-blue-600' },
-        { icon: <ToyBrick className="w-5 h-5" />, label: 'ألعاب', q: 'العاب اطفال', bg: 'bg-red-50', color: 'text-red-500' },
+        { img: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=120&h=120&fit=crop', label: 'أزياء', q: 'فساتين' },
+        { img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=120&h=120&fit=crop', label: 'أحذية', q: 'أحذية' },
+        { img: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=120&h=120&fit=crop', label: 'حقائب', q: 'حقائب' },
+        { img: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=120&h=120&fit=crop', label: 'جمال', q: 'عطور' },
+        { img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=120&h=120&fit=crop', label: 'إلكترونيات', q: 'سماعات' },
+        { img: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=120&h=120&fit=crop', label: 'ألعاب', q: 'العاب اطفال' },
       ]
 
   const provColor = provider === 'amazon' ? 'from-gray-800 to-gray-900' : provider === 'shein' ? 'from-pink-500 to-pink-600' : 'from-orange-500 to-orange-600'
@@ -1314,61 +1326,58 @@ export default function ChinaShop() {
           {/* Categories - Circular scrollable */}
           {!searched && !loading && provider !== 'shein' && (
             <div className="mt-4 pb-1">
-              <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <div className="flex gap-5 overflow-x-auto pb-2 px-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
                 {categories.map(cat => (
                   <button key={cat.label}
                     onClick={() => { setQuery(cat.q); doSearch(0) }}
-                    className="flex flex-col items-center gap-1.5 flex-shrink-0 active:scale-95 transition-all">
-                    <div className={`w-14 h-14 ${cat.bg} rounded-full flex items-center justify-center ${cat.color}`}>
-                      {cat.icon}
+                    className="flex flex-col items-center gap-2 flex-shrink-0 active:scale-95 transition-all">
+                    <div className="w-[60px] h-[60px] rounded-full overflow-hidden ring-2 ring-gray-100 shadow-sm">
+                      <img src={cat.img} alt={cat.label} className="w-full h-full object-cover" loading="lazy" />
                     </div>
-                    <span className="text-[11px] font-semibold text-gray-600 whitespace-nowrap">{cat.label}</span>
+                    <span className="text-[11px] font-semibold text-gray-700 whitespace-nowrap">{cat.label}</span>
                   </button>
                 ))}
               </div>
             </div>
           )}
-          {/* Mode toggle for image search */}
+          {/* Image search section */}
           {!searched && !loading && provider !== 'shein' && searchMode === 'image' && (
-            <div className="mt-3 space-y-3">
-              <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-4 border border-gray-100">
-                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border border-gray-200">
-                  <ImageIcon className="w-5 h-5 text-gray-300" />
+            <div className="mt-4 space-y-3">
+              <button onClick={() => fileInputRef.current?.click()}
+                className="w-full bg-gradient-to-l from-gray-800 to-gray-900 rounded-2xl p-5 flex items-center gap-4 active:scale-[0.98] transition-all shadow-lg">
+                <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                  <Camera className="w-7 h-7 text-white" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-[13px] font-bold text-gray-700">ارفع صورة للبحث</p>
-                  <p className="text-[11px] text-gray-400">نجد لك منتجات مشابهة</p>
+                <div className="flex-1 text-right">
+                  <p className="text-[14px] font-bold text-white">ارفع صورة للبحث</p>
+                  <p className="text-[12px] text-gray-400 mt-0.5">التقط أو اختر صورة ونجد لك منتجات مشابهة</p>
                 </div>
-                <button onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 bg-gray-900 text-white text-[12px] font-bold rounded-xl hover:bg-gray-800 transition-all active:scale-95">
-                  اختر صورة
-                </button>
-              </div>
+              </button>
               <div className="relative">
-                <ImageIcon className="w-3.5 h-3.5 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-300" />
-                <input type="url" dir="ltr" placeholder="...Or paste image URL"
+                <ImageIcon className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input type="url" dir="ltr" placeholder="أو ألصق رابط الصورة هنا..."
                   value={imageUrlInput}
                   onChange={e => setImageUrlInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && doImageSearch(imageUrlInput)}
-                  className="w-full h-10 pr-9 pl-4 bg-gray-50 rounded-xl text-[12px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-gray-200 border border-gray-100 focus:border-gray-300 placeholder:text-gray-300 text-left"
+                  className="w-full h-11 pr-10 pl-4 bg-gray-100 rounded-xl text-[13px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-gray-200 border border-gray-200 focus:border-gray-300 placeholder:text-gray-400 text-left"
                 />
               </div>
               {imageUrlInput && (
                 <button onClick={() => doImageSearch(imageUrlInput)}
-                  className="w-full h-10 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-bold text-[12px] flex items-center justify-center gap-2 transition-all active:scale-[0.97]">
+                  className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 transition-all active:scale-[0.97] shadow-md">
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                   بحث بالصورة
                 </button>
               )}
             </div>
           )}
-          {/* Search mode toggle - minimal */}
+          {/* Search mode toggle */}
           {!searched && !loading && provider !== 'shein' && (
-            <div className="flex justify-center mt-2 pb-1">
+            <div className="flex justify-center mt-3 pb-2">
               <button
                 onClick={() => searchMode === 'image' ? (() => { setSearchMode('text'); setImageResults([]) })() : setSearchMode('image')}
-                className="flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-gray-600 transition-colors py-1">
-                {searchMode === 'image' ? <Search className="w-3 h-3" /> : <Camera className="w-3 h-3" />}
+                className="flex items-center gap-2 text-[12px] text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full transition-all active:scale-95">
+                {searchMode === 'image' ? <Search className="w-3.5 h-3.5" /> : <Camera className="w-3.5 h-3.5" />}
                 {searchMode === 'image' ? 'بحث بالكلمة' : 'بحث بالصورة'}
               </button>
             </div>
