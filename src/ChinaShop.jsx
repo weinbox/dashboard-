@@ -1744,7 +1744,6 @@ function AiChat({ provider }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [products, setProducts] = useState([])
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -1774,7 +1773,6 @@ function AiChat({ provider }) {
     setMessages(newMessages)
     setInput('')
     setLoading(true)
-    setProducts([])
 
     try {
       const res = await fetch('/.netlify/functions/ai-assistant', {
@@ -1788,10 +1786,7 @@ function AiChat({ provider }) {
       const data = await res.json()
       
       if (data.reply) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
-      }
-      if (data.products && data.products.length > 0) {
-        setProducts(data.products)
+        setMessages(prev => [...prev, { role: 'assistant', content: data.reply, products: data.products || [] }])
       }
     } catch (e) {
       setMessages(prev => [...prev, { role: 'assistant', content: 'عذراً، حدث خطأ. حاول مرة ثانية 🙏' }])
@@ -1839,37 +1834,39 @@ function AiChat({ provider }) {
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50">
             {messages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}>
-                <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap ${
-                  msg.role === 'user' 
-                    ? 'bg-blue-500 text-white rounded-tl-sm' 
-                    : 'bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tr-sm'
-                }`}>
-                  {msg.content}
+              <div key={i}>
+                <div className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}>
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap ${
+                    msg.role === 'user' 
+                      ? 'bg-blue-500 text-white rounded-tl-sm' 
+                      : 'bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tr-sm'
+                  }`}>
+                    {msg.content}
+                  </div>
                 </div>
+                {/* Product Cards attached to this message */}
+                {msg.products && msg.products.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    {msg.products.map((p, j) => (
+                      <a key={j} href={`https://www.amazon.com/dp/${p.asin}`} target="_blank" rel="noopener noreferrer"
+                        className="bg-white rounded-xl border border-gray-100 p-3 flex gap-3 shadow-sm hover:shadow-md transition-all active:scale-[0.98] block">
+                        {p.image && (
+                          <img src={p.image} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-gray-50" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] font-semibold text-gray-800 line-clamp-2" dir="auto">{p.title}</p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-[12px] font-bold text-green-600">{p.price}</span>
+                            {p.rating && <span className="text-[10px] text-amber-500 flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400" />{p.rating}</span>}
+                          </div>
+                          <span className="text-[10px] text-blue-500 mt-1 inline-block">عرض المنتج ←</span>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
-
-            {/* Product Cards from AI search */}
-            {products.length > 0 && (
-              <div className="space-y-2 pr-2">
-                <p className="text-[11px] text-gray-400 font-medium">📦 منتجات مقترحة:</p>
-                {products.map((p, i) => (
-                  <div key={i} className="bg-white rounded-xl border border-gray-100 p-3 flex gap-3 shadow-sm">
-                    {p.image && (
-                      <img src={p.image} alt="" className="w-14 h-14 rounded-lg object-cover flex-shrink-0 bg-gray-100" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-semibold text-gray-800 line-clamp-2 text-right" dir="auto">{p.title}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[12px] font-bold text-blue-600">{p.price}</span>
-                        {p.rating && <span className="text-[10px] text-amber-500 flex items-center gap-0.5"><Star className="w-3 h-3 fill-amber-400" />{p.rating}</span>}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
 
             {/* Loading indicator */}
             {loading && (
