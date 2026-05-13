@@ -22,17 +22,29 @@ const searchAmazon = async (query) => {
   }
 }
 
-const SYSTEM_PROMPT = `You are a smart shopping assistant for an Iraqi e-commerce store selling products from Amazon and China.
+// Step 1: Ask AI if conversation is ready to search, and what query to use
+const DECISION_PROMPT = `You are a shopping assistant decision engine.
+Given the conversation, decide if you have enough information to search for products on Amazon.
+
+Rules:
+- If the user's request is CLEAR and SPECIFIC enough to search (e.g. "coloring book for adults", "gaming headset under $50"), respond with: SEARCH: <english search query>
+- If the request is VAGUE and needs clarification (e.g. just "gift", "something nice", or first message without details), respond with: ASK: <your clarifying question in Iraqi Arabic>
+- The search query MUST be a smart, specific English Amazon search query (NOT a literal translation). Use context from the ENTIRE conversation.
+- For example: if user said "دفاتر تلوين" then later said "للبالغين", the query should be "adult coloring book" NOT "i want coloring book"
+- ONLY output one line: either "SEARCH: ..." or "ASK: ..."
+- Never search on the very first message unless it is extremely specific with all details`
+
+// Step 2: Generate the actual reply with search results
+const REPLY_PROMPT = `You are a smart shopping assistant for an Iraqi e-commerce store selling products from Amazon and China.
 Rules:
 - Respond in simple Iraqi Arabic
 - Prices in Iraqi Dinar (IQD). $1 = 1400 IQD
-- Each product has 20% commission built into price (never mention commission)
+- Each product has 20% commission built into price (never mention commission to customer)
 - Shipping is cash on delivery
-- If request is vague, ask clarifying questions (budget, usage, etc)
-- Format product suggestions clearly with number and price
-- If Amazon search results are provided, use them to suggest products. Convert USD to IQD (multiply by 1400 then add 20%)
+- When you have search results, present the TOP products with names and prices in IQD
 - Be friendly and concise
-- Start with a simple greeting if first message`
+- Convert USD to IQD: multiply by 1400 then add 20%
+- Format: numbered list with product name and IQD price`
 
 exports.handler = async (event) => {
   const headers = {
@@ -50,45 +62,14 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { messages, provider } = JSON.parse(event.body)
+    const { messages } = JSON.parse(event.body)
 
     if (!messages || !Array.isArray(messages)) {
       return { statusCode: 400, headers, body: JSON.stringify({ error: 'messages required' }) }
     }
 
-    const lastUserMsg = messages.filter(m => m.role === 'user').pop()
-    let searchResults = []
-    let searchContext = ''
-
-    if (lastUserMsg && lastUserMsg.content) {
-      const msg = lastUserMsg.content
-      const keywords = ['أريد','اريد','ابي','أبي','ابحث','أبحث','اقترح','منتج','شراء','أفضل','افضل','ارخص','أرخص','هدية','هديه','فيتامين','كريم','سماع','ساعة','ساعه','حقيبة','حقيبه','عطر','جوال','تلفون','لابتوب']
-      const isProductQuery = msg.length > 3 && keywords.some(k => msg.includes(k)) || messages.length <= 2
-
-      if (isProductQuery) {
-        try {
-          const tRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ar&tl=en&dt=t&q=${encodeURIComponent(msg)}`)
-          const tData = await tRes.json()
-          const englishQuery = tData?.[0]?.[0]?.[0] || msg
-          searchResults = await searchAmazon(englishQuery)
-        } catch (e) {
-          console.error('Translation error:', e.message)
-        }
-      }
-    }
-
-    if (searchResults.length > 0) {
-      searchContext = '\n\nAmazon search results:\n' + searchResults.map((r, i) =>
-        `${i+1}. ${r.title} | Price: ${r.price} | Rating: ${r.rating || 'N/A'} (${r.reviews || 0} reviews) | ASIN: ${r.asin}`
-      ).join('\n')
-    }
-
-    const openaiMessages = [
-      { role: 'system', content: SYSTEM_PROMPT + searchContext },
-      ...messages.slice(-10)
-    ]
-
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Step 1: Ask AI to decide - search or ask clarification?
+    const decisionRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -96,20 +77,75 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        messages: openaiMessages,
+        messages: [
+          { role: 'system', content: DECISION_PROMPT },
+          ...messages.slice(-10)
+        ],
+        max_tokens: 150,
+        temperature: 0.3,
+      }),
+    })
+
+    const decisionData = await decisionRes.json()
+    if (decisionData.error) {
+      console.error('OpenAI decision error:', JSON.stringify(decisionData.error))
+      return { statusCode: 500, headers, body: JSON.stringify({ error: decisionData.error.message, reply: 'عذراً، حدث خطأ. حاول مرة ثانية 🙏' }) }
+    }
+
+    const decision = decisionData.choices?.[0]?.message?.content?.trim() || ''
+    console.log('AI Decision:', decision)
+
+    // If AI says ASK - just return the clarifying question, no search
+    if (decision.startsWith('ASK:')) {
+      const askText = decision.substring(4).trim()
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ reply: askText, products: [] }),
+      }
+    }
+
+    // If AI says SEARCH - extract query and search Amazon
+    let searchResults = []
+    let searchContext = ''
+
+    if (decision.startsWith('SEARCH:')) {
+      const searchQuery = decision.substring(7).trim()
+      console.log('Searching Amazon for:', searchQuery)
+      searchResults = await searchAmazon(searchQuery)
+
+      if (searchResults.length > 0) {
+        searchContext = '\n\nAmazon search results:\n' + searchResults.map((r, i) =>
+          `${i+1}. ${r.title} | Price: ${r.price} | Rating: ${r.rating || 'N/A'} (${r.reviews || 0} reviews)`
+        ).join('\n')
+      }
+    }
+
+    // Step 2: Generate reply with search results
+    const replyRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: REPLY_PROMPT + searchContext },
+          ...messages.slice(-10)
+        ],
         max_tokens: 800,
         temperature: 0.7,
       }),
     })
 
-    const openaiData = await openaiRes.json()
-
-    if (openaiData.error) {
-      console.error('OpenAI error:', JSON.stringify(openaiData.error))
-      return { statusCode: 500, headers, body: JSON.stringify({ error: openaiData.error.message, reply: 'عذراً، حدث خطأ. حاول مرة ثانية 🙏' }) }
+    const replyData = await replyRes.json()
+    if (replyData.error) {
+      console.error('OpenAI reply error:', JSON.stringify(replyData.error))
+      return { statusCode: 500, headers, body: JSON.stringify({ error: replyData.error.message, reply: 'عذراً، حدث خطأ. حاول مرة ثانية 🙏' }) }
     }
 
-    const reply = openaiData.choices?.[0]?.message?.content || 'عذراً، حاول مرة ثانية.'
+    const reply = replyData.choices?.[0]?.message?.content || 'عذراً، حاول مرة ثانية.'
 
     return {
       statusCode: 200,
