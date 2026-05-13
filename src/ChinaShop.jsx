@@ -203,6 +203,7 @@ export default function ChinaShop() {
   })
   const [showFavorites, setShowFavorites] = useState(false)
   const [openAiChat, setOpenAiChat] = useState(false)
+  const [aiInitialMessage, setAiInitialMessage] = useState(null)
   const [extractedProducts, setExtractedProducts] = useState([])
   const [popularProducts, setPopularProducts] = useState([])
   const [sheinUrl, setSheinUrl] = useState('/.netlify/functions/shein-proxy-page?url=' + encodeURIComponent('https://ar.shein.com'))
@@ -988,6 +989,75 @@ export default function ChinaShop() {
                   <span className="text-[12px] text-orange-600 font-bold flex items-center gap-1"><Flame className="w-3.5 h-3.5" /> {item.BoughtLastMonth || productDetail?.boughtLastMonth} اشتروه الشهر الماضي</span>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* AI Assistant Buttons */}
+          <div className="px-5 pb-4">
+            <div className="grid grid-cols-2 gap-2.5">
+              <button onClick={() => {
+                const msg = `اشرح لي هذا المنتج بالعربي بشكل مبسط:\n\nاسم المنتج: ${item.Title}\nالسعر: ${formatNum(iqd)} دينار عراقي${item.Rating ? `\nالتقييم: ${item.Rating}` : ''}${item.Badge ? `\nملاحظة: ${item.Badge}` : ''}`
+                setAiInitialMessage(msg)
+                setOpenAiChat(true)
+              }} className="flex items-center gap-2.5 bg-gradient-to-l from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl px-4 py-3.5 active:scale-95 transition-all group">
+                <div className="w-9 h-9 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm shadow-blue-200/50">
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                  </svg>
+                </div>
+                <div className="text-right">
+                  <p className="text-[13px] font-bold text-gray-800">اشرح لي المنتج</p>
+                  <p className="text-[10px] text-gray-400">وصف بالعربي</p>
+                </div>
+              </button>
+
+              <button onClick={() => {
+                const msg = `ساعدني اختار المقاس المناسب لهذا المنتج:\n\nاسم المنتج: ${item.Title}\n\nاسألني عن طولي ووزني واقترح لي المقاس الصحيح`
+                setAiInitialMessage(msg)
+                setOpenAiChat(true)
+              }} className="flex items-center gap-2.5 bg-gradient-to-l from-emerald-50 to-green-50 border border-emerald-100 rounded-2xl px-4 py-3.5 active:scale-95 transition-all group">
+                <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm shadow-emerald-200/50">
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                  </svg>
+                </div>
+                <div className="text-right">
+                  <p className="text-[13px] font-bold text-gray-800">اختيار المقاس</p>
+                  <p className="text-[10px] text-gray-400">حسب طولك ووزنك</p>
+                </div>
+              </button>
+
+              <button onClick={() => {
+                const msg = `قارن لي هذا المنتج بمنتجات مشابهة وانصحني:\n\nاسم المنتج: ${item.Title}\nالسعر: ${formatNum(iqd)} دينار عراقي${item.Rating ? `\nالتقييم: ${item.Rating}` : ''}`
+                setAiInitialMessage(msg)
+                setOpenAiChat(true)
+              }} className="flex items-center gap-2.5 bg-gradient-to-l from-purple-50 to-violet-50 border border-purple-100 rounded-2xl px-4 py-3.5 active:scale-95 transition-all group">
+                <div className="w-9 h-9 bg-purple-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm shadow-purple-200/50">
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                  </svg>
+                </div>
+                <div className="text-right">
+                  <p className="text-[13px] font-bold text-gray-800">قارن بمنتج ثاني</p>
+                  <p className="text-[10px] text-gray-400">بدائل مشابهة</p>
+                </div>
+              </button>
+
+              <button onClick={() => {
+                const msg = `هل هذا المنتج يستاهل الشراء؟ اعطيني رأيك بصراحة:\n\nاسم المنتج: ${item.Title}\nالسعر: ${formatNum(iqd)} دينار عراقي${item.Rating ? `\nالتقييم: ${item.Rating}` : ''}${reviews ? `\nعدد التقييمات: ${reviews}` : ''}${item.BoughtLastMonth ? `\nمبيعات الشهر: ${item.BoughtLastMonth}` : ''}`
+                setAiInitialMessage(msg)
+                setOpenAiChat(true)
+              }} className="flex items-center gap-2.5 bg-gradient-to-l from-amber-50 to-orange-50 border border-amber-100 rounded-2xl px-4 py-3.5 active:scale-95 transition-all group">
+                <div className="w-9 h-9 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm shadow-amber-200/50">
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+                  </svg>
+                </div>
+                <div className="text-right">
+                  <p className="text-[13px] font-bold text-gray-800">يستاهل الشراء؟</p>
+                  <p className="text-[10px] text-gray-400">رأي المساعد الذكي</p>
+                </div>
+              </button>
             </div>
           </div>
 
@@ -1798,7 +1868,7 @@ export default function ChinaShop() {
         </div>
       )}
 
-      <AiChat provider={provider} externalOpen={openAiChat} onExternalClose={() => setOpenAiChat(false)} onSearchResults={(serpResults, totalCount) => {
+      <AiChat provider={provider} externalOpen={openAiChat} onExternalClose={() => setOpenAiChat(false)} initialMessage={aiInitialMessage} onInitialMessageSent={() => setAiInitialMessage(null)} onSearchResults={(serpResults, totalCount) => {
         const formatted = serpResults.map(item => ({
           Id: item.asin,
           Title: item.title,
@@ -1868,13 +1938,14 @@ function BottomTabBar({ cartCount, favCount, onCartClick, onFavClick, onAiClick 
 }
 
 // ─── AI Chat Component ───
-function AiChat({ provider, onSearchResults, externalOpen, onExternalClose }) {
+function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, initialMessage, onInitialMessageSent }) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
+  const initialMsgSentRef = useRef(false)
 
   useEffect(() => {
     if (externalOpen) setOpen(true)
@@ -1893,6 +1964,17 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose }) {
       }])
     }
   }, [open])
+
+  useEffect(() => {
+    if (open && initialMessage && !initialMsgSentRef.current && !loading) {
+      initialMsgSentRef.current = true
+      setTimeout(() => {
+        sendMessage(initialMessage)
+        if (onInitialMessageSent) onInitialMessageSent()
+        initialMsgSentRef.current = false
+      }, 500)
+    }
+  }, [open, initialMessage])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
