@@ -10,6 +10,7 @@ import {
 import { supabase } from './lib/supabase'
 import ExplainSheet from './ExplainSheet'
 import { ProductSkeleton, SearchSkeleton } from './Skeletons'
+import { useStaggerIn, useZoomIn, useSlideUp, useCountUp, useAddToCartAnim } from './useAnimations'
 
 const API_KEY = 'ccaff9b1-804a-4041-8118-70ce26977867'
 const PROXY_BASE = '/api/otapi-proxy'
@@ -216,6 +217,13 @@ export default function ChinaShop() {
   const searchRef = useRef(null)
   const debounceRef = useRef(null)
   const PAGE_SIZE = 20
+
+  // GSAP Animations
+  const resultsGridRef = useStaggerIn(results)
+  const productImageRef = useZoomIn(selectedProduct?.Id)
+  const productInfoRef = useSlideUp(selectedProduct?.Id)
+  const priceCountRef = useCountUp(selectedProduct ? formatPrice(selectedProduct.Price, PROVIDERS[provider]?.currency || 'CNY').iqd : 0, selectedProduct?.Id)
+  const flyToCart = useAddToCartAnim()
 
   useEffect(() => {
     localStorage.setItem('china_cart', JSON.stringify(cart))
@@ -918,7 +926,7 @@ export default function ChinaShop() {
               <button onClick={() => toggleFavorite(item)} className="w-9 h-9 bg-gray-100/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-gray-200/80 transition-all active:scale-95">
                 <Heart className={`w-[18px] h-[18px] ${isFavorite(item.Id) ? 'text-red-500 fill-red-500' : 'text-gray-600'}`} />
               </button>
-              <button onClick={() => setShowCart(true)} className="relative w-9 h-9 bg-gray-100/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-gray-200/80 transition-all active:scale-95">
+              <button data-cart-icon onClick={() => setShowCart(true)} className="relative w-9 h-9 bg-gray-100/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-gray-200/80 transition-all active:scale-95">
                 <ShoppingCart className="w-[18px] h-[18px] text-gray-600" />
                 {cartCount > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5">{cartCount}</span>
@@ -937,7 +945,7 @@ export default function ChinaShop() {
 
         <div className={`max-w-2xl mx-auto pt-12 pb-28 ${loadingDetail ? 'hidden' : ''}`}>
           {/* Image Gallery - Full bleed */}
-          <div className="relative bg-gradient-to-b from-gray-50 to-white aspect-square overflow-hidden">
+          <div ref={productImageRef} className="relative bg-gradient-to-b from-gray-50 to-white aspect-square overflow-hidden">
             {pics.length > 0 ? (
               <>
                 <img src={pics[activeImage]?.Large?.Url || pics[activeImage]?.Url} alt="" className="w-full h-full object-contain p-6" />
@@ -975,7 +983,7 @@ export default function ChinaShop() {
           </div>
 
           {/* Price + Title Card */}
-          <div className="px-5 py-5">
+          <div ref={productInfoRef} className="px-5 py-5">
             {/* Provider + Rating row */}
             <div className="flex items-center gap-2 mb-3">
               <span className="text-[11px] font-bold bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg">{provLabel}</span>
@@ -1002,7 +1010,7 @@ export default function ChinaShop() {
                 <div>
                   <p className="text-[11px] text-gray-400 font-medium mb-0.5">السعر</p>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-3xl font-black text-gray-900">{formatNum(iqd)}</span>
+                    <span ref={priceCountRef} className="text-3xl font-black text-gray-900">{formatNum(iqd)}</span>
                     <span className="text-sm font-bold text-gray-500">د.ع</span>
                   </div>
                   {item.OldPrice > 0 && item.OldPrice > (item.Price?.OriginalPrice || 0) && (
@@ -1257,7 +1265,7 @@ export default function ChinaShop() {
                 </button>
               </>
             ) : (
-              <button onClick={() => addToCart(item)}
+              <button onClick={(e) => { flyToCart(e.currentTarget, '[data-cart-icon]'); addToCart(item) }}
                 className="flex-1 h-12 bg-gradient-to-l from-blue-600 to-blue-700 text-white rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] shadow-lg shadow-blue-200/50">
                 <Plus className="w-5 h-5" />
                 أضف إلى السلة
@@ -1589,7 +1597,7 @@ export default function ChinaShop() {
                 <p className="text-[12px] text-gray-400 mt-1">جرب كلمات بحث مختلفة</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              <div ref={resultsGridRef} className="grid grid-cols-2 gap-3">
                 {results.map(item => {
                   const price = formatPrice(item.Price, prov.currency)
                   const iqd = price.iqd
