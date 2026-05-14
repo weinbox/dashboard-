@@ -28,7 +28,7 @@ export default function ProductView(p) {
             </button>
             <button data-cart-icon onClick={() => p.setShowCart(true)} className="relative p-2 rounded-lg hover:bg-gray-100 transition">
               <ShoppingCart className="w-5 h-5 text-gray-500" />
-              {cartCount > 0 && <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] bg-blue-700 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{cartCount}</span>}
+              {cartCount > 0 && <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] bg-primary-700 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{cartCount}</span>}
             </button>
           </div>
         </div>
@@ -58,7 +58,7 @@ export default function ProductView(p) {
                   {pics.slice(0, 5).map((pic, i) => (
                     <li key={i} className="me-0">
                       <button onClick={() => p.setActiveImage(i)}
-                        className={`w-[72px] h-[72px] rounded-lg border-2 p-1 transition-all bg-gray-50 hover:border-gray-300 ${p.activeImage === i ? 'border-blue-600' : 'border-transparent hover:border-gray-200'}`}>
+                        className={`w-[72px] h-[72px] rounded-lg border-2 p-1 transition-all bg-gray-50 hover:border-gray-300 ${p.activeImage === i ? 'border-primary-600' : 'border-transparent hover:border-gray-200'}`}>
                         <img src={pic.Large?.Url || pic.Url} alt="" className="w-full h-full object-contain" />
                       </button>
                     </li>
@@ -112,8 +112,8 @@ export default function ProductView(p) {
                 </div>
 
                 <div className="flex items-center gap-1 mt-2 sm:mt-0">
-                  <Truck className="w-5 h-5 text-blue-700" />
-                  <p className="text-sm font-medium text-blue-700">شحن دولي</p>
+                  <Truck className="w-5 h-5 text-primary-700" />
+                  <p className="text-sm font-medium text-primary-700">شحن دولي</p>
                 </div>
               </div>
 
@@ -148,7 +148,7 @@ export default function ProductView(p) {
                           return (
                             <label key={val.Vid} className="cursor-pointer">
                               <input type="radio" name={`cfg-${cfg.Pid}`} className="hidden peer" checked={sel} onChange={() => p.setSelectedConfigs(prev => ({...prev, [cfg.Pid]: sel ? undefined : val.Vid}))} />
-                              <div className={`cursor-pointer flex items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-medium transition-all peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-checked:border-blue-700 ${sel ? 'bg-blue-50 text-blue-700 border-blue-700' : 'border-gray-200 bg-white text-gray-900 hover:bg-gray-100'}`}>
+                              <div className={`cursor-pointer flex items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-medium transition-all peer-checked:bg-primary-50 peer-checked:text-primary-700 peer-checked:border-primary-700 ${sel ? 'bg-primary-50 text-primary-700 border-primary-700' : 'border-gray-200 bg-white text-gray-900 hover:bg-gray-100'}`}>
                                 {val.Name || val.Value || val.Vid}
                               </div>
                             </label>
@@ -169,7 +169,7 @@ export default function ProductView(p) {
                             <label key={opt.asin || oi} className={`${p.loadingVariant && !loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                               <input type="radio" name={`var-${vi}`} className="hidden peer" checked={cur} disabled={loading || !!p.loadingVariant}
                                 onChange={() => { if (opt.asin && !cur) p.loadAmazonVariant(opt.asin) }} />
-                              <div className={`flex items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-medium transition-all ${cur ? 'bg-blue-50 text-blue-700 border-blue-700' : loading ? 'border-blue-300 bg-blue-50/50 animate-pulse text-blue-400' : 'border-gray-200 bg-white text-gray-900 hover:bg-gray-100'}`}>
+                              <div className={`flex items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-medium transition-all ${cur ? 'bg-primary-50 text-primary-700 border-primary-700' : loading ? 'border-primary-300 bg-primary-50/50 animate-pulse text-primary-400' : 'border-gray-200 bg-white text-gray-900 hover:bg-gray-100'}`}>
                                 {loading && <Loader2 className="w-3.5 h-3.5 animate-spin me-1.5" />}
                                 {opt.name || opt.asin}
                               </div>
@@ -197,21 +197,21 @@ export default function ProductView(p) {
                         </button>
                       </div>
                       <button onClick={() => p.setShowCart(true)}
-                        className="flex-1 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 flex items-center justify-center transition-all">
+                        className="flex-1 text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 flex items-center justify-center transition-all">
                         <ShoppingCart className="w-5 h-5 -ms-2 me-2" />
                         عرض السلة
                       </button>
                     </>
                   ) : (
                     <button onClick={(e) => { rippleEffect(e); p.flyToCart(e.currentTarget, '[data-cart-icon]'); p.addToCart(item) }}
-                      className="flex-1 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 flex items-center justify-center transition-all">
+                      className="flex-1 text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 flex items-center justify-center transition-all">
                       <ShoppingCart className="w-5 h-5 -ms-2 me-2" />
                       أضف إلى السلة
                     </button>
                   )}
 
                   <button onClick={(e) => { heartPulse(e.currentTarget); p.toggleFavorite(item) }}
-                    className="flex items-center justify-center p-2.5 rounded-lg border border-gray-200 bg-white text-gray-900 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 transition-all">
+                    className="flex items-center justify-center p-2.5 rounded-lg border border-gray-200 bg-white text-gray-900 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-100 transition-all">
                     <Heart className={`w-5 h-5 ${p.isFavorite(item.Id) ? 'text-red-500 fill-red-500' : ''}`} />
                   </button>
                 </div>
@@ -222,8 +222,8 @@ export default function ProductView(p) {
               {/* Benefits - Flowbite Pro style */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50">
-                    <Truck className="w-4 h-4 text-blue-700" />
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-50">
+                    <Truck className="w-4 h-4 text-primary-700" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">توصيل عند الاستلام</p>
@@ -288,7 +288,7 @@ export default function ProductView(p) {
                   p.setExplainMessages([])
                   const ctx = 'اشرح هذا المنتج بالعربي العراقي بشكل مبسط وواضح. اذكر: شنو هذا المنتج فوائده الرئيسية ولمن مناسب. لا تسأل المستخدم أي سؤال اشرح مباشرة:\n\nProduct: ' + item.Title + '\nPrice: ' + formatNum(iqd) + ' IQD\nRating: ' + (item.Rating || 'N/A') + (item.Badge ? '\nBadge: ' + item.Badge : '') + (reviews ? '\nReviews count: ' + reviews : '') + (item.BoughtLastMonth ? '\nBought last month: ' + item.BoughtLastMonth : '')
                   p.askExplain('اشرح لي هذا المنتج', ctx)
-                }} className="w-full flex items-center justify-center gap-2 text-white bg-gradient-to-l from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-3 transition-all">
+                }} className="w-full flex items-center justify-center gap-2 text-white bg-gradient-to-l from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-3 transition-all">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
                   </svg>
