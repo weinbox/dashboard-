@@ -935,7 +935,7 @@ export default function ChinaShop() {
           </div>
         )}
 
-        <div className="max-w-2xl mx-auto pt-12 pb-28">
+        <div className={`max-w-2xl mx-auto pt-12 pb-28 ${loadingDetail ? 'hidden' : ''}`}>
           {/* Image Gallery - Full bleed */}
           <div className="relative bg-gradient-to-b from-gray-50 to-white aspect-square overflow-hidden">
             {pics.length > 0 ? (
@@ -1497,7 +1497,7 @@ export default function ChinaShop() {
         )}
 
         {/* Loading - Skeleton Grid */}
-        {loading && (
+        {(loading || urlLoading) && (
           <div className="px-4 mt-4">
             <SearchSkeleton />
           </div>
