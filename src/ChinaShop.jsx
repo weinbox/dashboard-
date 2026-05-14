@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import ExplainSheet from './ExplainSheet'
+import { ProductSkeleton, SearchSkeleton } from './Skeletons'
 
 const API_KEY = 'ccaff9b1-804a-4041-8118-70ce26977867'
 const PROXY_BASE = '/api/otapi-proxy'
@@ -927,15 +928,10 @@ export default function ChinaShop() {
           </div>
         </header>
 
-        {/* Loading Detail */}
+        {/* Loading Detail - Skeleton */}
         {loadingDetail && (
-          <div className="flex items-center justify-center py-40">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200/50">
-                <Loader2 className="w-8 h-8 text-white animate-spin" />
-              </div>
-              <p className="text-sm text-gray-400 font-medium">جاري تحميل تفاصيل المنتج...</p>
-            </div>
+          <div className="max-w-2xl mx-auto pt-14 px-4">
+            <ProductSkeleton />
           </div>
         )}
 
@@ -1500,13 +1496,10 @@ export default function ChinaShop() {
           </div>
         )}
 
-        {/* Loading */}
+        {/* Loading - Skeleton Grid */}
         {loading && (
-          <div className="text-center py-24">
-            <div className={`w-14 h-14 bg-gradient-to-br ${provColor} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg`}>
-              <Loader2 className="w-7 h-7 text-white animate-spin" />
-            </div>
-            <p className="text-sm text-gray-400 font-medium">جاري البحث في {prov.label}...</p>
+          <div className="px-4 mt-4">
+            <SearchSkeleton />
           </div>
         )}
 
