@@ -1,5 +1,8 @@
 ﻿import { useEffect, useRef, useCallback } from 'react'
 import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
 
 // stagger fade-in for product cards grid
 export function useStaggerIn(dep) {
@@ -69,9 +72,7 @@ export function useAddToCartAnim() {
       gsap.fromTo(buttonEl, { scale: 1 }, { scale: 1.15, duration: 0.15, yoyo: true, repeat: 1, ease: 'power2.out' })
       return
     }
-    // bounce the button
     gsap.fromTo(buttonEl, { scale: 1 }, { scale: 1.12, duration: 0.12, yoyo: true, repeat: 1, ease: 'power2.out' })
-    // create flying dot
     const rect = buttonEl.getBoundingClientRect()
     const cartRect = cartIcon.getBoundingClientRect()
     const dot = document.createElement('div')
@@ -87,10 +88,85 @@ export function useAddToCartAnim() {
       ease: 'power2.in',
       onComplete: () => {
         dot.remove()
-        // pulse cart badge
         gsap.fromTo(cartIcon, { scale: 1 }, { scale: 1.35, duration: 0.15, yoyo: true, repeat: 1, ease: 'power2.out' })
       }
     })
   }, [])
   return flyToCart
+}
+
+// ScrollTrigger - reveal elements on scroll
+export function useScrollReveal() {
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!ref.current || !ref.current.children.length) return
+    const children = ref.current.children
+    gsap.fromTo(children,
+      { opacity: 0, y: 40 },
+      {
+        opacity: 1, y: 0, stagger: 0.1, duration: 0.5, ease: 'power2.out',
+        scrollTrigger: {
+          trigger: ref.current,
+          start: 'top 85%',
+          toggleActions: 'play none none none',
+        }
+      }
+    )
+    return () => ScrollTrigger.getAll().forEach(t => t.kill())
+  }, [])
+  return ref
+}
+
+// Page transition - fade/slide in whole container
+export function usePageTransition(dep) {
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!ref.current) return
+    gsap.fromTo(ref.current,
+      { opacity: 0, x: -30 },
+      { opacity: 1, x: 0, duration: 0.35, ease: 'power2.out' }
+    )
+  }, [dep])
+  return ref
+}
+
+// Heart pulse animation for favorites
+export function heartPulse(el) {
+  if (!el) return
+  gsap.fromTo(el, { scale: 1 }, { scale: 1.5, duration: 0.15, yoyo: true, repeat: 1, ease: 'power2.out' })
+}
+
+// Toast slide-in/out animation
+export function toastAnim(el, show) {
+  if (!el) return
+  if (show) {
+    gsap.fromTo(el, { y: -30, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.7)' })
+  } else {
+    gsap.to(el, { y: -20, opacity: 0, scale: 0.9, duration: 0.25, ease: 'power2.in' })
+  }
+}
+
+// Swipe to delete animation
+export function swipeDelete(el, onComplete) {
+  if (!el) return
+  gsap.to(el, {
+    x: -300, opacity: 0, height: 0, padding: 0, margin: 0,
+    duration: 0.4, ease: 'power2.in',
+    onComplete: () => { if (onComplete) onComplete() }
+  })
+}
+
+// Ripple effect on button click
+export function rippleEffect(e) {
+  const btn = e.currentTarget
+  const rect = btn.getBoundingClientRect()
+  const ripple = document.createElement('div')
+  const size = Math.max(rect.width, rect.height)
+  const x = e.clientX - rect.left - size / 2
+  const y = e.clientY - rect.top - size / 2
+  ripple.style.cssText = 'position:absolute;border-radius:50%;background:rgba(255,255,255,0.3);pointer-events:none;width:' + size + 'px;height:' + size + 'px;left:' + x + 'px;top:' + y + 'px;transform:scale(0);'
+  btn.style.position = 'relative'
+  btn.style.overflow = 'hidden'
+  btn.appendChild(ripple)
+  gsap.to(ripple, { scale: 2.5, opacity: 0, duration: 0.6, ease: 'power2.out', onComplete: () => ripple.remove() })
 }

@@ -10,7 +10,7 @@ import {
 import { supabase } from './lib/supabase'
 import ExplainSheet from './ExplainSheet'
 import { ProductSkeleton, SearchSkeleton } from './Skeletons'
-import { useStaggerIn, useZoomIn, useSlideUp, useCountUp, useAddToCartAnim } from './useAnimations'
+import { useStaggerIn, useZoomIn, useSlideUp, useCountUp, useAddToCartAnim, useScrollReveal, usePageTransition, heartPulse, toastAnim, swipeDelete, rippleEffect } from './useAnimations'
 
 const API_KEY = 'ccaff9b1-804a-4041-8118-70ce26977867'
 const PROXY_BASE = '/api/otapi-proxy'
@@ -224,6 +224,10 @@ export default function ChinaShop() {
   const productInfoRef = useSlideUp(selectedProduct?.Id)
   const priceCountRef = useCountUp(selectedProduct ? formatPrice(selectedProduct.Price, PROVIDERS[provider]?.currency || 'CNY').iqd : 0, selectedProduct?.Id)
   const flyToCart = useAddToCartAnim()
+  const popularRef = useScrollReveal()
+  const categoriesRef = useScrollReveal()
+  const pageRef = usePageTransition(selectedProduct ? 'product' : 'search')
+  const toastRef = useRef(null)
 
   useEffect(() => {
     localStorage.setItem('china_cart', JSON.stringify(cart))
@@ -914,7 +918,7 @@ export default function ChinaShop() {
     const discountPercent = item.OldPrice > 0 && item.OldPrice > (item.Price?.OriginalPrice || 0) ? Math.round((1 - (item.Price?.OriginalPrice || 0) / item.OldPrice) * 100) : 0
 
     return (
-      <div className="min-h-screen bg-white pb-20" dir="rtl">
+      <div ref={pageRef} className="min-h-screen bg-white pb-20" dir="rtl">
         {/* Floating Header */}
         <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-100/50">
           <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
@@ -923,7 +927,7 @@ export default function ChinaShop() {
             </button>
             <p className="text-[13px] font-semibold text-gray-600 truncate max-w-[45%]">{item.Title?.substring(0, 25)}</p>
             <div className="flex items-center gap-1.5">
-              <button onClick={() => toggleFavorite(item)} className="w-9 h-9 bg-gray-100/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-gray-200/80 transition-all active:scale-95">
+              <button onClick={(e) => { heartPulse(e.currentTarget); toggleFavorite(item) }} className="w-9 h-9 bg-gray-100/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-gray-200/80 transition-all active:scale-95">
                 <Heart className={`w-[18px] h-[18px] ${isFavorite(item.Id) ? 'text-red-500 fill-red-500' : 'text-gray-600'}`} />
               </button>
               <button data-cart-icon onClick={() => setShowCart(true)} className="relative w-9 h-9 bg-gray-100/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-gray-200/80 transition-all active:scale-95">
@@ -1225,7 +1229,7 @@ export default function ChinaShop() {
 
         {/* Toast */}
         {addedToast && (
-          <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50">
+          <div ref={el => { if (el) toastAnim(el, true) }} className="fixed top-14 left-1/2 -translate-x-1/2 z-50">
             <div className="bg-emerald-600 text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-emerald-200/50 flex items-center gap-3 min-w-[280px]">
               <CheckCircle2 className="w-5 h-5 text-emerald-200 flex-shrink-0" />
               <span className="text-sm font-semibold flex-1">تمت الإضافة للسلة</span>
@@ -1265,7 +1269,7 @@ export default function ChinaShop() {
                 </button>
               </>
             ) : (
-              <button onClick={(e) => { flyToCart(e.currentTarget, '[data-cart-icon]'); addToCart(item) }}
+              <button onClick={(e) => { rippleEffect(e); flyToCart(e.currentTarget, '[data-cart-icon]'); addToCart(item) }}
                 className="flex-1 h-12 bg-gradient-to-l from-blue-600 to-blue-700 text-white rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] shadow-lg shadow-blue-200/50">
                 <Plus className="w-5 h-5" />
                 أضف إلى السلة
@@ -1406,7 +1410,7 @@ export default function ChinaShop() {
           {/* Categories - Grid */}
           {!searched && !loading && provider !== 'shein' && (
             <div className="mt-5 pb-2">
-              <div className="grid grid-cols-4 gap-3">
+              <div ref={categoriesRef} className="grid grid-cols-4 gap-3">
                 {categories.map(cat => (
                   <button key={cat.label}
                     onClick={() => { setQuery(cat.q); doSearch(0) }}
@@ -1451,7 +1455,7 @@ export default function ChinaShop() {
               </h3>
               <span className="text-[11px] text-gray-400">{popularProducts.length} منتج</span>
             </div>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div ref={popularRef} className="grid grid-cols-2 gap-2.5">
               {popularProducts.map(pp => (
                 <div key={pp.id}
                   onClick={() => loadProductById(pp.product_id, pp.provider)}
@@ -1624,7 +1628,7 @@ export default function ChinaShop() {
                           {prov.label}
                         </span>
                         {/* Favorite button */}
-                        <button onClick={(e) => { e.stopPropagation(); toggleFavorite(item) }}
+                        <button onClick={(e) => { e.stopPropagation(); heartPulse(e.currentTarget); toggleFavorite(item) }}
                           className="absolute top-2.5 left-2.5 w-8 h-8 bg-white/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm active:scale-90 transition-all z-10">
                           <Heart className={`w-4 h-4 ${isFavorite(item.Id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
                         </button>
@@ -1678,7 +1682,7 @@ export default function ChinaShop() {
 
       {/* Toast */}
       {addedToast && (
-        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50">
+        <div ref={el => { if (el) toastAnim(el, true) }} className="fixed top-14 left-1/2 -translate-x-1/2 z-50">
           <div className="bg-emerald-600 text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-emerald-200/50 flex items-center gap-3 min-w-[280px]">
             <CheckCircle2 className="w-5 h-5 text-emerald-200 flex-shrink-0" />
             <span className="text-sm font-semibold flex-1">تمت الإضافة للسلة</span>
