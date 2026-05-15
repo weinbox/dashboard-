@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Search, Loader2, X, ArrowRight, ShoppingCart, Plus, Minus,
@@ -287,29 +287,31 @@ export default function ChinaShop() {
   }, [searched, loading, query])
 
   // Banner carousel - dynamic from popular products + static promos
-  const staticBanners = provider === 'amazon' ? [
-    { gradient: 'from-[#232F3E] to-[#131921]', title: 'عروض أمازون الحصرية', subtitle: 'خصومات تصل إلى 70% على الإلكترونيات', badge: 'عرض محدود', badgeColor: 'bg-amber-500' },
-    { gradient: 'from-emerald-600 to-teal-700', title: 'شحن مجاني للعراق', subtitle: 'على جميع الطلبات بدون حد أدنى', badge: 'توصيل سريع', badgeColor: 'bg-emerald-400' },
-  ] : [
-    { gradient: 'from-indigo-600 to-blue-700', title: 'أسواق الصين العالمية', subtitle: 'منتجات بالجملة بأسعار المصنع', badge: 'أسعار الجملة', badgeColor: 'bg-indigo-400' },
-    { gradient: 'from-emerald-600 to-teal-700', title: 'شحن مجاني للعراق', subtitle: 'على جميع الطلبات بدون حد أدنى', badge: 'توصيل سريع', badgeColor: 'bg-emerald-400' },
-  ]
-  const productGradients = ['from-slate-700 to-slate-900', 'from-indigo-700 to-blue-900', 'from-rose-600 to-pink-800']
-  const productBanners = popularProducts.slice(0, 3).map((pp, i) => ({
-    type: 'product', gradient: productGradients[i % productGradients.length],
-    title: pp.title?.slice(0, 40) + (pp.title?.length > 40 ? '...' : ''),
-    price: formatNum(pp.price_iqd), image: pp.image,
-    badge: i === 0 ? 'الأكثر رواجاً' : i === 1 ? 'مميز' : 'شائع',
-    badgeColor: i === 0 ? 'bg-orange-500' : i === 1 ? 'bg-indigo-500' : 'bg-pink-500',
-    productId: pp.product_id, productProvider: pp.provider,
-  }))
-  const banners = [...staticBanners, ...productBanners]
+  const banners = useMemo(() => {
+    const statics = provider === 'amazon' ? [
+      { gradient: 'from-[#232F3E] to-[#131921]', title: 'عروض أمازون الحصرية', subtitle: 'خصومات تصل إلى 70% على الإلكترونيات', badge: 'عرض محدود', badgeColor: 'bg-amber-500' },
+      { gradient: 'from-emerald-600 to-teal-700', title: 'شحن مجاني للعراق', subtitle: 'على جميع الطلبات بدون حد أدنى', badge: 'توصيل سريع', badgeColor: 'bg-emerald-400' },
+    ] : [
+      { gradient: 'from-indigo-600 to-blue-700', title: 'أسواق الصين العالمية', subtitle: 'منتجات بالجملة بأسعار المصنع', badge: 'أسعار الجملة', badgeColor: 'bg-indigo-400' },
+      { gradient: 'from-emerald-600 to-teal-700', title: 'شحن مجاني للعراق', subtitle: 'على جميع الطلبات بدون حد أدنى', badge: 'توصيل سريع', badgeColor: 'bg-emerald-400' },
+    ]
+    const grads = ['from-slate-700 to-slate-900', 'from-indigo-700 to-blue-900', 'from-rose-600 to-pink-800']
+    const products = popularProducts.slice(0, 3).map((pp, i) => ({
+      type: 'product', gradient: grads[i % grads.length],
+      title: pp.title?.slice(0, 40) + (pp.title?.length > 40 ? '...' : ''),
+      priceRaw: pp.price_iqd, image: pp.image,
+      badge: i === 0 ? 'الأكثر رواجاً' : i === 1 ? 'مميز' : 'شائع',
+      badgeColor: i === 0 ? 'bg-orange-500' : i === 1 ? 'bg-indigo-500' : 'bg-pink-500',
+      productId: pp.product_id, productProvider: pp.provider,
+    }))
+    return [...statics, ...products]
+  }, [provider, popularProducts])
+  const bannersCount = banners.length
   useEffect(() => {
-    if (searched || loading) return
-    const count = banners.length || 1
-    const timer = setInterval(() => setActiveBanner(prev => (prev + 1) % count), 4500)
+    if (searched || loading || bannersCount < 2) return
+    const timer = setInterval(() => setActiveBanner(prev => (prev + 1) % bannersCount), 4500)
     return () => clearInterval(timer)
-  }, [searched, loading, banners.length])
+  }, [searched, loading, bannersCount])
 
   // تنظيف البيانات القديمة + تحميل المنتجات الرائجة (أقل من 24 ساعة فقط)
   useEffect(() => {
@@ -1201,7 +1203,7 @@ export default function ChinaShop() {
                           <span className={`${b.badgeColor} text-white text-[10px] font-bold px-2.5 py-1 rounded-lg self-start mb-2`}>{b.badge}</span>
                           <p className="text-[13px] text-white/90 font-bold leading-snug line-clamp-2">{b.title}</p>
                           <div className="flex items-center gap-2 mt-2">
-                            <span className="text-[18px] font-black text-white">{b.price}</span>
+                            <span className="text-[18px] font-black text-white">{formatNum(b.priceRaw)}</span>
                             <span className="text-[11px] text-white/50">د.ع</span>
                           </div>
                           <span className="text-[10px] text-white/40 mt-1 flex items-center gap-1">
