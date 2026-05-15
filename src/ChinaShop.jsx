@@ -887,16 +887,18 @@ export default function ChinaShop() {
     setTimeout(() => setAddedToast(false), 3000)
   }
 
-  const updateQty = (uniqueId, delta) => {
-    setCart(cart.map(c => {
-      if (c.uniqueId !== uniqueId) return c
+  const updateQty = (itemId, delta) => {
+    setCart(prev => prev.map(c => {
+      const match = c.uniqueId ? c.uniqueId === itemId : c.id === itemId
+      if (!match) return c
       const newQty = c.qty + delta
-      return newQty > 0 ? { ...c, qty: newQty } : c
+      if (newQty <= 0) return { ...c, qty: 0 }
+      return { ...c, qty: newQty }
     }).filter(c => c.qty > 0))
   }
 
-  const removeFromCart = (uniqueId) => {
-    setCart(cart.filter(c => c.uniqueId !== uniqueId))
+  const removeFromCart = (itemId) => {
+    setCart(prev => prev.filter(c => c.uniqueId ? c.uniqueId !== itemId : c.id !== itemId))
   }
 
   const cartTotal = cart.reduce((sum, c) => sum + c.priceIqd * c.qty, 0)
@@ -987,6 +989,11 @@ export default function ChinaShop() {
                       </div>
                     </div>
                   ))}
+                  <button onClick={() => { setCart([]); setShowCart(false) }}
+                    className="w-full mt-3 py-3.5 bg-red-50 border-2 border-red-200 text-red-500 rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2 transition-all active:scale-[0.97] hover:bg-red-100">
+                    <X className="w-4 h-4" />
+                    تفريغ السلة
+                  </button>
                 </div>
               )}
             </div>
@@ -999,7 +1006,7 @@ export default function ChinaShop() {
                 <button onClick={() => { setShowCart(false); navigate('/china-checkout') }}
                   className="w-full h-[52px] bg-gradient-to-l from-indigo-600 to-indigo-700 text-white rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] shadow-lg shadow-indigo-200/50">
                   <ShoppingCart className="w-5 h-5" />
-                  تفريغ السلة � {formatNum(cartTotal)} ?.?
+                  إتمام الطلب — {formatNum(cartTotal)} د.ع
                 </button>
               </div>
             )}
@@ -1497,6 +1504,11 @@ export default function ChinaShop() {
                     </div>
                   </div>
                 ))}
+                <button onClick={() => { setCart([]); setShowCart(false) }}
+                  className="w-full mt-3 py-3.5 bg-red-50 border-2 border-red-200 text-red-500 rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2 transition-all active:scale-[0.97] hover:bg-red-100">
+                  <X className="w-4 h-4" />
+                  تفريغ السلة
+                </button>
               </div>
             )}
           </div>
@@ -1519,11 +1531,7 @@ export default function ChinaShop() {
               <button onClick={() => { setShowCart(false); navigate('/china-checkout') }}
                 className="w-full h-[52px] bg-gradient-to-l from-indigo-600 to-indigo-700 text-white rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] shadow-lg shadow-indigo-200/50">
                 <ShoppingCart className="w-5 h-5" />
-                تفريغ السلة � {formatNum(cartTotal)} ?.?
-              </button>
-              <button onClick={() => { setCart([]); setShowCart(false) }}
-                className="w-full text-[13px] text-red-400 hover:text-red-500 py-1 transition-colors font-medium">
-                تفريغ السلة
+                إتمام الطلب — {formatNum(cartTotal)} د.ع
               </button>
             </div>
           )}
