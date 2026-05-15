@@ -83,12 +83,6 @@ export default function ProductView(p) {
             {/* Right: Product Info */}
             <div className="mt-6 sm:mt-8 lg:mt-0 bg-white rounded-2xl border border-slate-100 shadow-sm p-6" ref={p.productInfoRef}>
 
-              {/* In Stock Badge */}
-              <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-lg mb-3">
-                <Check className="w-3.5 h-3.5" />
-                {productDetail?.stock === 'In Stock' || !productDetail?.stock ? 'متوفر' : 'غير متوفر'}
-              </span>
-
               <h1 className="text-xl font-semibold text-slate-900 sm:text-2xl leading-relaxed">
                 {item.Title}
               </h1>
@@ -111,10 +105,6 @@ export default function ProductView(p) {
                   )}
                 </div>
 
-                <div className="flex items-center gap-1 mt-2 sm:mt-0">
-                  <Truck className="w-5 h-5 text-indigo-600" />
-                  <p className="text-sm font-medium text-indigo-600">شحن دولي</p>
-                </div>
               </div>
 
               {/* Price Section */}
@@ -300,56 +290,6 @@ export default function ProductView(p) {
                 </div>
               </div>
 
-              <hr className="my-6 md:my-8 border-slate-100" />
-
-              {/* Benefits */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-50">
-                    <Truck className="w-4.5 h-4.5 text-indigo-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">توصيل عند الاستلام</p>
-                    <p className="text-xs text-slate-500">الشحن يحسب عند التوصيل</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-50">
-                    <RotateCcw className="w-4.5 h-4.5 text-emerald-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">إرجاع مجاني</p>
-                    <p className="text-xs text-slate-500">خلال 7 أيام من الاستلام</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-purple-50">
-                    <ShieldCheck className="w-4.5 h-4.5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">ضمان الجودة</p>
-                    <p className="text-xs text-slate-500">تعويض كامل في حالة التلف</p>
-                  </div>
-                </div>
-              </div>
-
-              <hr className="my-6 md:my-8 border-slate-100" />
-
-              {/* Seller info */}
-              <div className="mb-6">
-                <p className="text-sm text-slate-500">
-                  يباع ويشحن بواسطة <span className="font-semibold text-slate-900">{provLabel}</span>
-                </p>
-                {sales && parseInt(sales) > 100 && (
-                  <div className="flex items-center gap-1 mt-1">
-                    <Flame className="w-4 h-4 text-indigo-500" />
-                    <p className="text-sm font-medium text-indigo-600">{formatNum(sales)} مبيعة</p>
-                  </div>
-                )}
-                {(item.BoughtLastMonth || productDetail?.boughtLastMonth) && (
-                  <p className="text-xs text-slate-500 mt-1">آخر {item.BoughtLastMonth || productDetail?.boughtLastMonth} قطعة تم شراؤها الشهر الماضي</p>
-                )}
-              </div>
 
               {/* Description */}
               {productDetail?.FeatureBullets?.length > 0 && (
