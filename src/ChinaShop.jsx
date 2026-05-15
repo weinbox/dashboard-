@@ -286,20 +286,28 @@ export default function ChinaShop() {
     return () => clearInterval(timer)
   }, [searched, loading, query])
 
-  // Banner carousel data & auto-slide
-  const banners = provider === 'amazon' ? [
-    { gradient: 'from-[#232F3E] to-[#131921]', title: 'عروض أمازون الحصرية', subtitle: 'خصومات تصل إلى 70% على الإلكترونيات', badge: 'عرض محدود', badgeColor: 'bg-amber-500', icon: '⚡' },
-    { gradient: 'from-emerald-600 to-teal-700', title: 'شحن مجاني للعراق', subtitle: 'على جميع الطلبات بدون حد أدنى', badge: 'توصيل سريع', badgeColor: 'bg-emerald-400', icon: '🚚' },
-    { gradient: 'from-purple-600 to-indigo-700', title: 'ابحث بالصورة', subtitle: 'صوّر أي منتج واحصل على نتائج مشابهة', badge: 'جديد', badgeColor: 'bg-purple-400', icon: '📸', action: 'image-search' },
-    { gradient: 'from-orange-500 to-red-600', title: 'الأكثر مبيعاً هذا الأسبوع', subtitle: 'أفضل المنتجات بتقييمات عالية', badge: 'Best Sellers', badgeColor: 'bg-orange-400', icon: '🔥' },
+  // Banner carousel - dynamic from popular products + static promos
+  const staticBanners = provider === 'amazon' ? [
+    { gradient: 'from-[#232F3E] to-[#131921]', title: 'عروض أمازون الحصرية', subtitle: 'خصومات تصل إلى 70% على الإلكترونيات', badge: 'عرض محدود', badgeColor: 'bg-amber-500' },
+    { gradient: 'from-emerald-600 to-teal-700', title: 'شحن مجاني للعراق', subtitle: 'على جميع الطلبات بدون حد أدنى', badge: 'توصيل سريع', badgeColor: 'bg-emerald-400' },
   ] : [
-    { gradient: 'from-indigo-600 to-blue-700', title: 'أسواق الصين العالمية', subtitle: 'منتجات بالجملة بأسعار المصنع', badge: 'أسعار الجملة', badgeColor: 'bg-indigo-400', icon: '🏭' },
-    { gradient: 'from-emerald-600 to-teal-700', title: 'شحن مجاني للعراق', subtitle: 'على جميع الطلبات بدون حد أدنى', badge: 'توصيل سريع', badgeColor: 'bg-emerald-400', icon: '🚚' },
-    { gradient: 'from-orange-500 to-red-600', title: 'عروض اليوم', subtitle: 'خصومات حصرية على أفضل المنتجات', badge: 'عرض محدود', badgeColor: 'bg-orange-400', icon: '⚡' },
+    { gradient: 'from-indigo-600 to-blue-700', title: 'أسواق الصين العالمية', subtitle: 'منتجات بالجملة بأسعار المصنع', badge: 'أسعار الجملة', badgeColor: 'bg-indigo-400' },
+    { gradient: 'from-emerald-600 to-teal-700', title: 'شحن مجاني للعراق', subtitle: 'على جميع الطلبات بدون حد أدنى', badge: 'توصيل سريع', badgeColor: 'bg-emerald-400' },
   ]
+  const productGradients = ['from-slate-700 to-slate-900', 'from-indigo-700 to-blue-900', 'from-rose-600 to-pink-800']
+  const productBanners = popularProducts.slice(0, 3).map((pp, i) => ({
+    type: 'product', gradient: productGradients[i % productGradients.length],
+    title: pp.title?.slice(0, 40) + (pp.title?.length > 40 ? '...' : ''),
+    price: formatNum(pp.price_iqd), image: pp.image,
+    badge: i === 0 ? 'الأكثر رواجاً' : i === 1 ? 'مميز' : 'شائع',
+    badgeColor: i === 0 ? 'bg-orange-500' : i === 1 ? 'bg-indigo-500' : 'bg-pink-500',
+    productId: pp.product_id, productProvider: pp.provider,
+  }))
+  const banners = [...staticBanners, ...productBanners]
   useEffect(() => {
     if (searched || loading) return
-    const timer = setInterval(() => setActiveBanner(prev => (prev + 1) % banners.length), 4000)
+    const count = banners.length || 1
+    const timer = setInterval(() => setActiveBanner(prev => (prev + 1) % count), 4500)
     return () => clearInterval(timer)
   }, [searched, loading, banners.length])
 
@@ -1175,26 +1183,46 @@ export default function ChinaShop() {
         {/* ═══ Amazon-style Homepage (only when not searched) ═══ */}
         {!searched && !loading && !urlLoading && (
           <>
-            {/* ── Hero Banner Carousel ── */}
+            {/* ── Hero Banner Carousel (Products + Promos) ── */}
             <div className="mx-4 mt-4">
-              <div className="relative overflow-hidden rounded-2xl shadow-lg" style={{ minHeight: 140 }}>
+              <div className="relative overflow-hidden rounded-2xl shadow-lg" style={{ minHeight: 160 }}>
                 {banners.map((b, i) => (
                   <div key={i}
-                    onClick={() => b.action === 'image-search' ? fileInputRef.current?.click() : null}
-                    className={`absolute inset-0 bg-gradient-to-l ${b.gradient} transition-all duration-700 ease-in-out ${i === activeBanner ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'} ${b.action ? 'cursor-pointer' : ''}`}>
-                    <div className="absolute inset-0 opacity-10">
-                      <div className="absolute top-2 left-6 text-[64px] leading-none select-none">{b.icon}</div>
-                    </div>
-                    <div className="relative h-full flex flex-col justify-center px-5 py-5">
-                      <span className={`${b.badgeColor} text-white text-[10px] font-bold px-2.5 py-1 rounded-lg self-start mb-2`}>{b.badge}</span>
-                      <h2 className="text-[20px] font-black text-white leading-tight">{b.title}</h2>
-                      <p className="text-[13px] text-white/70 mt-1">{b.subtitle}</p>
-                    </div>
+                    onClick={() => b.type === 'product' ? loadProductById(b.productId, b.productProvider) : null}
+                    className={`absolute inset-0 bg-gradient-to-l ${b.gradient} transition-all duration-700 ease-in-out ${i === activeBanner ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'} ${b.type === 'product' ? 'cursor-pointer' : ''}`}>
+                    {/* Product banner with real image */}
+                    {b.type === 'product' ? (
+                      <>
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[110px] h-[110px] bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center p-2">
+                          <img src={b.image} alt="" className="w-full h-full object-contain drop-shadow-lg" loading="lazy"
+                            onError={e => { e.target.style.display = 'none' }} />
+                        </div>
+                        <div className="relative h-full flex flex-col justify-center pr-5 pl-[130px] py-4">
+                          <span className={`${b.badgeColor} text-white text-[10px] font-bold px-2.5 py-1 rounded-lg self-start mb-2`}>{b.badge}</span>
+                          <p className="text-[13px] text-white/90 font-bold leading-snug line-clamp-2">{b.title}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="text-[18px] font-black text-white">{b.price}</span>
+                            <span className="text-[11px] text-white/50">د.ع</span>
+                          </div>
+                          <span className="text-[10px] text-white/40 mt-1 flex items-center gap-1">
+                            <ChevronLeft className="w-3 h-3" /> اضغط لعرض المنتج
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      /* Static promo banner */
+                      <div className="relative h-full flex flex-col justify-center px-5 py-5">
+                        <span className={`${b.badgeColor} text-white text-[10px] font-bold px-2.5 py-1 rounded-lg self-start mb-2`}>{b.badge}</span>
+                        <h2 className="text-[20px] font-black text-white leading-tight">{b.title}</h2>
+                        <p className="text-[13px] text-white/70 mt-1">{b.subtitle}</p>
+                      </div>
+                    )}
                   </div>
                 ))}
+                {/* Dots */}
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
                   {banners.map((_, i) => (
-                    <button key={i} onClick={() => setActiveBanner(i)}
+                    <button key={i} onClick={(e) => { e.stopPropagation(); setActiveBanner(i) }}
                       className={`h-[5px] rounded-full transition-all duration-300 ${i === activeBanner ? 'w-6 bg-white' : 'w-2 bg-white/40'}`} />
                   ))}
                 </div>
@@ -1218,30 +1246,6 @@ export default function ChinaShop() {
                 </div>
               </div>
             )}
-
-            {/* ── Image Search + AI Card ── */}
-            <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
-              <button onClick={() => fileInputRef.current?.click()}
-                className="bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl p-3.5 flex flex-col items-center justify-center gap-2 shadow-lg shadow-indigo-200/30 active:scale-[0.97] transition-all min-h-[100px]">
-                <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center">
-                  <Camera className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-center">
-                  <p className="text-[13px] font-bold text-white">بحث بالصورة</p>
-                  <p className="text-[10px] text-white/60 mt-0.5">صوّر واكتشف</p>
-                </div>
-              </button>
-              <button onClick={() => setOpenAiChat(true)}
-                className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-3.5 flex flex-col items-center justify-center gap-2 shadow-lg shadow-slate-300/30 active:scale-[0.97] transition-all min-h-[100px]">
-                <div className="w-11 h-11 bg-white/10 rounded-xl flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-amber-400" />
-                </div>
-                <div className="text-center">
-                  <p className="text-[13px] font-bold text-white">المساعد الذكي</p>
-                  <p className="text-[10px] text-white/60 mt-0.5">AI يساعدك تختار</p>
-                </div>
-              </button>
-            </div>
 
             {/* ── Trending Searches ── */}
             <div className="mt-5 px-4">
@@ -2033,6 +2037,26 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, init
               disabled={!input.trim() || loading}
               className="w-11 h-11 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 rounded-full flex items-center justify-center transition-all active:scale-90 flex-shrink-0">
               {loading ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Send className="w-5 h-5 text-white" />}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Floating Bottom Bar - Image Search + AI Assistant ═══ */}
+      {!selectedProduct && !showCart && !showFavorites && !openAiChat && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-32px)] max-w-md">
+          <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl shadow-black/15 border border-slate-200/80 px-2 py-2 flex items-center gap-2">
+            {/* Image Search */}
+            <button onClick={() => fileInputRef.current?.click()}
+              className="flex-1 h-12 bg-gradient-to-r from-violet-500 to-indigo-600 rounded-xl flex items-center justify-center gap-2 active:scale-[0.96] transition-all shadow-md shadow-indigo-200/40">
+              <Camera className="w-5 h-5 text-white" />
+              <span className="text-[13px] font-bold text-white">بحث بالصورة</span>
+            </button>
+            {/* AI Assistant */}
+            <button onClick={() => setOpenAiChat(true)}
+              className="flex-1 h-12 bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl flex items-center justify-center gap-2 active:scale-[0.96] transition-all shadow-md shadow-slate-400/30">
+              <Sparkles className="w-5 h-5 text-amber-400" />
+              <span className="text-[13px] font-bold text-white">المساعد الذكي</span>
             </button>
           </div>
         </div>
