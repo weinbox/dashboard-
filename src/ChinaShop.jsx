@@ -392,10 +392,41 @@ export default function ChinaShop() {
     if (!query.trim()) return
     setImageResults([])
     
-    // Shein: البحث عبر الموقع المباشر
+    // Shein: البحث عبر Apify API
     if (provider === 'shein') {
-      setSheinUrl(`/.netlify/functions/shein-proxy-page?url=${encodeURIComponent('https://ar.shein.com/pdsearch/' + encodeURIComponent(query.trim()) + '/')}`)
       setSearched(true)
+      setPage(pageNum)
+      setSelectedProduct(null)
+      setProductDetail(null)
+      setLoading(true)
+      try {
+        const res = await fetch(`/.netlify/functions/shein-search?keyword=${encodeURIComponent(query.trim())}&limit=20&page=${pageNum + 1}&country=SA&language=ar&currency=SAR`)
+        const data = await res.json()
+        if (data.success && data.products) {
+          const formatted = data.products.map(item => ({
+            Id: `sh-${item.id}`,
+            Title: item.title,
+            MainPictureUrl: item.image,
+            Price: { OriginalPrice: parseFloat(item.usdPrice) || parseFloat(item.price) || 0, OriginalCurrencyCode: 'USD' },
+            OldPrice: parseFloat(item.originalPrice) > parseFloat(item.price) ? parseFloat(item.originalPrice) : null,
+            Rating: parseFloat(item.rating) || 0,
+            Reviews: item.reviews || 0,
+            Url: item.url,
+            Badge: item.discount > 0 ? `-${item.discount}%` : null,
+            isSheinApi: true,
+          }))
+          setResults(formatted)
+          setTotalCount(data.total || formatted.length)
+        } else {
+          setResults([])
+          setTotalCount(0)
+        }
+      } catch (err) {
+        console.error('Shein search error:', err)
+        setResults([])
+        setTotalCount(0)
+      }
+      setLoading(false)
       return
     }
 
@@ -1390,33 +1421,6 @@ export default function ChinaShop() {
           </>
         )}
 
-        {/* Shein iframe */}
-        {provider === 'shein' && !selectedProduct && !urlLoading && (
-          <div className="mx-4 mt-4 bg-white rounded-2xl border border-pink-200 overflow-hidden shadow-lg">
-            <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-xl font-black">SHEIN</span>
-                <span className="text-xs opacity-80">الموقع العربي</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setSheinUrl('/.netlify/functions/shein-proxy-page?url=' + encodeURIComponent('https://ar.shein.com'))}
-                  className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors">
-                  <Home className="w-3.5 h-3.5 inline" /> الرئيسية
-                </button>
-                <button onClick={() => setShowCart(true)}
-                  className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
-                  <ShoppingCart className="w-3.5 h-3.5 inline" /> السلة ({cart.length})
-                </button>
-              </div>
-            </div>
-            <div className="relative" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
-              <iframe src={sheinUrl} className="w-full h-full border-0" title="Shein Arabic" loading="lazy" />
-            </div>
-            <div className="bg-gray-50 border-t border-pink-100 p-3">
-              <p className="text-xs text-gray-500 text-center flex items-center justify-center gap-1"><Lightbulb className="w-3.5 h-3.5" /> انسخ رابط المنتج من الموقع وألصقه في البحث</p>
-            </div>
-          </div>
-        )}
 
         {/* Loading - Skeleton Grid */}
         {(loading || urlLoading) && (
