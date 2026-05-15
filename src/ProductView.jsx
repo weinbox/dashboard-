@@ -339,13 +339,13 @@ export default function ProductView(p) {
 
               {/* Specifications */}
               {productDetail?.specifications?.length > 0 && (
-                <div className="mt-6">
-                  <button onClick={() => toggle('specs')} className="w-full flex items-center justify-between py-3 border-t border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <Info className="w-4 h-4 text-indigo-500" />
-                      <span className="text-[13px] font-semibold text-slate-900">المواصفات التقنية</span>
+                <div className="mt-5">
+                  <button onClick={() => toggle('specs')} className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all active:scale-[0.99]">
+                    <div className="flex items-center gap-2.5">
+                      <Info className="w-5 h-5 text-indigo-500" />
+                      <span className="text-sm font-bold text-slate-800">المواصفات التقنية</span>
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${openSec === 'specs' ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${openSec === 'specs' ? 'rotate-180' : ''}`} />
                   </button>
                   {openSec === 'specs' && (
                     <div className="pb-4 space-y-0">
@@ -362,13 +362,13 @@ export default function ProductView(p) {
 
               {/* About Product */}
               {productDetail?.about?.length > 0 && (
-                <div>
-                  <button onClick={() => toggle('about')} className="w-full flex items-center justify-between py-3 border-t border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <Info className="w-4 h-4 text-emerald-500" />
-                      <span className="text-[13px] font-semibold text-slate-900">حول هذا المنتج</span>
+                <div className="mt-2">
+                  <button onClick={() => toggle('about')} className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all active:scale-[0.99]">
+                    <div className="flex items-center gap-2.5">
+                      <Info className="w-5 h-5 text-emerald-500" />
+                      <span className="text-sm font-bold text-slate-800">حول هذا المنتج</span>
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${openSec === 'about' ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${openSec === 'about' ? 'rotate-180' : ''}`} />
                   </button>
                   {openSec === 'about' && (
                     <div className="pb-4 space-y-2 pr-2">
@@ -385,13 +385,13 @@ export default function ProductView(p) {
 
               {/* Dimensions */}
               {productDetail?.dimensions && (
-                <div>
-                  <button onClick={() => toggle('dimensions')} className="w-full flex items-center justify-between py-3 border-t border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <Ruler className="w-4 h-4 text-orange-500" />
-                      <span className="text-[13px] font-semibold text-slate-900">الأبعاد والوزن</span>
+                <div className="mt-2">
+                  <button onClick={() => toggle('dimensions')} className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all active:scale-[0.99]">
+                    <div className="flex items-center gap-2.5">
+                      <Ruler className="w-5 h-5 text-orange-500" />
+                      <span className="text-sm font-bold text-slate-800">الأبعاد والوزن</span>
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${openSec === 'dimensions' ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${openSec === 'dimensions' ? 'rotate-180' : ''}`} />
                   </button>
                   {openSec === 'dimensions' && (
                     <div className="pb-4 px-3">
@@ -414,14 +414,14 @@ export default function ProductView(p) {
 
               {/* Questions & Answers */}
               {productDetail?.questionsAnswers?.length > 0 && (
-                <div>
-                  <button onClick={() => toggle('qa')} className="w-full flex items-center justify-between py-3 border-t border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <HelpCircle className="w-4 h-4 text-purple-500" />
-                      <span className="text-[13px] font-semibold text-slate-900">أسئلة وأجوبة</span>
-                      <span className="text-[10px] bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded-md font-bold">{productDetail.questionsAnswers.length}</span>
+                <div className="mt-2">
+                  <button onClick={() => toggle('qa')} className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all active:scale-[0.99]">
+                    <div className="flex items-center gap-2.5">
+                      <HelpCircle className="w-5 h-5 text-purple-500" />
+                      <span className="text-sm font-bold text-slate-800">أسئلة وأجوبة</span>
+                      <span className="text-[11px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">{productDetail.questionsAnswers.length}</span>
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${openSec === 'qa' ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${openSec === 'qa' ? 'rotate-180' : ''}`} />
                   </button>
                   {openSec === 'qa' && (
                     <div className="pb-4 space-y-3">
