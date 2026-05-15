@@ -90,13 +90,23 @@ const handler = async (event) => {
       const mainImage = product.thumbnail || images[0] || ''
 
       // استخراج بيانات إضافية
-      const productInfo = data.product_information || {}
-      const aboutProduct = productInfo.about || product.about || []
-      const dimensions = productInfo.dimensions || product.dimensions || ''
-      const categories = (product.categories || data.categories || []).map(c => c.name || c)
+      const itemSpecs = data.item_specifications || {}
+      const specsArray = typeof itemSpecs === 'object' && !Array.isArray(itemSpecs)
+        ? Object.entries(itemSpecs).map(([key, value]) => ({ name: key, value: String(value) }))
+        : (Array.isArray(itemSpecs) ? itemSpecs : [])
+
+      const aboutProduct = data.about_item || product.about || []
+
+      const productDetails = data.product_details || {}
+      const dimensions = productDetails.product_dimensions
+        ? { 'الأبعاد': productDetails.product_dimensions, 'الوزن': productDetails.item_weight || '', 'الشركة المصنعة': productDetails.manufacturer || '', 'رقم الموديل': productDetails.item_model_number || '', 'متوفر منذ': productDetails.date_first_available || '' }
+        : ''
+
+      const categories = (product.categories || []).map(c => typeof c === 'object' ? (c.name || c.title || '') : c).filter(Boolean)
+
       const questionsAnswers = (data.questions_and_answers || []).slice(0, 5).map(qa => ({
-        question: qa.question || '',
-        answer: qa.answer || '',
+        question: qa.question || qa.title || '',
+        answer: qa.answer || qa.snippet || '',
         votes: qa.votes || 0,
       }))
       const aPlusContent = (data.a_plus_content || []).map(section => ({
@@ -133,7 +143,7 @@ const handler = async (event) => {
                 image: i.thumbnail || i.image || '',
               }))
             })),
-            specifications: specs,
+            specifications: specsArray.length > 0 ? specsArray : specs,
             badge: (product.badges || product.tags || [])[0] || '',
             stock: product.stock || '',
             boughtLastMonth: product.bought_last_month || '',
