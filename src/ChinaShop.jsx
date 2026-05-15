@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Search, Loader2, X, ArrowRight, ShoppingCart, Plus, Minus,
@@ -18,10 +18,10 @@ const PROXY_BASE = '/api/otapi-proxy'
 const REST_BASE = 'https://rest.otapi.net/v1'
 
 const PROVIDERS = {
-  taobao: { key: 'Taobao', restKey: 'taobao', label: 'ØªØ§ÙˆØ¨Ø§Ùˆ', color: 'bg-orange-500', emoji: 'æ·˜å®', currency: 'CNY' },
+  taobao: { key: 'Taobao', restKey: 'taobao', label: 'تاوباو', color: 'bg-orange-500', emoji: '淘宝', currency: 'CNY' },
   '1688': { key: 'Taobao', restKey: 'alibaba1688', label: '1688', color: 'bg-orange-600', emoji: '1688', currency: 'CNY' },
-  amazon: { key: 'Amazon', restKey: 'amazon', label: 'Ø£Ù…Ø§Ø²ÙˆÙ†', color: 'bg-gray-900', emoji: 'AZ', currency: 'USD', useSerpApi: true },
-  shein: { key: 'Shein', restKey: 'shein', label: 'Ø´ÙŠÙ†', color: 'bg-pink-500', emoji: 'SH', currency: 'USD' },
+  amazon: { key: 'Amazon', restKey: 'amazon', label: 'أمازون', color: 'bg-gray-900', emoji: 'AZ', currency: 'USD', useSerpApi: true },
+  shein: { key: 'Shein', restKey: 'shein', label: 'شين', color: 'bg-pink-500', emoji: 'SH', currency: 'USD' },
 }
 
 const CNY_TO_USD = 6.5
@@ -50,10 +50,10 @@ const formatPrice = (priceObj, currency) => {
   return { cny, usd, iqd }
 }
 
-// â”€â”€â”€ Cache helpers â”€â”€â”€
+// ─── Cache helpers ───
 const CACHE_HOURS = 24
 
-// ØªÙ†Ø¸ÙŠÙ ØªÙ„Ù‚Ø§Ø¦ÙŠ - Ø­Ø°Ù ÙƒÙ„ Ù…Ø§ ÙŠØªØ¬Ø§ÙˆØ² 24 Ø³Ø§Ø¹Ø©
+// تنظيف تلقائي - حذف كل ما يتجاوز 24 ساعة
 const cleanupOldData = async () => {
   try {
     const cutoff = new Date(Date.now() - CACHE_HOURS * 3600000).toISOString()
@@ -123,7 +123,7 @@ const savePopularProduct = async (item, providerKey, priceIqd) => {
   } catch (e) { console.error('Popular save error:', e) }
 }
 
-// Ø§Ø³ØªØ®Ø±Ø§Ø¬ product ID Ù…Ù† Ø±Ø§Ø¨Ø· Taobao/1688
+// استخراج product ID من رابط Taobao/1688
 const extractProductId = (url) => {
   try {
     // taobao: https://item.taobao.com/item.htm?id=123456
@@ -159,7 +159,7 @@ const extractProductId = (url) => {
     // amazon short: https://a.co/d/XXXXX or amzn.to/XXXXX
     const azShortMatch = url.match(/(?:a\.co\/d\/|amzn\.to\/)([A-Za-z0-9]+)/i)
     if (azShortMatch) return { id: azShortMatch[1], detectedProvider: 'amazon' }
-    // fallback: Ø£ÙŠ Ø±Ù‚Ù… Ø·ÙˆÙŠÙ„ ÙÙŠ Ø§Ù„Ø±Ø§Ø¨Ø·
+    // fallback: أي رقم طويل في الرابط
     const numMatch = url.match(/(\d{10,})/)
     if (numMatch) {
       const prov = url.includes('1688') ? '1688' : 'taobao'
@@ -256,7 +256,7 @@ export default function ChinaShop() {
 
     const apiMessages = newMsgs.filter(m => m.role !== 'system')
     if (productContext) {
-      apiMessages.push({ role: 'user', content: `[Ø³ÙŠØ§Ù‚ Ø§Ù„Ù…Ù†ØªØ¬ - Ù„Ø§ ØªØ¹Ø±Ø¶Ù‡ Ù„Ù„Ù…Ø³ØªØ®Ø¯Ù…ØŒ Ø§Ø³ØªØ®Ø¯Ù…Ù‡ ÙÙ‚Ø· Ù„Ù„Ø¥Ø¬Ø§Ø¨Ø©]:\n${productContext}` })
+      apiMessages.push({ role: 'user', content: `[سياق المنتج - لا تعرضه للمستخدم، استخدمه فقط للإجابة]:\n${productContext}` })
     }
 
     try {
@@ -266,15 +266,15 @@ export default function ChinaShop() {
         body: JSON.stringify({ messages: apiMessages })
       })
       const data = await res.json()
-      const reply = data.reply || 'Ø¹Ø°Ø±Ø§Ù‹ØŒ Ø­Ø§ÙˆÙ„ Ù…Ø±Ø© Ø«Ø§Ù†ÙŠØ©'
+      const reply = data.reply || 'عذراً، حاول مرة ثانية'
       setExplainMessages(prev => [...prev, { role: 'assistant', content: reply }])
     } catch {
-      setExplainMessages(prev => [...prev, { role: 'assistant', content: 'Ø¹Ø°Ø±Ø§Ù‹ØŒ Ø­Ø¯Ø« Ø®Ø·Ø£. Ø­Ø§ÙˆÙ„ Ù…Ø±Ø© Ø«Ø§Ù†ÙŠØ© ðŸ™' }])
+      setExplainMessages(prev => [...prev, { role: 'assistant', content: 'عذراً، حدث خطأ. حاول مرة ثانية 🙏' }])
     }
     setExplainLoading(false)
   }
 
-  // ØªÙ†Ø¸ÙŠÙ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù‚Ø¯ÙŠÙ…Ø© + ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„Ø±Ø§Ø¦Ø¬Ø© (Ø£Ù‚Ù„ Ù…Ù† 24 Ø³Ø§Ø¹Ø© ÙÙ‚Ø·)
+  // تنظيف البيانات القديمة + تحميل المنتجات الرائجة (أقل من 24 ساعة فقط)
   useEffect(() => {
     if (!prov) return
     cleanupOldData().then(() => {
@@ -289,7 +289,7 @@ export default function ChinaShop() {
   }, [provider])
 
   const extractSheinProducts = () => {
-    // Ø¹Ø±Ø¶ Ø±Ø³Ø§Ù„Ø© Ù„Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø¨ÙƒÙŠÙÙŠØ© Ø§Ø³ØªØ®Ø±Ø§Ø¬ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª
+    // عرض رسالة للمستخدم بكيفية استخراج المنتجات
     const toast = document.createElement('div')
     toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-pink-500 text-white px-6 py-4 rounded-2xl shadow-2xl max-w-md animate-in slide-in-from-top'
     toast.innerHTML = `
@@ -298,32 +298,32 @@ export default function ChinaShop() {
           <svg class="w-6 h-6 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          <span class="text-base font-bold">ÙƒÙŠÙÙŠØ© Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ù„Ù„Ø³Ù„Ø©:</span>
+          <span class="text-base font-bold">كيفية إضافة المنتجات للسلة:</span>
         </div>
         <div class="space-y-2 text-sm">
           <div class="flex items-start gap-2">
             <span class="text-pink-200 mt-1">1.</span>
-            <span>Ø§Ø¨Ø­Ø« Ø¹Ù† Ø§Ù„Ù…Ù†ØªØ¬ ÙÙŠ Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø£Ø¹Ù„Ø§Ù‡</span>
+            <span>ابحث عن المنتج في الموقع أعلاه</span>
           </div>
           <div class="flex items-start gap-2">
             <span class="text-pink-200 mt-1">2.</span>
-            <span>Ø§Ù†Ù‚Ø± Ø¹Ù„Ù‰ Ø§Ù„Ù…Ù†ØªØ¬ Ù„ÙØªØ­ ØµÙØ­ØªÙ‡</span>
+            <span>انقر على المنتج لفتح صفحته</span>
           </div>
           <div class="flex items-start gap-2">
             <span class="text-pink-200 mt-1">3.</span>
-            <span>Ø§Ù†Ø³Ø® Ø§Ù„Ø±Ø§Ø¨Ø· Ù…Ù† Ø´Ø±ÙŠØ· Ø§Ù„Ø¹Ù†ÙˆØ§Ù† (Ù…Ø«Ù„: ar.shein.com/p-12345678)</span>
+            <span>انسخ الرابط من شريط العنوان (مثل: ar.shein.com/p-12345678)</span>
           </div>
           <div class="flex items-start gap-2">
             <span class="text-pink-200 mt-1">4.</span>
-            <span>Ø£Ù„ØµÙ‚ Ø§Ù„Ø±Ø§Ø¨Ø· ÙÙŠ Ø­Ù‚Ù„ Ø§Ù„Ø¨Ø­Ø« Ø¨Ø§Ù„Ø£Ø¹Ù„Ù‰</span>
+            <span>ألصق الرابط في حقل البحث بالأعلى</span>
           </div>
           <div class="flex items-start gap-2">
             <span class="text-pink-200 mt-1">5.</span>
-            <span>Ø§Ø¶ØºØ· "Ø¥Ø¶Ø§ÙØ© Ù„Ù„Ø³Ù„Ø©" Ø¨Ø¹Ø¯ Ø¸Ù‡ÙˆØ± Ø§Ù„Ù…Ù†ØªØ¬</span>
+            <span>اضغط "إضافة للسلة" بعد ظهور المنتج</span>
           </div>
         </div>
         <div class="bg-pink-600 rounded-lg p-2 text-xs text-center">
-          ÙŠÙ…ÙƒÙ†Ùƒ Ù†Ø³Ø® Ø¹Ø¯Ø© Ø±ÙˆØ§Ø¨Ø· ÙˆØ¥Ø¶Ø§ÙØªÙ‡Ø§ Ù„Ù„Ø³Ù„Ø©
+          يمكنك نسخ عدة روابط وإضافتها للسلة
         </div>
       </div>
     `
@@ -339,7 +339,7 @@ export default function ChinaShop() {
     return null
   }
 
-  // ØªØ±Ø¬Ù…Ø© Ø§Ù„Ù†Øµ Ø§Ù„Ø¹Ø±Ø¨ÙŠ Ù„Ù„Ø¥Ù†ÙƒÙ„ÙŠØ²ÙŠ ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹
+  // ترجمة النص العربي للإنكليزي تلقائياً
   const translateToEn = async (text) => {
     if (!/[\u0600-\u06FF]/.test(text)) return text
     try {
@@ -353,14 +353,14 @@ export default function ChinaShop() {
     if (!query.trim()) return
     setImageResults([])
     
-    // Shein: Ø§Ù„Ø¨Ø­Ø« Ø¹Ø¨Ø± Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø§Ù„Ù…Ø¨Ø§Ø´Ø±
+    // Shein: البحث عبر الموقع المباشر
     if (provider === 'shein') {
       setSheinUrl(`/.netlify/functions/shein-proxy-page?url=${encodeURIComponent('https://ar.shein.com/pdsearch/' + encodeURIComponent(query.trim()) + '/')}`)
       setSearched(true)
       return
     }
 
-    // Amazon: Ø§Ø³ØªØ®Ø¯Ø§Ù… SerpApi Ù…Ø¹ Cache - ØªØ±Ø¬Ù…Ø© Ø¹Ø±Ø¨ÙŠâ†’Ø¥Ù†ÙƒÙ„ÙŠØ²ÙŠ
+    // Amazon: استخدام SerpApi مع Cache - ترجمة عربي→إنكليزي
     if (prov.useSerpApi) {
       setSearched(true)
       setPage(pageNum)
@@ -369,7 +369,7 @@ export default function ChinaShop() {
       setLoading(true)
       const sort = sortOverride ?? sortBy
       const searchQuery = await translateToEn(query.trim())
-      // Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Cache Ø£ÙˆÙ„Ø§Ù‹
+      // التحقق من Cache أولاً
       const cached = await getCache(provider, searchQuery, sort, pageNum)
       if (cached) {
         setResults(cached.results)
@@ -396,7 +396,7 @@ export default function ChinaShop() {
           }))
           setResults(formatted)
           setTotalCount(data.totalResults || formatted.length)
-          // Ø­ÙØ¸ ÙÙŠ Cache
+          // حفظ في Cache
           setCache(provider, searchQuery, sort, pageNum, formatted, data.totalResults || formatted.length)
         } else {
           setResults([])
@@ -411,14 +411,14 @@ export default function ChinaShop() {
       return
     }
     
-    // ØªÙ‚ØµÙŠØ± Ø§Ù„Ù†Øµ Ø§Ù„Ø·ÙˆÙŠÙ„ Ø¬Ø¯Ø§Ù‹ Ù„Ø£ÙˆÙ„ 100 Ø­Ø±Ù
+    // تقصير النص الطويل جداً لأول 100 حرف
     let trimmedQuery = query.trim()
     if (trimmedQuery.length > 100) {
-      // Ø­ÙØ¸ Ø§Ù„Ù†Øµ Ø§Ù„Ø£ØµÙ„ÙŠ Ù„Ù„Ø¹Ø±Ø¶
+      // حفظ النص الأصلي للعرض
       const originalQuery = trimmedQuery
       trimmedQuery = trimmedQuery.substring(0, 100) + '...'
       
-      // Ø¹Ø±Ø¶ Ø±Ø³Ø§Ù„Ø© Ù„Ù„Ù…Ø³ØªØ®Ø¯Ù…
+      // عرض رسالة للمستخدم
       setTimeout(() => {
         const toast = document.createElement('div')
         toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-blue-500 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 min-w-[350px] animate-in slide-in-from-top'
@@ -426,7 +426,7 @@ export default function ChinaShop() {
           <svg class="w-5 h-5 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          <span class="text-sm font-medium flex-1">ØªÙ… ØªÙ‚ØµÙŠØ± Ø§Ù„Ù†Øµ Ø§Ù„Ø·ÙˆÙŠÙ„ Ù„Ø£ÙˆÙ„ 100 Ø­Ø±Ù Ù„Ù„Ø¨Ø­Ø« Ø§Ù„ÙØ¹Ø§Ù„</span>
+          <span class="text-sm font-medium flex-1">تم تقصير النص الطويل لأول 100 حرف للبحث الفعال</span>
         `
         document.body.appendChild(toast)
         setTimeout(() => {
@@ -442,7 +442,7 @@ export default function ChinaShop() {
     setProductDetail(null)
     setUrlError('')
     const sort = sortOverride ?? sortBy
-    // Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Cache Ø£ÙˆÙ„Ø§Ù‹
+    // التحقق من Cache أولاً
     const cached = await getCache(provider, trimmedQuery, sort, pageNum)
     if (cached) {
       setResults(cached.results)
@@ -468,7 +468,7 @@ export default function ChinaShop() {
       if (data.ErrorCode === 'Ok' && data.Result?.Items?.Content) {
         setResults(data.Result.Items.Content)
         setTotalCount(data.Result.Items.TotalCount || 0)
-        // Ø­ÙØ¸ ÙÙŠ Cache
+        // حفظ في Cache
         setCache(provider, trimmedQuery, sort, pageNum, data.Result.Items.Content, data.Result.Items.TotalCount || 0)
       } else {
         setResults([])
@@ -489,7 +489,7 @@ export default function ChinaShop() {
     setResults([])
     setSearched(false)
     try {
-      // Amazon: Ø§Ø³ØªØ®Ø¯Ø§Ù… SerpApi
+      // Amazon: استخدام SerpApi
       if (providerKey === 'amazon') {
         try {
           const res = await fetch(`/.netlify/functions/amazon-serpapi?action=product&asin=${encodeURIComponent(productId)}`)
@@ -519,17 +519,17 @@ export default function ChinaShop() {
             setSelectedProduct(amazonItem)
             setProductDetail(amazonDetail)
           } else {
-            setUrlError('Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø§Ù„Ù…Ù†ØªØ¬')
+            setUrlError('لم يتم العثور على المنتج')
           }
         } catch (err) {
           console.error('SerpApi product error:', err)
-          setUrlError('Ø­Ø¯Ø« Ø®Ø·Ø£ ÙÙŠ Ø¬Ù„Ø¨ Ø§Ù„Ù…Ù†ØªØ¬')
+          setUrlError('حدث خطأ في جلب المنتج')
         }
         setUrlLoading(false)
         return
       }
 
-      // Shein ÙŠØ³ØªØ®Ø¯Ù… scrapingØŒ 1688 ÙŠØ­ØªØ§Ø¬ Ø¨Ø§Ø¯Ø¦Ø© abb-
+      // Shein يستخدم scraping، 1688 يحتاج بادئة abb-
       if (providerKey === 'shein') {
         try {
           const res = await fetch('/.netlify/functions/shein-scraper', {
@@ -543,7 +543,7 @@ export default function ChinaShop() {
           const data = await res.json()
           
           if (data.success && data.product) {
-            // ØªØ­ÙˆÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Shein Ù„Ù„ØªÙ†Ø³ÙŠÙ‚ Ø§Ù„Ù…ÙˆØ­Ø¯
+            // تحويل بيانات Shein للتنسيق الموحد
             const sheinItem = {
               Id: `sh-${data.product.id}`,
               Title: data.product.title,
@@ -562,11 +562,11 @@ export default function ChinaShop() {
             setSelectedProduct(sheinItem)
             setProductDetail(data.product)
           } else {
-            setUrlError('Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø§Ù„Ù…Ù†ØªØ¬')
+            setUrlError('لم يتم العثور على المنتج')
           }
         } catch (err) {
           console.error('Shein product error:', err)
-          setUrlError('Ø­Ø¯Ø« Ø®Ø·Ø£ ÙÙŠ Ø¬Ù„Ø¨ Ø§Ù„Ù…Ù†ØªØ¬')
+          setUrlError('حدث خطأ في جلب المنتج')
         }
         setUrlLoading(false)
         return
@@ -591,11 +591,11 @@ export default function ChinaShop() {
         setProductDetail(item)
         setActiveImage(0)
       } else {
-        setUrlError('Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø§Ù„Ù…Ù†ØªØ¬. ØªØ£ÙƒØ¯ Ù…Ù† Ø§Ù„Ø±Ø§Ø¨Ø·.')
+        setUrlError('لم يتم العثور على المنتج. تأكد من الرابط.')
       }
     } catch (err) {
       console.error('URL product error:', err)
-      setUrlError('Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø¬Ù„Ø¨ Ø§Ù„Ù…Ù†ØªØ¬')
+      setUrlError('حدث خطأ أثناء جلب المنتج')
     }
     setUrlLoading(false)
   }
@@ -607,12 +607,12 @@ export default function ChinaShop() {
     setProductDetail(null)
     setResults([])
     setSearched(false)
-    // Ø§Ø³ØªØ®Ø±Ø§Ø¬ Ø£ÙŠ Ø±Ø§Ø¨Ø· Ù…Ù† Ø§Ù„Ù†Øµ Ø§Ù„Ù…Ù„ØµÙ‚ (Ù‚Ø¯ ÙŠØ­ØªÙˆÙŠ Ø¹Ù„Ù‰ Ù†Øµ ØµÙŠÙ†ÙŠ ÙˆÙ…Ø¹Ù„ÙˆÙ…Ø§Øª Ø¥Ø¶Ø§ÙÙŠØ©)
+    // استخراج أي رابط من النص الملصق (قد يحتوي على نص صيني ومعلومات إضافية)
     const input = urlInput.trim()
-    const urlMatch = input.match(/https?:\/\/[^\s\u0600-\u06FF\u4e00-\u9fffã€ã€]+/i)
-    const cleanUrl = urlMatch ? urlMatch[0].replace(/[,ï¼Œã€‚ã€\s]+$/, '') : input
+    const urlMatch = input.match(/https?:\/\/[^\s\u0600-\u06FF\u4e00-\u9fff」」]+/i)
+    const cleanUrl = urlMatch ? urlMatch[0].replace(/[,，。、\s]+$/, '') : input
 
-    // Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø±Ø§Ø¨Ø· Ù…Ø®ØªØµØ± (e.tb.cn, m.tb.cn, a.co)
+    // التحقق من رابط مختصر (e.tb.cn, m.tb.cn, a.co)
     if (/https?:\/\/(e|m)\.tb\.cn\//i.test(cleanUrl) || /https?:\/\/a\.co\//i.test(cleanUrl)) {
       setUrlLoading(true)
       setUrlError('')
@@ -629,11 +629,11 @@ export default function ChinaShop() {
             return
           }
         }
-        setUrlError('Ù„Ù… ÙŠØªÙ… Ø§Ù„ØªØ¹Ø±Ù Ø¹Ù„Ù‰ Ø§Ù„Ù…Ù†ØªØ¬ Ù…Ù† Ø§Ù„Ø±Ø§Ø¨Ø· Ø§Ù„Ù…Ø®ØªØµØ±')
+        setUrlError('لم يتم التعرف على المنتج من الرابط المختصر')
         setUrlLoading(false)
       } catch (err) {
         console.error('Resolve URL error:', err)
-        setUrlError('Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ ÙÙƒ Ø§Ù„Ø±Ø§Ø¨Ø· Ø§Ù„Ù…Ø®ØªØµØ±')
+        setUrlError('حدث خطأ أثناء فك الرابط المختصر')
         setUrlLoading(false)
       }
       return
@@ -641,7 +641,7 @@ export default function ChinaShop() {
 
     const extracted = extractProductId(cleanUrl)
     if (!extracted) {
-      setUrlError('Ø±Ø§Ø¨Ø· ØºÙŠØ± ØµØ§Ù„Ø­. Ø§Ù„ØµÙ‚ Ø±Ø§Ø¨Ø· Ù…Ù†ØªØ¬ Ù…Ù† Taobao Ø£Ùˆ 1688 Ø£Ùˆ Amazon Ø£Ùˆ Shein')
+      setUrlError('رابط غير صالح. الصق رابط منتج من Taobao أو 1688 أو Amazon أو Shein')
       return
     }
     loadProductById(extracted.id, extracted.detectedProvider)
@@ -694,12 +694,12 @@ export default function ChinaShop() {
           setImageUrlInput(uploadData.url)
           await doImageSearch(uploadData.url)
         } else {
-          setUrlError('ÙØ´Ù„ Ø±ÙØ¹ Ø§Ù„ØµÙˆØ±Ø©: ' + (uploadData.error || 'Ø®Ø·Ø£ ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ'))
+          setUrlError('فشل رفع الصورة: ' + (uploadData.error || 'خطأ غير معروف'))
           setLoading(false)
         }
       } catch (err) {
         console.error('Upload error:', err)
-        setUrlError('Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø±ÙØ¹ Ø§Ù„ØµÙˆØ±Ø©')
+        setUrlError('حدث خطأ أثناء رفع الصورة')
         setLoading(false)
       }
     }
@@ -724,7 +724,7 @@ export default function ChinaShop() {
           Pictures: detailPics,
           Description: p.description,
           FeatureBullets: p.features,
-          // ØªØ­Ø¯ÙŠØ« variants Ù„ØªØ¹ÙƒØ³ Ø§Ù„Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„Ø­Ø§Ù„ÙŠ
+          // تحديث variants لتعكس الاختيار الحالي
           variants: (prev?.variants || p.variants || []).map(v => ({
             ...v,
             items: (v.items || []).map(i => ({
@@ -758,7 +758,7 @@ export default function ChinaShop() {
     setProductDetail(null)
     setSelectedConfigs({})
     try {
-      // Amazon: Ø§Ø³ØªØ®Ø¯Ø§Ù… SerpApi
+      // Amazon: استخدام SerpApi
       if (item.isSerpApi || prov.useSerpApi) {
         const res = await fetch(`/.netlify/functions/amazon-serpapi?action=product&asin=${encodeURIComponent(item.Id)}`)
         const data = await res.json()
@@ -772,7 +772,7 @@ export default function ChinaShop() {
             FeatureBullets: p.features,
             relatedProducts: data.relatedProducts || [],
           })
-          // ØªØ­Ø¯ÙŠØ« selectedProduct Ø¨Ø§Ù„Ø³Ø¹Ø± ÙˆØ§Ù„ØµÙˆØ±Ø© Ø§Ù„ØµØ­ÙŠØ­Ø©
+          // تحديث selectedProduct بالسعر والصورة الصحيحة
           setSelectedProduct(prev => ({
             ...prev,
             Price: { OriginalPrice: p.price || prev.Price?.OriginalPrice || 0, OriginalCurrencyCode: 'USD' },
@@ -812,7 +812,7 @@ export default function ChinaShop() {
           setSelectedConfigs({})
         }
       }
-      // Ø­ÙØ¸ Ø§Ù„Ù…Ù†ØªØ¬ ÙƒØ±Ø§Ø¦Ø¬
+      // حفظ المنتج كرائج
       const p = formatPrice(item.Price, prov.currency)
       savePopularProduct(item, provider, p.iqd)
     } catch (err) {
@@ -822,20 +822,20 @@ export default function ChinaShop() {
   }
 
   const addToCart = (item) => {
-    // Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† ÙˆØ¬ÙˆØ¯ Ø£Ù†ÙˆØ§Ø¹ ÙˆØ§Ø®ØªÙŠØ§Ø±Ù‡Ø§
+    // التحقق من وجود أنواع واختيارها
     if (productDetail?.Configurators && productDetail.Configurators.length > 0) {
       const hasRequiredSelections = productDetail.Configurators.every(cfg => 
         !cfg.Required || selectedConfigs[cfg.Pid]
       )
       
       if (!hasRequiredSelections) {
-        // Ø¹Ø±Ø¶ Ø±Ø³Ø§Ù„Ø© Ù„Ù„Ù…Ø³ØªØ®Ø¯Ù…
+        // عرض رسالة للمستخدم
         const missingTypes = productDetail.Configurators
           .filter(cfg => cfg.Required && !selectedConfigs[cfg.Pid])
-          .map(cfg => cfg.Name || 'Ø®ÙŠØ§Ø±')
-          .join(' Ùˆ ')
+          .map(cfg => cfg.Name || 'خيار')
+          .join(' و ')
         
-        // Ø¹Ø±Ø¶ Ø±Ø³Ø§Ù„Ø© Ø£Ù†ÙŠÙ‚Ø© Ø¨Ø¯Ù„ alert
+        // عرض رسالة أنيقة بدل alert
         setAddedToast(false)
         setTimeout(() => {
           const toast = document.createElement('div')
@@ -844,7 +844,7 @@ export default function ChinaShop() {
             <svg class="w-5 h-5 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
             </svg>
-            <span class="text-sm font-medium flex-1">ÙŠØ±Ø¬Ù‰ Ø§Ø®ØªÙŠØ§Ø± ${missingTypes} Ù‚Ø¨Ù„ Ø§Ù„Ø¥Ø¶Ø§ÙØ©</span>
+            <span class="text-sm font-medium flex-1">يرجى اختيار ${missingTypes} قبل الإضافة</span>
           `
           document.body.appendChild(toast)
           setTimeout(() => {
@@ -856,7 +856,7 @@ export default function ChinaShop() {
       }
     }
 
-    // Ø¥Ù†Ø´Ø§Ø¡ Ù…Ø¹Ø±Ù ÙØ±ÙŠØ¯ Ù„Ù„Ù…Ù†ØªØ¬ Ù…Ø¹ Ø§Ù„Ø£Ù†ÙˆØ§Ø¹ Ø§Ù„Ù…Ø®ØªØ§Ø±Ø©
+    // إنشاء معرف فريد للمنتج مع الأنواع المختارة
     const optionsKey = Object.keys(selectedConfigs).length > 0 
       ? JSON.stringify(selectedConfigs) 
       : 'default'
@@ -905,7 +905,7 @@ export default function ChinaShop() {
 
   const formatNum = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 
-  // â”€â”€â”€ Product Detail View â”€â”€â”€
+  // --- Product Detail View ---
   if (selectedProduct) {
     const item = selectedProduct
     const price = formatPrice(item.Price, prov.currency)
@@ -919,62 +919,131 @@ export default function ChinaShop() {
     const discountPercent = item.OldPrice > 0 && item.OldPrice > (item.Price?.OriginalPrice || 0) ? Math.round((1 - (item.Price?.OriginalPrice || 0) / item.OldPrice) * 100) : 0
 
     return (
-      <ProductView
-        item={item} productDetail={productDetail} pics={pics} iqd={iqd} inCart={inCart}
-        sales={sales} reviews={reviews} provLabel={provLabel} discountPercent={discountPercent}
-        formatNum={formatNum} loadingDetail={loadingDetail} cartCount={cartCount}
-        isFavorite={isFavorite} toggleFavorite={toggleFavorite} setShowCart={setShowCart}
-        setSelectedProduct={setSelectedProduct} addToCart={addToCart} updateQty={updateQty}
-        flyToCart={flyToCart} selectedConfigs={selectedConfigs} setSelectedConfigs={setSelectedConfigs}
-        loadAmazonVariant={loadAmazonVariant} loadingVariant={loadingVariant}
-        loadProductById={loadProductById} setShowExplainSheet={setShowExplainSheet}
-        setExplainMessages={setExplainMessages} askExplain={askExplain}
-        showExplainSheet={showExplainSheet} explainMessages={explainMessages}
-        explainLoading={explainLoading} addedToast={addedToast} setAddedToast={setAddedToast}
-        applyCommission={applyCommission} prov={prov} formatPrice={formatPrice}
-        productImageRef={productImageRef} productInfoRef={productInfoRef}
-        priceCountRef={priceCountRef} pageRef={pageRef}
-        USD_TO_IQD={USD_TO_IQD} CNY_TO_USD={CNY_TO_USD}
-        activeImage={activeImage} setActiveImage={setActiveImage}
-      />
+      <>
+        <ProductView
+          item={item} productDetail={productDetail} pics={pics} iqd={iqd} inCart={inCart}
+          sales={sales} reviews={reviews} provLabel={provLabel} discountPercent={discountPercent}
+          formatNum={formatNum} loadingDetail={loadingDetail} cartCount={cartCount}
+          isFavorite={isFavorite} toggleFavorite={toggleFavorite} setShowCart={setShowCart}
+          setSelectedProduct={setSelectedProduct} addToCart={addToCart} updateQty={updateQty}
+          flyToCart={flyToCart} selectedConfigs={selectedConfigs} setSelectedConfigs={setSelectedConfigs}
+          loadAmazonVariant={loadAmazonVariant} loadingVariant={loadingVariant}
+          loadProductById={loadProductById} setShowExplainSheet={setShowExplainSheet}
+          setExplainMessages={setExplainMessages} askExplain={askExplain}
+          showExplainSheet={showExplainSheet} explainMessages={explainMessages}
+          explainLoading={explainLoading} addedToast={addedToast} setAddedToast={setAddedToast}
+          applyCommission={applyCommission} prov={prov} formatPrice={formatPrice}
+          productImageRef={productImageRef} productInfoRef={productInfoRef}
+          priceCountRef={priceCountRef} pageRef={pageRef}
+          USD_TO_IQD={USD_TO_IQD} CNY_TO_USD={CNY_TO_USD}
+          activeImage={activeImage} setActiveImage={setActiveImage}
+        />
+        {/* Cart overlay inside product view */}
+        {showCart && (
+          <div className="fixed inset-0 z-50 flex flex-col bg-slate-50" dir="rtl">
+            <div className="bg-white/95 backdrop-blur-md flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+                  <ShoppingCart className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">??? ??????</h3>
+                  <p className="text-[12px] text-slate-400">{cartCount} ????</p>
+                </div>
+              </div>
+              <button onClick={() => setShowCart(false)} className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-all active:scale-95">
+                <X className="w-4 h-4 text-slate-500" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {cart.length === 0 ? (
+                <div className="text-center py-32 px-6">
+                  <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
+                    <ShoppingCart className="w-12 h-12 text-slate-300" />
+                  </div>
+                  <p className="text-lg font-bold text-slate-600">????? ?????</p>
+                  <button onClick={() => setShowCart(false)} className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg shadow-indigo-200/50">???? ????????</button>
+                </div>
+              ) : (
+                <div className="p-4 space-y-3 pb-6">
+                  {cart.map(c => (
+                    <div key={c.uniqueId || c.id} className="flex gap-3 bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm">
+                      <img src={c.image} alt="" className="w-20 h-20 rounded-xl object-cover flex-shrink-0 bg-slate-50" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-semibold text-slate-700 line-clamp-2 leading-snug">{c.title}</p>
+                        <span className="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md font-semibold inline-block mt-1">{c.providerLabel}</span>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-[14px] font-black text-slate-900">{formatNum(c.priceIqd * c.qty)} <span className="text-[10px] text-slate-400 font-normal">?.?</span></span>
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => updateQty(c.uniqueId || c.id, -1)} className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition active:scale-90">
+                              {c.qty === 1 ? <X className="w-3 h-3 text-red-400" /> : <Minus className="w-3 h-3 text-slate-500" />}
+                            </button>
+                            <span className="text-[13px] font-bold w-5 text-center text-slate-800">{c.qty}</span>
+                            <button onClick={() => updateQty(c.uniqueId || c.id, 1)} className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center hover:bg-indigo-700 transition active:scale-90 shadow-sm">
+                              <Plus className="w-3 h-3 text-white" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {cart.length > 0 && (
+              <div className="bg-white border-t border-slate-100 px-5 py-4 flex-shrink-0 space-y-3 shadow-2xl">
+                <div className="border-t border-slate-200 pt-3 flex items-center justify-between">
+                  <span className="text-base font-bold text-slate-800">???????</span>
+                  <span className="text-xl font-black text-slate-900">{formatNum(cartTotal)} <span className="text-[12px] font-bold text-slate-500">?.?</span></span>
+                </div>
+                <button onClick={() => { setShowCart(false); navigate('/china-checkout') }}
+                  className="w-full h-[52px] bg-gradient-to-l from-indigo-600 to-indigo-700 text-white rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] shadow-lg shadow-indigo-200/50">
+                  <ShoppingCart className="w-5 h-5" />
+                  ????? ????? � {formatNum(cartTotal)} ?.?
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </>
     )
   }
 
   
-  // â”€â”€â”€ Search & Results View â”€â”€â”€
+  // --- Search & Results View ---
   const categories = provider === 'amazon'
     ? [
-        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠØ§Øª', q: 'electronics', bg: 'bg-blue-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'Ø£Ø­Ø°ÙŠØ©', q: 'shoes', bg: 'bg-orange-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'Ø­Ù‚Ø§Ø¦Ø¨', q: 'bags', bg: 'bg-amber-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'Ø¬Ù…Ø§Ù„', q: 'beauty', bg: 'bg-pink-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/3159/3159960.png', label: 'Ù…ÙƒÙ…Ù„Ø§Øª', q: 'supplements vitamins', bg: 'bg-green-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/1261/1261163.png', label: 'Ù…Ù†Ø²Ù„', q: 'home kitchen', bg: 'bg-teal-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/2972/2972531.png', label: 'Ø³Ø§Ø¹Ø§Øª', q: 'watches', bg: 'bg-gray-100' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/3163/3163186.png', label: 'Ø±ÙŠØ§Ø¶Ø©', q: 'sports fitness', bg: 'bg-emerald-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'إلكترونيات', q: 'electronics', bg: 'bg-blue-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'أحذية', q: 'shoes', bg: 'bg-orange-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'حقائب', q: 'bags', bg: 'bg-amber-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'جمال', q: 'beauty', bg: 'bg-pink-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3159/3159960.png', label: 'مكملات', q: 'supplements vitamins', bg: 'bg-green-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/1261/1261163.png', label: 'منزل', q: 'home kitchen', bg: 'bg-teal-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/2972/2972531.png', label: 'ساعات', q: 'watches', bg: 'bg-gray-100' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3163/3163186.png', label: 'رياضة', q: 'sports fitness', bg: 'bg-emerald-50' },
       ]
     : provider === '1688'
     ? [
-        { img: 'https://cdn-icons-png.flaticon.com/128/863/863684.png', label: 'Ø£Ø²ÙŠØ§Ø¡', q: 'Ù…Ù„Ø§Ø¨Ø³', bg: 'bg-purple-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'Ø£Ø­Ø°ÙŠØ©', q: 'Ø£Ø­Ø°ÙŠØ©', bg: 'bg-orange-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'Ø­Ù‚Ø§Ø¦Ø¨', q: 'Ø­Ù‚Ø§Ø¦Ø¨', bg: 'bg-amber-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'Ø¬Ù…Ø§Ù„', q: 'Ù…ÙƒÙŠØ§Ø¬', bg: 'bg-pink-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠØ§Øª', q: 'Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠØ§Øª', bg: 'bg-blue-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/3082/3082044.png', label: 'Ø£Ù„Ø¹Ø§Ø¨', q: 'Ø§Ù„Ø¹Ø§Ø¨ Ø§Ø·ÙØ§Ù„', bg: 'bg-red-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/863/863684.png', label: 'أزياء', q: 'ملابس', bg: 'bg-purple-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'أحذية', q: 'أحذية', bg: 'bg-orange-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'حقائب', q: 'حقائب', bg: 'bg-amber-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'جمال', q: 'مكياج', bg: 'bg-pink-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'إلكترونيات', q: 'إلكترونيات', bg: 'bg-blue-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3082/3082044.png', label: 'ألعاب', q: 'العاب اطفال', bg: 'bg-red-50' },
       ]
     : [
-        { img: 'https://cdn-icons-png.flaticon.com/128/863/863684.png', label: 'Ø£Ø²ÙŠØ§Ø¡', q: 'ÙØ³Ø§ØªÙŠÙ†', bg: 'bg-purple-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'Ø£Ø­Ø°ÙŠØ©', q: 'Ø£Ø­Ø°ÙŠØ©', bg: 'bg-orange-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'Ø­Ù‚Ø§Ø¦Ø¨', q: 'Ø­Ù‚Ø§Ø¦Ø¨', bg: 'bg-amber-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'Ø¬Ù…Ø§Ù„', q: 'Ø¹Ø·ÙˆØ±', bg: 'bg-pink-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠØ§Øª', q: 'Ø³Ù…Ø§Ø¹Ø§Øª', bg: 'bg-blue-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/3082/3082044.png', label: 'Ø£Ù„Ø¹Ø§Ø¨', q: 'Ø§Ù„Ø¹Ø§Ø¨ Ø§Ø·ÙØ§Ù„', bg: 'bg-red-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/863/863684.png', label: 'أزياء', q: 'فساتين', bg: 'bg-purple-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'أحذية', q: 'أحذية', bg: 'bg-orange-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'حقائب', q: 'حقائب', bg: 'bg-amber-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'جمال', q: 'عطور', bg: 'bg-pink-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'إلكترونيات', q: 'سماعات', bg: 'bg-blue-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3082/3082044.png', label: 'ألعاب', q: 'العاب اطفال', bg: 'bg-red-50' },
       ]
 
   const provColor = provider === 'amazon' ? 'from-slate-800 to-slate-900' : provider === 'shein' ? 'from-pink-500 to-pink-600' : 'from-indigo-500 to-indigo-600'
   const provAccent = provider === 'amazon' ? 'bg-indigo-600' : provider === 'shein' ? 'bg-pink-500' : 'bg-indigo-600'
 
-  // Ø¯Ø§Ù„Ø© Ø§Ù„Ø¨Ø­Ø« Ø¨Ø¹Ø¯ Ø§Ù„ØªÙˆÙ‚Ù Ø¹Ù† Ø§Ù„ÙƒØªØ§Ø¨Ø© - Ø­Ù‚Ù„ Ø°ÙƒÙŠ ÙŠÙƒØªØ´Ù Ù†Øµ Ø£Ùˆ Ø±Ø§Ø¨Ø·
+  // دالة البحث بعد التوقف عن الكتابة - حقل ذكي يكتشف نص أو رابط
   const isUrl = (text) => /^https?:\/\//i.test(text.trim()) || /^(e|m)\.tb\.cn\//i.test(text.trim()) || /^a\.co\//i.test(text.trim())
   const handleSmartInput = (val) => {
     setQuery(val)
@@ -1029,7 +1098,7 @@ export default function ChinaShop() {
               ref={searchRef}
               type="text"
               dir="auto"
-              placeholder={provider === 'amazon' ? 'بحث أو لصق رابط منتج...' : `بحث أو لصق رابط منتج...`}
+              placeholder={provider === 'amazon' ? '??? ?? ??? ???? ????...' : `??? ?? ??? ???? ????...`}
               value={query}
               onChange={e => handleSmartInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const t = query.trim(); if (isUrl(t)) { setUrlInput(t); setTimeout(() => handleUrlSearch(), 50) } else { doSearch(0) } } }}
@@ -1041,7 +1110,7 @@ export default function ChinaShop() {
                   <X className="w-4 h-4 text-gray-400" />
                 </button>
               ) : (
-                <button onClick={() => fileInputRef.current?.click()} className="p-1.5 hover:bg-gray-200 rounded-full transition" title="Ø¨Ø­Ø« Ø¨Ø§Ù„ØµÙˆØ±Ø©">
+                <button onClick={() => fileInputRef.current?.click()} className="p-1.5 hover:bg-gray-200 rounded-full transition" title="بحث بالصورة">
                   <Camera className="w-5 h-5 text-gray-500" />
                 </button>
               )}
@@ -1050,17 +1119,17 @@ export default function ChinaShop() {
           {/* Smart hint */}
           {!searched && !loading && !query && (
             <div className="flex items-center justify-center gap-3 mt-2 text-[11px] text-gray-400">
-              <span className="flex items-center gap-1"><Search className="w-3 h-3" /> Ø§ÙƒØªØ¨ Ù„Ù„Ø¨Ø­Ø«</span>
-              <span>Â·</span>
-              <span className="flex items-center gap-1"><LinkIcon className="w-3 h-3" /> Ø£Ù„ØµÙ‚ Ø±Ø§Ø¨Ø·</span>
-              <span>Â·</span>
-              <span className="flex items-center gap-1"><Camera className="w-3 h-3" /> ØµÙˆØ±Ø©</span>
+              <span className="flex items-center gap-1"><Search className="w-3 h-3" /> اكتب للبحث</span>
+              <span>·</span>
+              <span className="flex items-center gap-1"><LinkIcon className="w-3 h-3" /> ألصق رابط</span>
+              <span>·</span>
+              <span className="flex items-center gap-1"><Camera className="w-3 h-3" /> صورة</span>
             </div>
           )}
           {isUrl(query.trim()) && !loading && (
             <div className="flex items-center gap-2 mt-2 px-1">
               <LinkIcon className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-              <span className="text-[11px] text-blue-600">ØªÙ… Ø§Ù„ÙƒØ´Ù Ø¹Ù† Ø±Ø§Ø¨Ø· - Ø§Ø¶ØºØ· Enter Ù„ÙØªØ­ Ø§Ù„Ù…Ù†ØªØ¬</span>
+              <span className="text-[11px] text-blue-600">تم الكشف عن رابط - اضغط Enter لفتح المنتج</span>
             </div>
           )}
           {urlError && <p className="text-[11px] text-red-500 mt-1.5 px-1">{urlError}</p>}
@@ -1108,9 +1177,9 @@ export default function ChinaShop() {
           <div className="mt-4 px-4 mb-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[14px] font-bold text-slate-800 flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-indigo-500" /> الأكثر رواجاً
+                <Flame className="w-4 h-4 text-indigo-500" /> ?????? ??????
               </h3>
-              <span className="text-[11px] text-slate-400">{popularProducts.length} منتج</span>
+              <span className="text-[11px] text-slate-400">{popularProducts.length} ????</span>
             </div>
             <div ref={popularRef} className="grid grid-cols-2 gap-3">
               {popularProducts.map(pp => (
@@ -1121,14 +1190,14 @@ export default function ChinaShop() {
                     <img src={pp.image} alt={pp.title} className="w-full h-full object-contain p-3" loading="lazy"
                       onError={e => { e.target.style.display = 'none' }} />
                     {pp.search_count > 3 && (
-                      <span className="absolute top-2 right-2 text-[9px] bg-indigo-600/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5"><Flame className="w-2.5 h-2.5" /> رائج</span>
+                      <span className="absolute top-2 right-2 text-[9px] bg-indigo-600/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5"><Flame className="w-2.5 h-2.5" /> ????</span>
                     )}
                   </div>
                   <div className="p-3">
                     <p className="text-[11px] text-slate-600 font-medium line-clamp-2 min-h-[30px] leading-snug">{pp.title}</p>
                     <p className="text-[14px] font-black text-slate-900 mt-1.5">
                       {formatNum(pp.price_iqd)}
-                      <span className="text-[9px] text-slate-400 font-normal mr-0.5">د.ع</span>
+                      <span className="text-[9px] text-slate-400 font-normal mr-0.5">?.?</span>
                     </p>
                   </div>
                 </div>
@@ -1143,16 +1212,16 @@ export default function ChinaShop() {
             <div className="bg-gradient-to-r from-pink-500 to-pink-600 text-white px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="text-xl font-black">SHEIN</span>
-                <span className="text-xs opacity-80">Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø§Ù„Ø¹Ø±Ø¨ÙŠ</span>
+                <span className="text-xs opacity-80">الموقع العربي</span>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => setSheinUrl('/.netlify/functions/shein-proxy-page?url=' + encodeURIComponent('https://ar.shein.com'))}
                   className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors">
-                  <Home className="w-3.5 h-3.5 inline" /> Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©
+                  <Home className="w-3.5 h-3.5 inline" /> الرئيسية
                 </button>
                 <button onClick={() => setShowCart(true)}
                   className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
-                  <ShoppingCart className="w-3.5 h-3.5 inline" /> Ø§Ù„Ø³Ù„Ø© ({cart.length})
+                  <ShoppingCart className="w-3.5 h-3.5 inline" /> السلة ({cart.length})
                 </button>
               </div>
             </div>
@@ -1160,7 +1229,7 @@ export default function ChinaShop() {
               <iframe src={sheinUrl} className="w-full h-full border-0" title="Shein Arabic" loading="lazy" />
             </div>
             <div className="bg-gray-50 border-t border-pink-100 p-3">
-              <p className="text-xs text-gray-500 text-center flex items-center justify-center gap-1"><Lightbulb className="w-3.5 h-3.5" /> Ø§Ù†Ø³Ø® Ø±Ø§Ø¨Ø· Ø§Ù„Ù…Ù†ØªØ¬ Ù…Ù† Ø§Ù„Ù…ÙˆÙ‚Ø¹ ÙˆØ£Ù„ØµÙ‚Ù‡ ÙÙŠ Ø§Ù„Ø¨Ø­Ø«</p>
+              <p className="text-xs text-gray-500 text-center flex items-center justify-center gap-1"><Lightbulb className="w-3.5 h-3.5" /> انسخ رابط المنتج من الموقع وألصقه في البحث</p>
             </div>
           </div>
         )}
@@ -1178,9 +1247,9 @@ export default function ChinaShop() {
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[15px] font-bold text-slate-800 flex items-center gap-2">
                 <span className="w-1 h-5 bg-indigo-500 rounded-full"></span>
-                نتائج البحث بالصورة
+                ????? ????? ???????
               </h3>
-              <span className="text-[12px] text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">{imageResults.length} نتيجة</span>
+              <span className="text-[12px] text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">{imageResults.length} ?????</span>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {imageResults.map((item, idx) => (
@@ -1202,7 +1271,7 @@ export default function ChinaShop() {
                   <div className="p-3">
                     <p className="text-[12px] text-slate-700 font-medium line-clamp-2 mb-2 leading-snug">{item.title}</p>
                     {item.price > 0 && (
-                      <p className="text-[14px] font-black text-slate-900">{formatNum(applyCommission(Math.round(item.price * USD_TO_IQD)))} <span className="text-[10px] text-slate-400 font-normal">د.ع</span></p>
+                      <p className="text-[14px] font-black text-slate-900">{formatNum(applyCommission(Math.round(item.price * USD_TO_IQD)))} <span className="text-[10px] text-slate-400 font-normal">?.?</span></p>
                     )}
                   </div>
                 </div>
@@ -1219,12 +1288,12 @@ export default function ChinaShop() {
                 {totalCount > 0 ? (
                   <span className="flex items-center gap-2">
                     <span className="w-1 h-5 bg-indigo-500 rounded-full"></span>
-                    {formatNum(totalCount)} نتيجة
+                    {formatNum(totalCount)} ?????
                   </span>
-                ) : 'لا توجد نتائج'}
+                ) : '?? ???? ?????'}
               </h3>
               {totalCount > 0 && (
-                <span className="text-[12px] text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">صفحة {page + 1}</span>
+                <span className="text-[12px] text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">???? {page + 1}</span>
               )}
             </div>
 
@@ -1232,10 +1301,10 @@ export default function ChinaShop() {
             {totalCount > 0 && (
               <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
                 {[
-                  { key: 'default', label: 'الافتراضي' },
-                  { key: 'price', label: 'الأرخص' },
-                  { key: '-price', label: 'الأغلى' },
-                  { key: 'volume', label: 'الأكثر مبيعاً' },
+                  { key: 'default', label: '?????????' },
+                  { key: 'price', label: '??????' },
+                  { key: '-price', label: '??????' },
+                  { key: 'volume', label: '?????? ??????' },
                 ].map(s => (
                   <button key={s.key} onClick={() => { setSortBy(s.key); doSearch(0, s.key) }}
                     className={`whitespace-nowrap px-4 py-2 rounded-xl text-[12px] font-bold transition-all active:scale-95 ${
@@ -1254,8 +1323,8 @@ export default function ChinaShop() {
                 <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Search className="w-8 h-8 text-slate-300" />
                 </div>
-                <p className="text-sm font-bold text-slate-500">لم نجد نتائج لـ "{query}"</p>
-                <p className="text-[12px] text-slate-400 mt-1">جرب كلمات بحث مختلفة</p>
+                <p className="text-sm font-bold text-slate-500">?? ??? ????? ?? "{query}"</p>
+                <p className="text-[12px] text-slate-400 mt-1">??? ????? ??? ??????</p>
               </div>
             ) : (
               <div ref={resultsGridRef} className="grid grid-cols-2 gap-3">
@@ -1304,7 +1373,7 @@ export default function ChinaShop() {
                         <div className="mt-2.5 flex items-end justify-between">
                           <p className="text-[15px] font-black text-slate-900">
                             {formatNum(iqd)}
-                            <span className="text-[10px] text-slate-400 font-normal mr-0.5">د.ع</span>
+                            <span className="text-[10px] text-slate-400 font-normal mr-0.5">?.?</span>
                           </p>
                           <div className={`w-7 h-7 ${provAccent} rounded-lg flex items-center justify-center shadow-sm`}>
                             <Plus className="w-4 h-4 text-white" />
@@ -1342,10 +1411,10 @@ export default function ChinaShop() {
         <div ref={el => { if (el) toastAnim(el, true) }} className="fixed top-14 left-1/2 -translate-x-1/2 z-50">
           <div className="bg-emerald-600 text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-emerald-200/50 flex items-center gap-3 min-w-[280px]">
             <CheckCircle2 className="w-5 h-5 text-emerald-200 flex-shrink-0" />
-            <span className="text-sm font-semibold flex-1">ØªÙ…Øª Ø§Ù„Ø¥Ø¶Ø§ÙØ© Ù„Ù„Ø³Ù„Ø©</span>
+            <span className="text-sm font-semibold flex-1">تمت الإضافة للسلة</span>
             <button onClick={() => { setAddedToast(false); setShowCart(true) }}
               className="text-sm font-bold text-emerald-200 hover:text-white whitespace-nowrap">
-              Ø¹Ø±Ø¶ â†
+              عرض ←
             </button>
           </div>
         </div>
@@ -1369,8 +1438,8 @@ export default function ChinaShop() {
                 <ShoppingCart className="w-5 h-5 text-indigo-600" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900">سلة التسوق</h3>
-                <p className="text-[12px] text-slate-400">{cartCount} منتج</p>
+                <h3 className="text-lg font-bold text-slate-900">??? ??????</h3>
+                <p className="text-[12px] text-slate-400">{cartCount} ????</p>
               </div>
             </div>
             <button onClick={() => setShowCart(false)} className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-all active:scale-95">
@@ -1384,10 +1453,10 @@ export default function ChinaShop() {
                 <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
                   <ShoppingCart className="w-12 h-12 text-slate-300" />
                 </div>
-                <p className="text-lg font-bold text-slate-600">السلة فارغة</p>
-                <p className="text-sm text-slate-400 mt-2">أضف منتجات للبدء بالتسوق</p>
+                <p className="text-lg font-bold text-slate-600">????? ?????</p>
+                <p className="text-sm text-slate-400 mt-2">??? ?????? ????? ???????</p>
                 <button onClick={() => setShowCart(false)} className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg shadow-indigo-200/50">
-                  تصفح المنتجات
+                  ???? ????????
                 </button>
               </div>
             ) : (
@@ -1414,7 +1483,7 @@ export default function ChinaShop() {
                       )}
                       
                       <div className="flex items-center justify-between mt-2">
-                        <span className="text-[14px] font-black text-slate-900">{formatNum(c.priceIqd * c.qty)} <span className="text-[10px] text-slate-400 font-normal">د.ع</span></span>
+                        <span className="text-[14px] font-black text-slate-900">{formatNum(c.priceIqd * c.qty)} <span className="text-[10px] text-slate-400 font-normal">?.?</span></span>
                         <div className="flex items-center gap-2">
                           <button onClick={() => updateQty(c.uniqueId || c.id, -1)} className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition active:scale-90">
                             {c.qty === 1 ? <X className="w-3 h-3 text-red-400" /> : <Minus className="w-3 h-3 text-slate-500" />}
@@ -1436,25 +1505,25 @@ export default function ChinaShop() {
           {cart.length > 0 && (
             <div className="bg-white border-t border-slate-100 px-5 py-4 flex-shrink-0 space-y-3 shadow-2xl">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">المنتجات ({cartCount})</span>
-                <span className="text-sm font-bold text-slate-700">{formatNum(cartTotal)} د.ع</span>
+                <span className="text-sm text-slate-500">???????? ({cartCount})</span>
+                <span className="text-sm font-bold text-slate-700">{formatNum(cartTotal)} ?.?</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">الشحن</span>
-                <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg font-semibold">عند الاستلام</span>
+                <span className="text-sm text-slate-500">?????</span>
+                <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg font-semibold">??? ????????</span>
               </div>
               <div className="border-t border-slate-200 pt-3 flex items-center justify-between">
-                <span className="text-base font-bold text-slate-800">المجموع</span>
-                <span className="text-xl font-black text-slate-900">{formatNum(cartTotal)} <span className="text-[12px] font-bold text-slate-500">د.ع</span></span>
+                <span className="text-base font-bold text-slate-800">???????</span>
+                <span className="text-xl font-black text-slate-900">{formatNum(cartTotal)} <span className="text-[12px] font-bold text-slate-500">?.?</span></span>
               </div>
               <button onClick={() => { setShowCart(false); navigate('/china-checkout') }}
                 className="w-full h-[52px] bg-gradient-to-l from-indigo-600 to-indigo-700 text-white rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] shadow-lg shadow-indigo-200/50">
                 <ShoppingCart className="w-5 h-5" />
-                إتمام الطلب — {formatNum(cartTotal)} د.ع
+                ????? ????? � {formatNum(cartTotal)} ?.?
               </button>
               <button onClick={() => { setCart([]); setShowCart(false) }}
                 className="w-full text-[13px] text-red-400 hover:text-red-500 py-1 transition-colors font-medium">
-                تفريغ السلة
+                ????? ?????
               </button>
             </div>
           )}
@@ -1470,8 +1539,8 @@ export default function ChinaShop() {
                 <Heart className="w-5 h-5 text-pink-500" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900">المفضلة</h3>
-                <p className="text-[12px] text-slate-400">{favorites.length} منتج</p>
+                <h3 className="text-lg font-bold text-slate-900">???????</h3>
+                <p className="text-[12px] text-slate-400">{favorites.length} ????</p>
               </div>
             </div>
             <button onClick={() => setShowFavorites(false)} className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-all active:scale-95">
@@ -1485,10 +1554,10 @@ export default function ChinaShop() {
                 <div className="w-24 h-24 bg-pink-50 rounded-3xl flex items-center justify-center mx-auto mb-5">
                   <Heart className="w-12 h-12 text-pink-300" />
                 </div>
-                <p className="text-lg font-bold text-slate-600">لا توجد منتجات مفضلة</p>
-                <p className="text-sm text-slate-400 mt-2">اضغط على القلب لإضافة منتجات</p>
+                <p className="text-lg font-bold text-slate-600">?? ???? ?????? ?????</p>
+                <p className="text-sm text-slate-400 mt-2">???? ??? ????? ?????? ??????</p>
                 <button onClick={() => setShowFavorites(false)} className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg shadow-indigo-200/50">
-                  تصفح المنتجات
+                  ???? ????????
                 </button>
               </div>
             ) : (
@@ -1500,7 +1569,7 @@ export default function ChinaShop() {
                       <img src={item.MainPictureUrl} alt="" className="w-20 h-20 rounded-xl object-cover bg-slate-50 flex-shrink-0 cursor-pointer" onClick={() => { setShowFavorites(false); setSelectedProduct(item) }} />
                       <div className="flex-1 min-w-0">
                         <p className="text-[13px] font-semibold text-slate-800 line-clamp-2 cursor-pointer" onClick={() => { setShowFavorites(false); setSelectedProduct(item) }}>{item.Title}</p>
-                        <p className="text-[14px] font-black text-indigo-600 mt-1">{formatNum(pr.iqd)} د.ع</p>
+                        <p className="text-[14px] font-black text-indigo-600 mt-1">{formatNum(pr.iqd)} ?.?</p>
                       </div>
                       <button onClick={() => toggleFavorite(item)} className="w-8 h-8 flex-shrink-0 flex items-center justify-center">
                         <Heart className="w-5 h-5 text-red-500 fill-red-500" />
@@ -1537,12 +1606,12 @@ export default function ChinaShop() {
   )
 }
 
-// â”€â”€â”€ Bottom Tab Bar Component â”€â”€â”€
+// ─── Bottom Tab Bar Component ───
 function BottomTabBar({ cartCount, favCount, onCartClick, onFavClick, onAiClick }) {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-gray-200/80" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <div className="max-w-lg mx-auto flex items-center justify-around px-2 py-1.5">
-        {/* Ø§Ù„Ø³Ù„Ø© */}
+        {/* السلة */}
         <button onClick={onCartClick} className="flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl transition-all active:scale-90 group">
           <div className="relative">
             <svg className="w-6 h-6 text-gray-500 group-active:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
@@ -1552,10 +1621,10 @@ function BottomTabBar({ cartCount, favCount, onCartClick, onFavClick, onAiClick 
               <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">{cartCount}</span>
             )}
           </div>
-          <span className="text-[10px] font-medium text-gray-500 group-active:text-blue-600">Ø§Ù„Ø³Ù„Ø©</span>
+          <span className="text-[10px] font-medium text-gray-500 group-active:text-blue-600">السلة</span>
         </button>
 
-        {/* Ø§Ù„Ù…ÙØ¶Ù„Ø© */}
+        {/* المفضلة */}
         <button onClick={onFavClick} className="flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl transition-all active:scale-90 group">
           <div className="relative">
             <svg className="w-6 h-6 text-gray-500 group-active:text-pink-500 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
@@ -1565,10 +1634,10 @@ function BottomTabBar({ cartCount, favCount, onCartClick, onFavClick, onAiClick 
               <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] bg-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">{favCount}</span>
             )}
           </div>
-          <span className="text-[10px] font-medium text-gray-500 group-active:text-pink-500">Ø§Ù„Ù…ÙØ¶Ù„Ø©</span>
+          <span className="text-[10px] font-medium text-gray-500 group-active:text-pink-500">المفضلة</span>
         </button>
 
-        {/* Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„Ø°ÙƒÙŠ */}
+        {/* المساعد الذكي */}
         <button onClick={onAiClick} className="flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl transition-all active:scale-90 group">
           <div className="relative">
             <svg className="w-6 h-6 text-gray-500 group-active:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
@@ -1576,14 +1645,14 @@ function BottomTabBar({ cartCount, favCount, onCartClick, onFavClick, onAiClick 
             </svg>
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">AI</span>
           </div>
-          <span className="text-[10px] font-medium text-gray-500 group-active:text-blue-600">Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯</span>
+          <span className="text-[10px] font-medium text-gray-500 group-active:text-blue-600">المساعد</span>
         </button>
       </div>
     </div>
   )
 }
 
-// â”€â”€â”€ AI Chat Component â”€â”€â”€
+// ─── AI Chat Component ───
 function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, initialMessage, onInitialMessageSent }) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([])
@@ -1606,7 +1675,7 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, init
     if (open && messages.length === 0) {
       setMessages([{
         role: 'assistant',
-        content: 'Ù‡Ù„Ø§! ðŸ‘‹ Ø£Ù†Ø§ Ù…Ø³Ø§Ø¹Ø¯Ùƒ Ø§Ù„Ø°ÙƒÙŠ Ù„Ù„ØªØ³ÙˆÙ‚.\nØ§ÙƒØªØ¨ Ù„ÙŠ Ø´Ù†Ùˆ ØªØ¯ÙˆØ± Ø¹Ù„ÙŠÙ‡ ÙˆØ£Ø³Ø§Ø¹Ø¯Ùƒ ØªÙ„Ø§Ù‚ÙŠÙ‡ Ø¨Ø£ÙØ¶Ù„ Ø³Ø¹Ø±! ðŸ›ï¸'
+        content: 'هلا! 👋 أنا مساعدك الذكي للتسوق.\nاكتب لي شنو تدور عليه وأساعدك تلاقيه بأفضل سعر! 🛍️'
       }])
     }
   }, [open])
@@ -1646,7 +1715,7 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, init
 
     const apiMessages = newMessages.filter(m => m.role !== 'system')
     if (hiddenContext) {
-      apiMessages.push({ role: 'user', content: `[Ø³ÙŠØ§Ù‚ Ø§Ù„Ù…Ù†ØªØ¬ - Ù„Ø§ ØªØ¹Ø±Ø¶Ù‡ Ù„Ù„Ù…Ø³ØªØ®Ø¯Ù…ØŒ Ø§Ø³ØªØ®Ø¯Ù…Ù‡ ÙÙ‚Ø· Ù„Ù„Ø¥Ø¬Ø§Ø¨Ø©]:\n${hiddenContext}` })
+      apiMessages.push({ role: 'user', content: `[سياق المنتج - لا تعرضه للمستخدم، استخدمه فقط للإجابة]:\n${hiddenContext}` })
     }
 
     try {
@@ -1660,7 +1729,7 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, init
       const data = await res.json()
       
       if (data.action === 'search' && data.searchQuery) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.reply + '\n\nðŸ” Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø¨Ø­Ø«...' }])
+        setMessages(prev => [...prev, { role: 'assistant', content: data.reply + '\n\n🔍 جاري البحث...' }])
         // Search using existing amazon-serpapi function and show in main page
         try {
           const searchRes = await fetch(`/.netlify/functions/amazon-serpapi?action=search&query=${encodeURIComponent(data.searchQuery)}&page=1`)
@@ -1669,14 +1738,14 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, init
             onSearchResults(searchData.results, searchData.totalResults || searchData.results.length)
             setMessages(prev => {
               const updated = [...prev]
-              updated[updated.length - 1] = { role: 'assistant', content: data.reply + '\n\nðŸ“¦ ØªÙ… Ø¹Ø±Ø¶ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª ÙÙŠ ØµÙØ­Ø© Ø§Ù„Ø¨Ø­Ø«!' }
+              updated[updated.length - 1] = { role: 'assistant', content: data.reply + '\n\n📦 تم عرض المنتجات في صفحة البحث!' }
               return updated
             })
             setTimeout(() => closeChat(), 1200)
           } else {
             setMessages(prev => {
               const updated = [...prev]
-              updated[updated.length - 1] = { role: 'assistant', content: data.reply + '\n\nâš ï¸ Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ù†ØªØ§Ø¦Ø¬ØŒ Ø¬Ø±Ø¨ ÙˆØµÙ Ù…Ø®ØªÙ„Ù.' }
+              updated[updated.length - 1] = { role: 'assistant', content: data.reply + '\n\n⚠️ لم يتم العثور على نتائج، جرب وصف مختلف.' }
               return updated
             })
           }
@@ -1684,7 +1753,7 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, init
           console.error('Search error:', searchErr)
           setMessages(prev => {
             const updated = [...prev]
-            updated[updated.length - 1] = { role: 'assistant', content: data.reply + '\n\nâš ï¸ Ø­Ø¯Ø« Ø®Ø·Ø£ Ø¨Ø§Ù„Ø¨Ø­Ø«.' }
+            updated[updated.length - 1] = { role: 'assistant', content: data.reply + '\n\n⚠️ حدث خطأ بالبحث.' }
             return updated
           })
         }
@@ -1692,16 +1761,16 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, init
         setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
       }
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Ø¹Ø°Ø±Ø§Ù‹ØŒ Ø­Ø¯Ø« Ø®Ø·Ø£. Ø­Ø§ÙˆÙ„ Ù…Ø±Ø© Ø«Ø§Ù†ÙŠØ© ðŸ™' }])
+      setMessages(prev => [...prev, { role: 'assistant', content: 'عذراً، حدث خطأ. حاول مرة ثانية 🙏' }])
     }
     setLoading(false)
   }
 
   const quickActions = [
-    { label: 'ðŸŽ Ø£Ø¨Ø­Ø« Ø¹Ù† Ù‡Ø¯ÙŠØ©', msg: 'Ø£Ø¨ÙŠ Ù‡Ø¯ÙŠØ© Ø­Ù„ÙˆØ©' },
-    { label: 'ðŸ’„ Ù…Ù†ØªØ¬Ø§Øª Ø¹Ù†Ø§ÙŠØ©', msg: 'Ø£Ø±ÙŠØ¯ Ù…Ù†ØªØ¬Ø§Øª Ø¹Ù†Ø§ÙŠØ© Ø¨Ø§Ù„Ø¨Ø´Ø±Ø©' },
-    { label: 'ðŸ’ª Ù…ÙƒÙ…Ù„Ø§Øª', msg: 'Ø£Ø±ÙŠØ¯ ÙÙŠØªØ§Ù…ÙŠÙ†Ø§Øª ÙˆÙ…ÙƒÙ…Ù„Ø§Øª' },
-    { label: 'ðŸ“± Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠØ§Øª', msg: 'Ø£Ø¨ÙŠ Ø³Ù…Ø§Ø¹Ø§Øª Ø£Ùˆ Ø£Ø¬Ù‡Ø²Ø© Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠØ©' },
+    { label: '🎁 أبحث عن هدية', msg: 'أبي هدية حلوة' },
+    { label: '💄 منتجات عناية', msg: 'أريد منتجات عناية بالبشرة' },
+    { label: '💪 مكملات', msg: 'أريد فيتامينات ومكملات' },
+    { label: '📱 إلكترونيات', msg: 'أبي سماعات أو أجهزة إلكترونية' },
   ]
 
   return (
@@ -1718,8 +1787,8 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, init
               <Bot className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1">
-              <p className="text-[14px] font-bold text-white">Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„Ø´Ø±Ø§Ø¡ Ø§Ù„Ø°ÙƒÙŠ</p>
-              <p className="text-[11px] text-blue-100">ÙŠØ³Ø§Ø¹Ø¯Ùƒ ØªÙ„Ø§Ù‚ÙŠ Ø£ÙØ¶Ù„ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª</p>
+              <p className="text-[14px] font-bold text-white">مساعد الشراء الذكي</p>
+              <p className="text-[11px] text-blue-100">يساعدك تلاقي أفضل المنتجات</p>
             </div>
           </div>
 
@@ -1774,7 +1843,7 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, init
               ref={inputRef}
               type="text"
               dir="auto"
-              placeholder="Ø§ÙƒØªØ¨ Ø³Ø¤Ø§Ù„Ùƒ Ù‡Ù†Ø§..."
+              placeholder="اكتب سؤالك هنا..."
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); sendMessage() } }}

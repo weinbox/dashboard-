@@ -158,9 +158,9 @@ export default function ProductView(p) {
                                       <img src={val.ImageUrl} alt="" className="w-full h-full object-cover" />
                                     </div>
                                   ) : (
-                                    <div className={`w-10 h-10 rounded-full border-2 transition-all flex items-center justify-center ${sel ? 'border-indigo-500 shadow-md shadow-indigo-100 ring-2 ring-indigo-200' : 'border-slate-200 hover:border-slate-300'}`}
-                                      style={{ backgroundColor: val.Name?.toLowerCase() || '#ccc' }}>
-                                      {sel && <Check className="w-4 h-4 text-white drop-shadow" />}
+                                    <div className={`w-11 h-11 rounded-xl border-2 transition-all flex items-center justify-center ${sel ? 'border-indigo-500 shadow-md shadow-indigo-100 ring-2 ring-indigo-200' : 'border-slate-200 hover:border-slate-300'}`}>
+                                      <span className="text-[10px] font-medium text-slate-600 text-center leading-tight px-0.5">{val.Name || val.Value || val.Vid}</span>
+                                      {sel && <div className="absolute inset-0 bg-indigo-500/10 rounded-xl flex items-center justify-center"><Check className="w-3.5 h-3.5 text-indigo-600" /></div>}
                                     </div>
                                   )}
                                 </button>
@@ -262,11 +262,11 @@ export default function ProductView(p) {
                   {inCart ? (
                     <>
                       <div className="flex items-center bg-slate-100 rounded-full overflow-hidden">
-                        <button onClick={() => p.updateQty(item.Id, -1)} className="w-9 h-9 flex items-center justify-center hover:bg-slate-200 transition">
+                        <button onClick={() => p.updateQty(inCart.uniqueId || inCart.id, -1)} className="w-9 h-9 flex items-center justify-center hover:bg-slate-200 transition">
                           <Minus className="w-3.5 h-3.5 text-slate-600" />
                         </button>
                         <span className="w-7 text-center text-sm font-bold text-slate-900">{inCart.qty}</span>
-                        <button onClick={() => p.updateQty(item.Id, 1)} className="w-9 h-9 flex items-center justify-center hover:bg-slate-200 transition">
+                        <button onClick={() => p.updateQty(inCart.uniqueId || inCart.id, 1)} className="w-9 h-9 flex items-center justify-center hover:bg-slate-200 transition">
                           <Plus className="w-3.5 h-3.5 text-slate-600" />
                         </button>
                       </div>
