@@ -1787,6 +1787,24 @@ export default function ChinaShop() {
         setSearched(true)
       }} />
 
+      {/* ═══ Floating Bottom Bar - Image Search + AI Assistant ═══ */}
+      {!selectedProduct && !showCart && !showFavorites && !openAiChat && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-32px)] max-w-md">
+          <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl shadow-black/15 border border-slate-200/80 px-2 py-2 flex items-center gap-2">
+            <button onClick={() => fileInputRef.current?.click()}
+              className="flex-1 h-12 bg-gradient-to-r from-violet-500 to-indigo-600 rounded-xl flex items-center justify-center gap-2 active:scale-[0.96] transition-all shadow-md shadow-indigo-200/40">
+              <Camera className="w-5 h-5 text-white" />
+              <span className="text-[13px] font-bold text-white">بحث بالصورة</span>
+            </button>
+            <button onClick={() => setOpenAiChat(true)}
+              className="flex-1 h-12 bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl flex items-center justify-center gap-2 active:scale-[0.96] transition-all shadow-md shadow-slate-400/30">
+              <Sparkles className="w-5 h-5 text-amber-400" />
+              <span className="text-[13px] font-bold text-white">المساعد الذكي</span>
+            </button>
+          </div>
+        </div>
+      )}
+
   </div>
   )
 }
@@ -2044,25 +2062,6 @@ function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, init
         </div>
       )}
 
-      {/* ═══ Floating Bottom Bar - Image Search + AI Assistant ═══ */}
-      {!selectedProduct && !showCart && !showFavorites && !openAiChat && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-32px)] max-w-md">
-          <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl shadow-black/15 border border-slate-200/80 px-2 py-2 flex items-center gap-2">
-            {/* Image Search */}
-            <button onClick={() => fileInputRef.current?.click()}
-              className="flex-1 h-12 bg-gradient-to-r from-violet-500 to-indigo-600 rounded-xl flex items-center justify-center gap-2 active:scale-[0.96] transition-all shadow-md shadow-indigo-200/40">
-              <Camera className="w-5 h-5 text-white" />
-              <span className="text-[13px] font-bold text-white">بحث بالصورة</span>
-            </button>
-            {/* AI Assistant */}
-            <button onClick={() => setOpenAiChat(true)}
-              className="flex-1 h-12 bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl flex items-center justify-center gap-2 active:scale-[0.96] transition-all shadow-md shadow-slate-400/30">
-              <Sparkles className="w-5 h-5 text-amber-400" />
-              <span className="text-[13px] font-bold text-white">المساعد الذكي</span>
-            </button>
-          </div>
-        </div>
-      )}
     </>
   )
 }
