@@ -1067,6 +1067,7 @@ export default function ChinaShop() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20" dir="rtl">
+      <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageUpload} />
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-2.5">
@@ -1111,13 +1112,13 @@ export default function ChinaShop() {
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const t = query.trim(); if (isUrl(t)) { setUrlInput(t); setTimeout(() => handleUrlSearch(), 50) } else { doSearch(0) } } }}
               className="w-full h-12 pl-11 pr-12 bg-slate-50 rounded-2xl text-[14px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-indigo-100 border border-slate-200 focus:border-indigo-300 placeholder:text-slate-400"
             />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 z-20">
               {query ? (
-                <button onClick={() => { setQuery(''); setUrlInput(''); setUrlError(''); setSearched(false); setResults([]); searchRef.current?.focus() }} className="p-1.5 hover:bg-gray-200 rounded-full transition">
+                <button onClick={() => { setQuery(''); setUrlInput(''); setUrlError(''); setSearched(false); setResults([]); searchRef.current?.focus() }} className="w-9 h-9 flex items-center justify-center hover:bg-gray-200 rounded-full transition active:scale-90">
                   <X className="w-4 h-4 text-gray-400" />
                 </button>
               ) : (
-                <button onClick={() => fileInputRef.current?.click()} className="p-1.5 hover:bg-gray-200 rounded-full transition" title="بحث بالصورة">
+                <button onClick={() => fileInputRef.current?.click()} className="w-9 h-9 flex items-center justify-center hover:bg-gray-200 rounded-full transition active:scale-90" title="بحث بالصورة">
                   <Camera className="w-5 h-5 text-gray-500" />
                 </button>
               )}
