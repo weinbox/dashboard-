@@ -1,6 +1,6 @@
-// Shein Search via Apify Actor
+// Shein Search via Apify Actor (shahidirfan/shein-product-scraper)
 const APIFY_TOKEN = process.env.APIFY_TOKEN
-const ACTOR_ID = 'sNgxslyqdJ0k7RNjP'
+const ACTOR_ID = 'shahidirfan~shein-product-scraper'
 
 exports.handler = async (event) => {
   const headers = {
@@ -13,29 +13,19 @@ exports.handler = async (event) => {
   try {
     const params = event.queryStringParameters || {}
     const keyword = params.keyword || ''
-    const limit = parseInt(params.limit) || 20
     const page = parseInt(params.page) || 1
-    const country = params.country || 'SA' // السعودية افتراضياً
-    const language = params.language || 'ar'
-    const currency = params.currency || 'SAR'
-    const sort = params.sort || '' // 0=recommend, 7=top rated, 9=new, 10=price low, 11=price high
 
     if (!keyword) {
       return { statusCode: 400, headers, body: JSON.stringify({ error: 'keyword is required' }) }
     }
 
-    // Run the actor synchronously (wait for results)
-    const runUrl = `https://api.apify.com/v2/acts/${ACTOR_ID}/run-sync-get-dataset-items?token=${APIFY_TOKEN}`
+    // Build Shein search URL - ar.shein.com for Arabic
+    const searchUrl = `https://ar.shein.com/pdsearch/${encodeURIComponent(keyword)}/?page=${page}`
 
-    const input = {
-      keyword,
-      limit,
-      page,
-      country,
-      language,
-      currency,
-      sort: sort || undefined,
-    }
+    // Run the actor synchronously (wait for results)
+    const runUrl = `https://api.apify.com/v2/acts/${ACTOR_ID}/run-sync-get-dataset-items?token=${APIFY_TOKEN}&timeout=60`
+
+    const input = { startUrl: searchUrl }
 
     const response = await fetch(runUrl, {
       method: 'POST',
@@ -52,28 +42,24 @@ exports.handler = async (event) => {
 
     // Normalize results
     const products = (Array.isArray(rawData) ? rawData : []).map(item => {
-      const p = item.product || item
+      const saleAmt = item.salePrice?.amount || item.sale_price || '0'
+      const retailAmt = item.retailPrice?.amount || item.original_price || '0'
+      const discTxt = item.discount_text || (item.unit_discount ? `-${item.unit_discount}%` : '')
+      const img = (item.goods_img || item.image_url || '').replace('http://', 'https://')
       return {
-        id: p.goods_id || '',
-        title: p.goods_name || '',
-        image: (p.goods_img || '').replace('http://', 'https://'),
-        price: p.salePrice?.amount || p.retailPrice?.amount || '0',
-        priceSymbol: p.salePrice?.amountWithSymbol || p.retailPrice?.amountWithSymbol || '',
-        originalPrice: p.retailPrice?.amount || '0',
-        originalPriceSymbol: p.retailPrice?.amountWithSymbol || '',
-        discount: p.original_discount || '0',
-        currency: p.salePrice?.usdAmount ? 'USD' : currency,
-        usdPrice: p.salePrice?.usdAmount || '0',
-        rating: p.comment_rank_average || '0',
-        reviews: p.comment_num || 0,
-        reviewsShow: p.comment_num_show || '0',
-        category: p.cate_name || '',
-        categoryId: p.cat_id || '',
-        url: p.goods_url_name ? `https://ar.shein.com/${p.goods_url_name}-p-${p.goods_id}.html` : '',
-        stock: p.stock || 0,
-        soldOut: p.soldOutStatus === '1',
-        video: p.video_url || '',
-        badge: p.productInfoLabels || null,
+        id: item.goods_id || item.product_id || '',
+        title: item.goods_name || item.title || '',
+        image: img,
+        price: saleAmt,
+        originalPrice: retailAmt,
+        discount: discTxt,
+        usdPrice: item.salePrice?.usdAmount || saleAmt,
+        rating: '0',
+        reviews: 0,
+        category: '',
+        categoryId: item.cat_id || item.category_id || '',
+        url: item.url || `https://ar.shein.com/-p-${item.goods_id || item.product_id}.html`,
+        images: item.detail_image || [],
       }
     })
 
@@ -85,7 +71,6 @@ exports.handler = async (event) => {
         keyword,
         total: products.length,
         page,
-        country,
         products,
       }),
     }

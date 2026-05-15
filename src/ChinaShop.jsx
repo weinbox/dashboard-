@@ -400,7 +400,7 @@ export default function ChinaShop() {
       setProductDetail(null)
       setLoading(true)
       try {
-        const res = await fetch(`/.netlify/functions/shein-search?keyword=${encodeURIComponent(query.trim())}&limit=20&page=${pageNum + 1}&country=SA&language=ar&currency=SAR`)
+        const res = await fetch(`/.netlify/functions/shein-search?keyword=${encodeURIComponent(query.trim())}&page=${pageNum + 1}`)
         const data = await res.json()
         if (data.success && data.products) {
           const formatted = data.products.map(item => ({
@@ -409,10 +409,11 @@ export default function ChinaShop() {
             MainPictureUrl: item.image,
             Price: { OriginalPrice: parseFloat(item.usdPrice) || parseFloat(item.price) || 0, OriginalCurrencyCode: 'USD' },
             OldPrice: parseFloat(item.originalPrice) > parseFloat(item.price) ? parseFloat(item.originalPrice) : null,
-            Rating: parseFloat(item.rating) || 0,
-            Reviews: item.reviews || 0,
+            Rating: 0,
+            Reviews: 0,
             Url: item.url,
-            Badge: item.discount > 0 ? `-${item.discount}%` : null,
+            Badge: item.discount || null,
+            Pictures: item.images || [],
             isSheinApi: true,
           }))
           setResults(formatted)
