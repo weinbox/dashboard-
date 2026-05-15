@@ -947,8 +947,8 @@ export default function ChinaShop() {
                   <ShoppingCart className="w-5 h-5 text-indigo-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">??? ??????</h3>
-                  <p className="text-[12px] text-slate-400">{cartCount} ????</p>
+                  <h3 className="text-lg font-bold text-slate-900">سلة التسوق</h3>
+                  <p className="text-[12px] text-slate-400">{cartCount} منتج</p>
                 </div>
               </div>
               <button onClick={() => setShowCart(false)} className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-all active:scale-95">
@@ -961,8 +961,8 @@ export default function ChinaShop() {
                   <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
                     <ShoppingCart className="w-12 h-12 text-slate-300" />
                   </div>
-                  <p className="text-lg font-bold text-slate-600">????? ?????</p>
-                  <button onClick={() => setShowCart(false)} className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg shadow-indigo-200/50">???? ????????</button>
+                  <p className="text-lg font-bold text-slate-600">السلة فارغة</p>
+                  <button onClick={() => setShowCart(false)} className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg shadow-indigo-200/50">تصفح المنتجات</button>
                 </div>
               ) : (
                 <div className="p-4 space-y-3 pb-6">
@@ -973,7 +973,7 @@ export default function ChinaShop() {
                         <p className="text-[13px] font-semibold text-slate-700 line-clamp-2 leading-snug">{c.title}</p>
                         <span className="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md font-semibold inline-block mt-1">{c.providerLabel}</span>
                         <div className="flex items-center justify-between mt-2">
-                          <span className="text-[14px] font-black text-slate-900">{formatNum(c.priceIqd * c.qty)} <span className="text-[10px] text-slate-400 font-normal">?.?</span></span>
+                          <span className="text-[14px] font-black text-slate-900">{formatNum(c.priceIqd * c.qty)} <span className="text-[10px] text-slate-400 font-normal">د.ع</span></span>
                           <div className="flex items-center gap-2">
                             <button onClick={() => updateQty(c.uniqueId || c.id, -1)} className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition active:scale-90">
                               {c.qty === 1 ? <X className="w-3 h-3 text-red-400" /> : <Minus className="w-3 h-3 text-slate-500" />}
@@ -993,13 +993,13 @@ export default function ChinaShop() {
             {cart.length > 0 && (
               <div className="bg-white border-t border-slate-100 px-5 py-4 flex-shrink-0 space-y-3 shadow-2xl">
                 <div className="border-t border-slate-200 pt-3 flex items-center justify-between">
-                  <span className="text-base font-bold text-slate-800">???????</span>
-                  <span className="text-xl font-black text-slate-900">{formatNum(cartTotal)} <span className="text-[12px] font-bold text-slate-500">?.?</span></span>
+                  <span className="text-base font-bold text-slate-800">المجموع</span>
+                  <span className="text-xl font-black text-slate-900">{formatNum(cartTotal)} <span className="text-[12px] font-bold text-slate-500">د.ع</span></span>
                 </div>
                 <button onClick={() => { setShowCart(false); navigate('/china-checkout') }}
                   className="w-full h-[52px] bg-gradient-to-l from-indigo-600 to-indigo-700 text-white rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] shadow-lg shadow-indigo-200/50">
                   <ShoppingCart className="w-5 h-5" />
-                  ????? ????? � {formatNum(cartTotal)} ?.?
+                  تفريغ السلة � {formatNum(cartTotal)} ?.?
                 </button>
               </div>
             )}
@@ -1098,7 +1098,7 @@ export default function ChinaShop() {
               ref={searchRef}
               type="text"
               dir="auto"
-              placeholder={provider === 'amazon' ? '??? ?? ??? ???? ????...' : `??? ?? ??? ???? ????...`}
+              placeholder={provider === 'amazon' ? 'ابحث عن أي منتج تريده...' : `ابحث عن أي منتج تريده...`}
               value={query}
               onChange={e => handleSmartInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const t = query.trim(); if (isUrl(t)) { setUrlInput(t); setTimeout(() => handleUrlSearch(), 50) } else { doSearch(0) } } }}
@@ -1177,9 +1177,9 @@ export default function ChinaShop() {
           <div className="mt-4 px-4 mb-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[14px] font-bold text-slate-800 flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-indigo-500" /> ?????? ??????
+                <Flame className="w-4 h-4 text-indigo-500" /> منتجات رائجة
               </h3>
-              <span className="text-[11px] text-slate-400">{popularProducts.length} ????</span>
+              <span className="text-[11px] text-slate-400">{popularProducts.length} منتج</span>
             </div>
             <div ref={popularRef} className="grid grid-cols-2 gap-3">
               {popularProducts.map(pp => (
@@ -1190,7 +1190,7 @@ export default function ChinaShop() {
                     <img src={pp.image} alt={pp.title} className="w-full h-full object-contain p-3" loading="lazy"
                       onError={e => { e.target.style.display = 'none' }} />
                     {pp.search_count > 3 && (
-                      <span className="absolute top-2 right-2 text-[9px] bg-indigo-600/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5"><Flame className="w-2.5 h-2.5" /> ????</span>
+                      <span className="absolute top-2 right-2 text-[9px] bg-indigo-600/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5"><Flame className="w-2.5 h-2.5" /> رائج</span>
                     )}
                   </div>
                   <div className="p-3">
@@ -1247,9 +1247,9 @@ export default function ChinaShop() {
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[15px] font-bold text-slate-800 flex items-center gap-2">
                 <span className="w-1 h-5 bg-indigo-500 rounded-full"></span>
-                ????? ????? ???????
+                نتائج البحث بالصورة
               </h3>
-              <span className="text-[12px] text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">{imageResults.length} ?????</span>
+              <span className="text-[12px] text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">{imageResults.length} نتيجة</span>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {imageResults.map((item, idx) => (
@@ -1271,7 +1271,7 @@ export default function ChinaShop() {
                   <div className="p-3">
                     <p className="text-[12px] text-slate-700 font-medium line-clamp-2 mb-2 leading-snug">{item.title}</p>
                     {item.price > 0 && (
-                      <p className="text-[14px] font-black text-slate-900">{formatNum(applyCommission(Math.round(item.price * USD_TO_IQD)))} <span className="text-[10px] text-slate-400 font-normal">?.?</span></p>
+                      <p className="text-[14px] font-black text-slate-900">{formatNum(applyCommission(Math.round(item.price * USD_TO_IQD)))} <span className="text-[10px] text-slate-400 font-normal">د.ع</span></p>
                     )}
                   </div>
                 </div>
@@ -1288,12 +1288,12 @@ export default function ChinaShop() {
                 {totalCount > 0 ? (
                   <span className="flex items-center gap-2">
                     <span className="w-1 h-5 bg-indigo-500 rounded-full"></span>
-                    {formatNum(totalCount)} ?????
+                    {formatNum(totalCount)} نتيجة
                   </span>
-                ) : '?? ???? ?????'}
+                ) : 'لا توجد نتائج'}
               </h3>
               {totalCount > 0 && (
-                <span className="text-[12px] text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">???? {page + 1}</span>
+                <span className="text-[12px] text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">صفحة {page + 1}</span>
               )}
             </div>
 
@@ -1301,10 +1301,10 @@ export default function ChinaShop() {
             {totalCount > 0 && (
               <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
                 {[
-                  { key: 'default', label: '?????????' },
-                  { key: 'price', label: '??????' },
-                  { key: '-price', label: '??????' },
-                  { key: 'volume', label: '?????? ??????' },
+                  { key: 'default', label: 'الافتراضي' },
+                  { key: 'price', label: 'الأرخص' },
+                  { key: '-price', label: 'الأغلى' },
+                  { key: 'volume', label: 'الأكثر مبيعاً' },
                 ].map(s => (
                   <button key={s.key} onClick={() => { setSortBy(s.key); doSearch(0, s.key) }}
                     className={`whitespace-nowrap px-4 py-2 rounded-xl text-[12px] font-bold transition-all active:scale-95 ${
@@ -1323,8 +1323,8 @@ export default function ChinaShop() {
                 <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Search className="w-8 h-8 text-slate-300" />
                 </div>
-                <p className="text-sm font-bold text-slate-500">?? ??? ????? ?? "{query}"</p>
-                <p className="text-[12px] text-slate-400 mt-1">??? ????? ??? ??????</p>
+                <p className="text-sm font-bold text-slate-500">لا توجد نتائج لـ "{query}"</p>
+                <p className="text-[12px] text-slate-400 mt-1">جرب كلمات بحث مختلفة</p>
               </div>
             ) : (
               <div ref={resultsGridRef} className="grid grid-cols-2 gap-3">
@@ -1438,8 +1438,8 @@ export default function ChinaShop() {
                 <ShoppingCart className="w-5 h-5 text-indigo-600" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900">??? ??????</h3>
-                <p className="text-[12px] text-slate-400">{cartCount} ????</p>
+                <h3 className="text-lg font-bold text-slate-900">سلة التسوق</h3>
+                <p className="text-[12px] text-slate-400">{cartCount} منتج</p>
               </div>
             </div>
             <button onClick={() => setShowCart(false)} className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-all active:scale-95">
@@ -1453,10 +1453,10 @@ export default function ChinaShop() {
                 <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
                   <ShoppingCart className="w-12 h-12 text-slate-300" />
                 </div>
-                <p className="text-lg font-bold text-slate-600">????? ?????</p>
-                <p className="text-sm text-slate-400 mt-2">??? ?????? ????? ???????</p>
+                <p className="text-lg font-bold text-slate-600">السلة فارغة</p>
+                <p className="text-sm text-slate-400 mt-2">ابدأ بإضافة منتجات للسلة</p>
                 <button onClick={() => setShowCart(false)} className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg shadow-indigo-200/50">
-                  ???? ????????
+                  تصفح المنتجات
                 </button>
               </div>
             ) : (
@@ -1483,7 +1483,7 @@ export default function ChinaShop() {
                       )}
                       
                       <div className="flex items-center justify-between mt-2">
-                        <span className="text-[14px] font-black text-slate-900">{formatNum(c.priceIqd * c.qty)} <span className="text-[10px] text-slate-400 font-normal">?.?</span></span>
+                        <span className="text-[14px] font-black text-slate-900">{formatNum(c.priceIqd * c.qty)} <span className="text-[10px] text-slate-400 font-normal">د.ع</span></span>
                         <div className="flex items-center gap-2">
                           <button onClick={() => updateQty(c.uniqueId || c.id, -1)} className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition active:scale-90">
                             {c.qty === 1 ? <X className="w-3 h-3 text-red-400" /> : <Minus className="w-3 h-3 text-slate-500" />}
@@ -1505,25 +1505,25 @@ export default function ChinaShop() {
           {cart.length > 0 && (
             <div className="bg-white border-t border-slate-100 px-5 py-4 flex-shrink-0 space-y-3 shadow-2xl">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">???????? ({cartCount})</span>
-                <span className="text-sm font-bold text-slate-700">{formatNum(cartTotal)} ?.?</span>
+                <span className="text-sm text-slate-500">المنتجات ({cartCount})</span>
+                <span className="text-sm font-bold text-slate-700">{formatNum(cartTotal)} د.ع</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">?????</span>
-                <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg font-semibold">??? ????????</span>
+                <span className="text-sm text-slate-500">الشحن</span>
+                <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg font-semibold">مجاني للعراق</span>
               </div>
               <div className="border-t border-slate-200 pt-3 flex items-center justify-between">
-                <span className="text-base font-bold text-slate-800">???????</span>
-                <span className="text-xl font-black text-slate-900">{formatNum(cartTotal)} <span className="text-[12px] font-bold text-slate-500">?.?</span></span>
+                <span className="text-base font-bold text-slate-800">المجموع</span>
+                <span className="text-xl font-black text-slate-900">{formatNum(cartTotal)} <span className="text-[12px] font-bold text-slate-500">د.ع</span></span>
               </div>
               <button onClick={() => { setShowCart(false); navigate('/china-checkout') }}
                 className="w-full h-[52px] bg-gradient-to-l from-indigo-600 to-indigo-700 text-white rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] shadow-lg shadow-indigo-200/50">
                 <ShoppingCart className="w-5 h-5" />
-                ????? ????? � {formatNum(cartTotal)} ?.?
+                تفريغ السلة � {formatNum(cartTotal)} ?.?
               </button>
               <button onClick={() => { setCart([]); setShowCart(false) }}
                 className="w-full text-[13px] text-red-400 hover:text-red-500 py-1 transition-colors font-medium">
-                ????? ?????
+                تفريغ السلة
               </button>
             </div>
           )}
@@ -1539,8 +1539,8 @@ export default function ChinaShop() {
                 <Heart className="w-5 h-5 text-pink-500" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900">???????</h3>
-                <p className="text-[12px] text-slate-400">{favorites.length} ????</p>
+                <h3 className="text-lg font-bold text-slate-900">المفضلة</h3>
+                <p className="text-[12px] text-slate-400">{favorites.length} منتج</p>
               </div>
             </div>
             <button onClick={() => setShowFavorites(false)} className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-all active:scale-95">
@@ -1554,10 +1554,10 @@ export default function ChinaShop() {
                 <div className="w-24 h-24 bg-pink-50 rounded-3xl flex items-center justify-center mx-auto mb-5">
                   <Heart className="w-12 h-12 text-pink-300" />
                 </div>
-                <p className="text-lg font-bold text-slate-600">?? ???? ?????? ?????</p>
-                <p className="text-sm text-slate-400 mt-2">???? ??? ????? ?????? ??????</p>
+                <p className="text-lg font-bold text-slate-600">لا توجد مفضلات بعد</p>
+                <p className="text-sm text-slate-400 mt-2">اضغط على القلب لحفظ المنتجات</p>
                 <button onClick={() => setShowFavorites(false)} className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg shadow-indigo-200/50">
-                  ???? ????????
+                  تصفح المنتجات
                 </button>
               </div>
             ) : (
