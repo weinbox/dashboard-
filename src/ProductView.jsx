@@ -1,7 +1,8 @@
 ﻿import { useState } from 'react'
 import {
   ArrowRight, ShoppingCart, Plus, Minus, Heart, Star, Package,
-  ChevronDown, CheckCircle2, Flame, Truck, Loader2, Store, ShieldCheck, RotateCcw, Check
+  ChevronDown, CheckCircle2, Flame, Truck, Loader2, Store, ShieldCheck, RotateCcw, Check,
+  Info, HelpCircle, Ruler, Tag, Image
 } from 'lucide-react'
 import { heartPulse, rippleEffect, toastAnim } from './useAnimations'
 import { ProductSkeleton } from './Skeletons'
@@ -324,8 +325,152 @@ export default function ProductView(p) {
                 </button>
               </div>
 
+              {/* Categories / Breadcrumb */}
+              {productDetail?.categories?.length > 0 && (
+                <div className="mt-5 flex items-center gap-1.5 flex-wrap">
+                  <Tag className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                  {productDetail.categories.map((cat, i) => (
+                    <span key={i} className="text-[11px] text-slate-500">
+                      {cat}{i < productDetail.categories.length - 1 && <span className="text-slate-300 mx-1">›</span>}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Specifications */}
+              {productDetail?.specifications?.length > 0 && (
+                <div className="mt-6">
+                  <button onClick={() => toggle('specs')} className="w-full flex items-center justify-between py-3 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <Info className="w-4 h-4 text-indigo-500" />
+                      <span className="text-[13px] font-semibold text-slate-900">المواصفات التقنية</span>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${openSec === 'specs' ? 'rotate-180' : ''}`} />
+                  </button>
+                  {openSec === 'specs' && (
+                    <div className="pb-4 space-y-0">
+                      {productDetail.specifications.map((spec, i) => (
+                        <div key={i} className={`flex items-start gap-3 py-2.5 px-3 ${i % 2 === 0 ? 'bg-slate-50/80' : ''} rounded-lg`}>
+                          <span className="text-[12px] font-medium text-slate-500 min-w-[100px] flex-shrink-0">{spec.name || spec.key}</span>
+                          <span className="text-[12px] text-slate-800 font-medium">{spec.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* About Product */}
+              {productDetail?.about?.length > 0 && (
+                <div>
+                  <button onClick={() => toggle('about')} className="w-full flex items-center justify-between py-3 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <Info className="w-4 h-4 text-emerald-500" />
+                      <span className="text-[13px] font-semibold text-slate-900">حول هذا المنتج</span>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${openSec === 'about' ? 'rotate-180' : ''}`} />
+                  </button>
+                  {openSec === 'about' && (
+                    <div className="pb-4 space-y-2 pr-2">
+                      {productDetail.about.map((point, i) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 flex-shrink-0" />
+                          <p className="text-[12px] text-slate-600 leading-relaxed">{point}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Dimensions */}
+              {productDetail?.dimensions && (
+                <div>
+                  <button onClick={() => toggle('dimensions')} className="w-full flex items-center justify-between py-3 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <Ruler className="w-4 h-4 text-orange-500" />
+                      <span className="text-[13px] font-semibold text-slate-900">الأبعاد والوزن</span>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${openSec === 'dimensions' ? 'rotate-180' : ''}`} />
+                  </button>
+                  {openSec === 'dimensions' && (
+                    <div className="pb-4 px-3">
+                      {typeof productDetail.dimensions === 'string' ? (
+                        <p className="text-[12px] text-slate-700 bg-slate-50 rounded-xl p-3">{productDetail.dimensions}</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {Object.entries(productDetail.dimensions).map(([key, val], i) => (
+                            <div key={i} className="flex justify-between py-2 px-3 bg-slate-50/80 rounded-lg">
+                              <span className="text-[12px] text-slate-500 font-medium">{key}</span>
+                              <span className="text-[12px] text-slate-800 font-semibold">{val}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Questions & Answers */}
+              {productDetail?.questionsAnswers?.length > 0 && (
+                <div>
+                  <button onClick={() => toggle('qa')} className="w-full flex items-center justify-between py-3 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <HelpCircle className="w-4 h-4 text-purple-500" />
+                      <span className="text-[13px] font-semibold text-slate-900">أسئلة وأجوبة</span>
+                      <span className="text-[10px] bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded-md font-bold">{productDetail.questionsAnswers.length}</span>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${openSec === 'qa' ? 'rotate-180' : ''}`} />
+                  </button>
+                  {openSec === 'qa' && (
+                    <div className="pb-4 space-y-3">
+                      {productDetail.questionsAnswers.map((qa, i) => (
+                        <div key={i} className="bg-slate-50/80 rounded-xl p-3.5 space-y-2">
+                          <div className="flex items-start gap-2">
+                            <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded flex-shrink-0">س</span>
+                            <p className="text-[12px] font-semibold text-slate-800 leading-relaxed">{qa.question}</p>
+                          </div>
+                          {qa.answer && (
+                            <div className="flex items-start gap-2 mr-4">
+                              <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex-shrink-0">ج</span>
+                              <p className="text-[12px] text-slate-600 leading-relaxed">{qa.answer}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
             </div>
           </div>
+
+          {/* A+ Content (Enhanced images) */}
+          {productDetail?.aPlusContent?.length > 0 && (
+            <div className="mt-8">
+              <div className="flex items-center gap-2 mb-4">
+                <Image className="w-4.5 h-4.5 text-indigo-500" />
+                <h3 className="text-[14px] font-bold text-slate-900">محتوى معزز</h3>
+              </div>
+              <div className="space-y-4">
+                {productDetail.aPlusContent.map((section, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+                    {section.image && (
+                      <img src={section.image} alt="" className="w-full object-cover" loading="lazy" />
+                    )}
+                    {(section.title || section.body) && (
+                      <div className="p-4">
+                        {section.title && <h4 className="text-[13px] font-bold text-slate-900 mb-1">{section.title}</h4>}
+                        {section.body && <p className="text-[12px] text-slate-500 leading-relaxed">{section.body}</p>}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Related Products */}
           {productDetail?.relatedProducts?.length > 0 && (

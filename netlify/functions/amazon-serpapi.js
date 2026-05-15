@@ -89,6 +89,22 @@ const handler = async (event) => {
         (product.images || []).map(img => img.link || img) || []
       const mainImage = product.thumbnail || images[0] || ''
 
+      // استخراج بيانات إضافية
+      const productInfo = data.product_information || {}
+      const aboutProduct = productInfo.about || product.about || []
+      const dimensions = productInfo.dimensions || product.dimensions || ''
+      const categories = (product.categories || data.categories || []).map(c => c.name || c)
+      const questionsAnswers = (data.questions_and_answers || []).slice(0, 5).map(qa => ({
+        question: qa.question || '',
+        answer: qa.answer || '',
+        votes: qa.votes || 0,
+      }))
+      const aPlusContent = (data.a_plus_content || []).map(section => ({
+        title: section.title || '',
+        body: section.body || section.text || '',
+        image: section.image || section.thumbnail || '',
+      }))
+
       return {
         statusCode: 200,
         headers,
@@ -114,12 +130,19 @@ const handler = async (event) => {
                 asin: i.asin,
                 name: i.name,
                 selected: i.selected || false,
+                image: i.thumbnail || i.image || '',
               }))
             })),
             specifications: specs,
             badge: (product.badges || product.tags || [])[0] || '',
             stock: product.stock || '',
             boughtLastMonth: product.bought_last_month || '',
+            // بيانات جديدة
+            about: aboutProduct,
+            dimensions: dimensions,
+            categories: categories,
+            questionsAnswers: questionsAnswers,
+            aPlusContent: aPlusContent,
           },
           relatedProducts: (data.compare_with_similar || []).slice(0, 6).map(r => ({
             asin: r.asin,
