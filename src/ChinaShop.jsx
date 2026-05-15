@@ -215,6 +215,7 @@ export default function ChinaShop() {
   const [popularProducts, setPopularProducts] = useState([])
   const [sheinUrl, setSheinUrl] = useState('/.netlify/functions/shein-proxy-page?url=' + encodeURIComponent('https://ar.shein.com'))
   const [activeSuggestion, setActiveSuggestion] = useState(0)
+  const [activeBanner, setActiveBanner] = useState(0)
 
   const searchRef = useRef(null)
   const debounceRef = useRef(null)
@@ -284,6 +285,23 @@ export default function ChinaShop() {
     const timer = setInterval(() => setActiveSuggestion(prev => (prev + 1) % searchSuggestions.length), 2500)
     return () => clearInterval(timer)
   }, [searched, loading, query])
+
+  // Banner carousel data & auto-slide
+  const banners = provider === 'amazon' ? [
+    { gradient: 'from-[#232F3E] to-[#131921]', title: 'عروض أمازون الحصرية', subtitle: 'خصومات تصل إلى 70% على الإلكترونيات', badge: 'عرض محدود', badgeColor: 'bg-amber-500', icon: '⚡' },
+    { gradient: 'from-emerald-600 to-teal-700', title: 'شحن مجاني للعراق', subtitle: 'على جميع الطلبات بدون حد أدنى', badge: 'توصيل سريع', badgeColor: 'bg-emerald-400', icon: '🚚' },
+    { gradient: 'from-purple-600 to-indigo-700', title: 'ابحث بالصورة', subtitle: 'صوّر أي منتج واحصل على نتائج مشابهة', badge: 'جديد', badgeColor: 'bg-purple-400', icon: '📸', action: 'image-search' },
+    { gradient: 'from-orange-500 to-red-600', title: 'الأكثر مبيعاً هذا الأسبوع', subtitle: 'أفضل المنتجات بتقييمات عالية', badge: 'Best Sellers', badgeColor: 'bg-orange-400', icon: '🔥' },
+  ] : [
+    { gradient: 'from-indigo-600 to-blue-700', title: 'أسواق الصين العالمية', subtitle: 'منتجات بالجملة بأسعار المصنع', badge: 'أسعار الجملة', badgeColor: 'bg-indigo-400', icon: '🏭' },
+    { gradient: 'from-emerald-600 to-teal-700', title: 'شحن مجاني للعراق', subtitle: 'على جميع الطلبات بدون حد أدنى', badge: 'توصيل سريع', badgeColor: 'bg-emerald-400', icon: '🚚' },
+    { gradient: 'from-orange-500 to-red-600', title: 'عروض اليوم', subtitle: 'خصومات حصرية على أفضل المنتجات', badge: 'عرض محدود', badgeColor: 'bg-orange-400', icon: '⚡' },
+  ]
+  useEffect(() => {
+    if (searched || loading) return
+    const timer = setInterval(() => setActiveBanner(prev => (prev + 1) % banners.length), 4000)
+    return () => clearInterval(timer)
+  }, [searched, loading, banners.length])
 
   // تنظيف البيانات القديمة + تحميل المنتجات الرائجة (أقل من 24 ساعة فقط)
   useEffect(() => {
@@ -1154,171 +1172,213 @@ export default function ChinaShop() {
           {urlError && <p className="text-[11px] text-red-500 mt-1.5 px-1">{urlError}</p>}
         </div>
 
-        {/* ═══ Discovery Section (only when not searched) ═══ */}
+        {/* ═══ Amazon-style Homepage (only when not searched) ═══ */}
         {!searched && !loading && !urlLoading && (
           <>
-            {/* Stories-style Categories */}
+            {/* ── Hero Banner Carousel ── */}
+            <div className="mx-4 mt-4">
+              <div className="relative overflow-hidden rounded-2xl shadow-lg" style={{ minHeight: 140 }}>
+                {banners.map((b, i) => (
+                  <div key={i}
+                    onClick={() => b.action === 'image-search' ? fileInputRef.current?.click() : null}
+                    className={`absolute inset-0 bg-gradient-to-l ${b.gradient} transition-all duration-700 ease-in-out ${i === activeBanner ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'} ${b.action ? 'cursor-pointer' : ''}`}>
+                    <div className="absolute inset-0 opacity-10">
+                      <div className="absolute top-2 left-6 text-[64px] leading-none select-none">{b.icon}</div>
+                    </div>
+                    <div className="relative h-full flex flex-col justify-center px-5 py-5">
+                      <span className={`${b.badgeColor} text-white text-[10px] font-bold px-2.5 py-1 rounded-lg self-start mb-2`}>{b.badge}</span>
+                      <h2 className="text-[20px] font-black text-white leading-tight">{b.title}</h2>
+                      <p className="text-[13px] text-white/70 mt-1">{b.subtitle}</p>
+                    </div>
+                  </div>
+                ))}
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                  {banners.map((_, i) => (
+                    <button key={i} onClick={() => setActiveBanner(i)}
+                      className={`h-[5px] rounded-full transition-all duration-300 ${i === activeBanner ? 'w-6 bg-white' : 'w-2 bg-white/40'}`} />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Quick Categories Row ── */}
             {provider !== 'shein' && (
               <div className="mt-4 px-4">
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                  {categories.map((cat, i) => (
+                <div className="flex gap-2.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  {categories.map(cat => (
                     <button key={cat.label}
                       onClick={() => { setQuery(cat.q); doSearch(0) }}
-                      className="flex flex-col items-center gap-1.5 flex-shrink-0 active:scale-95 transition-all group">
-                      <div className={`w-[68px] h-[68px] rounded-full bg-gradient-to-br ${cat.gradient} p-[3px] shadow-lg`}>
-                        <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
-                          <img src={cat.img} alt={cat.label} className="w-8 h-8 object-contain group-hover:scale-110 transition-transform" loading="lazy" />
-                        </div>
+                      className="flex flex-col items-center gap-1.5 flex-shrink-0 active:scale-95 transition-all">
+                      <div className={`w-[60px] h-[60px] rounded-2xl ${cat.bg} flex items-center justify-center border border-slate-100 shadow-sm`}>
+                        <img src={cat.img} alt={cat.label} className="w-8 h-8 object-contain" loading="lazy" />
                       </div>
-                      <span className="text-[11px] font-semibold text-slate-600 whitespace-nowrap">{cat.label}</span>
+                      <span className="text-[10px] font-semibold text-slate-600 whitespace-nowrap">{cat.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Image Search Card */}
-            <div className="mx-4 mt-4">
+            {/* ── Image Search + AI Card ── */}
+            <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
               <button onClick={() => fileInputRef.current?.click()}
-                className="w-full bg-gradient-to-l from-violet-600 via-indigo-600 to-blue-600 rounded-2xl p-4 flex items-center gap-4 shadow-lg shadow-indigo-200/40 active:scale-[0.98] transition-all group overflow-hidden relative">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIi8+PC9zdmc+')] opacity-50"></div>
-                <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <Camera className="w-7 h-7 text-white" />
+                className="bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl p-3.5 flex flex-col items-center justify-center gap-2 shadow-lg shadow-indigo-200/30 active:scale-[0.97] transition-all min-h-[100px]">
+                <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-white" />
                 </div>
-                <div className="flex-1 text-right">
-                  <h3 className="text-[15px] font-bold text-white">ابحث بالصورة</h3>
-                  <p className="text-[12px] text-white/70 mt-0.5">صوّر أي منتج واحصل على نتائج مشابهة فوراً</p>
+                <div className="text-center">
+                  <p className="text-[13px] font-bold text-white">بحث بالصورة</p>
+                  <p className="text-[10px] text-white/60 mt-0.5">صوّر واكتشف</p>
                 </div>
-                <ChevronLeft className="w-5 h-5 text-white/50 flex-shrink-0" />
+              </button>
+              <button onClick={() => setOpenAiChat(true)}
+                className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-3.5 flex flex-col items-center justify-center gap-2 shadow-lg shadow-slate-300/30 active:scale-[0.97] transition-all min-h-[100px]">
+                <div className="w-11 h-11 bg-white/10 rounded-xl flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-amber-400" />
+                </div>
+                <div className="text-center">
+                  <p className="text-[13px] font-bold text-white">المساعد الذكي</p>
+                  <p className="text-[10px] text-white/60 mt-0.5">AI يساعدك تختار</p>
+                </div>
               </button>
             </div>
 
-            {/* Trending Searches */}
+            {/* ── Trending Searches ── */}
             <div className="mt-5 px-4">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-1 h-5 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></div>
-                <h3 className="text-[14px] font-bold text-slate-800">ترند اليوم</h3>
-                <Flame className="w-4 h-4 text-orange-400" />
-              </div>
+              <h3 className="text-[14px] font-bold text-slate-800 mb-2.5 flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-orange-500" /> الأكثر بحثاً
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {trendingSearches.map((term, i) => (
                   <button key={term}
                     onClick={() => { setQuery(term); doSearch(0) }}
-                    className={`px-3.5 py-2 rounded-xl text-[12px] font-semibold transition-all active:scale-95 flex items-center gap-1.5 ${
-                      i === 0 ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md shadow-orange-200/50' :
-                      i === 1 ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-200/50' :
-                      i === 2 ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-200/50' :
-                      'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                    className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-all active:scale-95 ${
+                      i < 3
+                        ? 'bg-[#232F3E] text-[#FF9900] font-bold'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:border-[#FF9900] hover:text-[#232F3E]'
                     }`}>
-                    {i < 3 && <span className="text-[10px] font-black opacity-80">#{i + 1}</span>}
+                    {i < 3 && <span className="text-[10px] mr-1 opacity-70">#{i + 1}</span>}
                     {term}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Provider Toggle */}
+            {/* ── Provider Toggle ── */}
             {(provider === 'taobao' || provider === '1688') && (
               <div className="flex gap-2 mx-4 mt-4">
                 <button onClick={() => navigate('/china/taobao')}
                   className={`flex-1 h-10 rounded-xl flex items-center justify-center gap-2 font-bold text-[12px] transition-all active:scale-[0.97] ${
                     provider === 'taobao' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'
                   }`}>
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                  Taobao
+                  <ShoppingBag className="w-3.5 h-3.5" /> Taobao
                 </button>
                 <button onClick={() => navigate('/china/1688')}
                   className={`flex-1 h-10 rounded-xl flex items-center justify-center gap-2 font-bold text-[12px] transition-all active:scale-[0.97] ${
                     provider === '1688' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'
                   }`}>
-                  <Package className="w-3.5 h-3.5" />
-                  1688
+                  <Package className="w-3.5 h-3.5" /> 1688
                 </button>
               </div>
             )}
 
-            {/* Explore Categories - Big Cards */}
+            {/* ── Shop by Category (Big Cards) ── */}
             {provider !== 'shein' && (
               <div className="mt-5 px-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></div>
-                  <h3 className="text-[14px] font-bold text-slate-800">استكشف</h3>
-                  <Sparkles className="w-4 h-4 text-indigo-400" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {categories.slice(0, 4).map((cat, i) => (
-                    <button key={cat.label + '-card'}
+                <h3 className="text-[14px] font-bold text-slate-800 mb-3 flex items-center gap-1.5">
+                  <Filter className="w-4 h-4 text-indigo-500" /> تسوّق حسب التصنيف
+                </h3>
+                <div className="grid grid-cols-3 gap-2.5">
+                  {categories.slice(0, 6).map(cat => (
+                    <button key={cat.label + '-big'}
                       onClick={() => { setQuery(cat.q); doSearch(0) }}
-                      className={`relative overflow-hidden rounded-2xl ${i === 0 ? 'col-span-2 h-32' : 'h-28'} bg-gradient-to-br ${cat.gradient} shadow-lg active:scale-[0.97] transition-all group`}>
-                      <div className="absolute inset-0 bg-black/10"></div>
-                      <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/30 to-transparent"></div>
-                      <img src={cat.img} alt="" className={`absolute ${i === 0 ? 'left-4 top-3 w-16 h-16' : 'left-3 top-2 w-12 h-12'} object-contain opacity-90 group-hover:scale-110 transition-transform drop-shadow-lg`} loading="lazy" />
-                      <div className="absolute bottom-3 right-4 text-right">
-                        <span className={`text-white font-black ${i === 0 ? 'text-[18px]' : 'text-[15px]'}`}>{cat.label}</span>
-                        <p className="text-white/70 text-[11px] mt-0.5">{cat.emoji} اكتشف المزيد</p>
+                      className="bg-white rounded-2xl border border-slate-100 p-3 flex flex-col items-center gap-2 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.97] transition-all">
+                      <div className={`w-14 h-14 rounded-xl ${cat.bg} flex items-center justify-center`}>
+                        <img src={cat.img} alt={cat.label} className="w-9 h-9 object-contain" loading="lazy" />
                       </div>
+                      <span className="text-[11px] font-bold text-slate-700">{cat.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Popular Products - Masonry Style */}
+            {/* ── Popular / Picked for You ── */}
             {popularProducts.length > 0 && (
-              <div className="mt-5 px-4 mb-6">
+              <div className="mt-5 px-4 mb-4">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-5 bg-gradient-to-b from-orange-400 to-red-500 rounded-full"></div>
-                    <h3 className="text-[14px] font-bold text-slate-800">منتجات رائجة</h3>
-                    <Flame className="w-4 h-4 text-orange-500 animate-pulse" />
-                  </div>
+                  <h3 className="text-[14px] font-bold text-slate-800 flex items-center gap-1.5">
+                    <Star className="w-4 h-4 text-amber-500 fill-amber-500" /> اخترنا لك
+                  </h3>
                   <span className="text-[11px] text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">{popularProducts.length} منتج</span>
                 </div>
-                <div ref={popularRef} className="columns-2 gap-3 space-y-3">
-                  {popularProducts.map((pp, idx) => (
+                {/* Horizontal scroll for first 4 */}
+                <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  {popularProducts.slice(0, 6).map((pp, idx) => (
                     <div key={pp.id}
                       onClick={() => loadProductById(pp.product_id, pp.provider)}
-                      className="break-inside-avoid bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer active:scale-[0.97] group">
-                      <div className={`relative ${idx % 3 === 0 ? 'aspect-[3/4]' : 'aspect-square'} bg-gradient-to-b from-slate-50 to-white overflow-hidden`}>
-                        <img src={pp.image} alt={pp.title} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform" loading="lazy"
+                      className="flex-shrink-0 w-[160px] bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg active:scale-[0.97] transition-all cursor-pointer group">
+                      <div className="relative aspect-square bg-gradient-to-b from-slate-50 to-white overflow-hidden">
+                        <img src={pp.image} alt={pp.title} className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform" loading="lazy"
                           onError={e => { e.target.style.display = 'none' }} />
-                        {pp.search_count > 3 && (
-                          <span className="absolute top-2.5 right-2.5 text-[9px] bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-0.5 rounded-lg font-bold flex items-center gap-0.5 shadow-sm">
-                            <Flame className="w-2.5 h-2.5" /> رائج
+                        {idx < 3 && (
+                          <span className="absolute top-2 right-2 text-[9px] bg-[#232F3E] text-[#FF9900] px-2 py-0.5 rounded-md font-bold">
+                            #{idx + 1} رائج
                           </span>
                         )}
-                        <div className="absolute top-2.5 left-2.5 w-6 h-6 bg-white/80 backdrop-blur rounded-full flex items-center justify-center text-[10px] font-black text-slate-500 shadow-sm">
-                          {idx + 1}
-                        </div>
                       </div>
-                      <div className="p-3">
-                        <p className="text-[12px] text-slate-700 font-medium line-clamp-2 min-h-[34px] leading-snug">{pp.title}</p>
-                        <div className="flex items-end justify-between mt-2">
-                          <p className="text-[15px] font-black text-slate-900">
-                            {formatNum(pp.price_iqd)}
-                            <span className="text-[9px] text-slate-400 font-normal mr-0.5"> د.ع</span>
-                          </p>
-                          <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
-                            <Plus className="w-3.5 h-3.5 text-white" />
-                          </div>
-                        </div>
+                      <div className="p-2.5">
+                        <p className="text-[11px] text-slate-700 font-medium line-clamp-2 min-h-[30px] leading-snug">{pp.title}</p>
+                        <p className="text-[14px] font-black text-slate-900 mt-1.5">
+                          {formatNum(pp.price_iqd)}
+                          <span className="text-[9px] text-slate-400 font-normal mr-0.5"> د.ع</span>
+                        </p>
                       </div>
                     </div>
                   ))}
                 </div>
+
+                {/* Grid for rest */}
+                {popularProducts.length > 6 && (
+                  <div ref={popularRef} className="grid grid-cols-2 gap-3 mt-3">
+                    {popularProducts.slice(6).map((pp, idx) => (
+                      <div key={pp.id}
+                        onClick={() => loadProductById(pp.product_id, pp.provider)}
+                        className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg active:scale-[0.97] transition-all cursor-pointer group">
+                        <div className="relative aspect-square bg-gradient-to-b from-slate-50 to-white overflow-hidden">
+                          <img src={pp.image} alt={pp.title} className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform" loading="lazy"
+                            onError={e => { e.target.style.display = 'none' }} />
+                        </div>
+                        <div className="p-2.5">
+                          <p className="text-[11px] text-slate-700 font-medium line-clamp-2 min-h-[30px] leading-snug">{pp.title}</p>
+                          <p className="text-[14px] font-black text-slate-900 mt-1.5">
+                            {formatNum(pp.price_iqd)}
+                            <span className="text-[9px] text-slate-400 font-normal mr-0.5"> د.ع</span>
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Quick Actions Footer */}
-            <div className="mx-4 mb-6 mt-2">
-              <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-4 flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Truck className="w-5 h-5 text-emerald-400" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-[13px] font-bold text-white">شحن مجاني للعراق</p>
-                  <p className="text-[11px] text-white/50 mt-0.5">على جميع الطلبات بدون حد أدنى</p>
-                </div>
+            {/* ── Features Bar ── */}
+            <div className="mx-4 mb-6 mt-2 grid grid-cols-3 gap-2">
+              <div className="bg-white rounded-xl border border-slate-100 p-3 flex flex-col items-center text-center">
+                <Truck className="w-5 h-5 text-emerald-500 mb-1.5" />
+                <p className="text-[10px] font-bold text-slate-700">شحن مجاني</p>
+                <p className="text-[9px] text-slate-400">للعراق</p>
+              </div>
+              <div className="bg-white rounded-xl border border-slate-100 p-3 flex flex-col items-center text-center">
+                <Star className="w-5 h-5 text-amber-500 fill-amber-500 mb-1.5" />
+                <p className="text-[10px] font-bold text-slate-700">منتجات أصلية</p>
+                <p className="text-[9px] text-slate-400">100% مضمونة</p>
+              </div>
+              <div className="bg-white rounded-xl border border-slate-100 p-3 flex flex-col items-center text-center">
+                <Headphones className="w-5 h-5 text-indigo-500 mb-1.5" />
+                <p className="text-[10px] font-bold text-slate-700">دعم 24/7</p>
+                <p className="text-[9px] text-slate-400">مساعدة ذكية</p>
               </div>
             </div>
           </>
