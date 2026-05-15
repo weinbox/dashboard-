@@ -214,6 +214,7 @@ export default function ChinaShop() {
   const [extractedProducts, setExtractedProducts] = useState([])
   const [popularProducts, setPopularProducts] = useState([])
   const [sheinUrl, setSheinUrl] = useState('/.netlify/functions/shein-proxy-page?url=' + encodeURIComponent('https://ar.shein.com'))
+  const [activeSuggestion, setActiveSuggestion] = useState(0)
 
   const searchRef = useRef(null)
   const debounceRef = useRef(null)
@@ -273,6 +274,16 @@ export default function ChinaShop() {
     }
     setExplainLoading(false)
   }
+
+  // Animated search suggestions rotation
+  const searchSuggestions = provider === 'amazon'
+    ? ['سماعات بلوتوث', 'iPhone case', 'كريم واقي شمس', 'ساعة ذكية', 'عطر رجالي', 'لابتوب قيمنق', 'مكمل بروتين', 'كاميرا GoPro']
+    : ['فستان سهرة', 'حذاء رياضي', 'حقيبة يد', 'سماعات', 'ساعة', 'عطر', 'مكياج', 'العاب اطفال']
+  useEffect(() => {
+    if (searched || loading || query) return
+    const timer = setInterval(() => setActiveSuggestion(prev => (prev + 1) % searchSuggestions.length), 2500)
+    return () => clearInterval(timer)
+  }, [searched, loading, query])
 
   // تنظيف البيانات القديمة + تحميل المنتجات الرائجة (أقل من 24 ساعة فقط)
   useEffect(() => {
@@ -1020,32 +1031,36 @@ export default function ChinaShop() {
   // --- Search & Results View ---
   const categories = provider === 'amazon'
     ? [
-        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'إلكترونيات', q: 'electronics', bg: 'bg-blue-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'أحذية', q: 'shoes', bg: 'bg-orange-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'حقائب', q: 'bags', bg: 'bg-amber-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'جمال', q: 'beauty', bg: 'bg-pink-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/3159/3159960.png', label: 'مكملات', q: 'supplements vitamins', bg: 'bg-green-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/1261/1261163.png', label: 'منزل', q: 'home kitchen', bg: 'bg-teal-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/2972/2972531.png', label: 'ساعات', q: 'watches', bg: 'bg-gray-100' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/3163/3163186.png', label: 'رياضة', q: 'sports fitness', bg: 'bg-emerald-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'إلكترونيات', q: 'electronics', bg: 'bg-blue-50', gradient: 'from-blue-500 to-indigo-600', emoji: '🔌' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'أحذية', q: 'shoes', bg: 'bg-orange-50', gradient: 'from-orange-400 to-red-500', emoji: '👟' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'حقائب', q: 'bags', bg: 'bg-amber-50', gradient: 'from-amber-400 to-orange-500', emoji: '👜' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'جمال', q: 'beauty', bg: 'bg-pink-50', gradient: 'from-pink-400 to-rose-500', emoji: '💄' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3159/3159960.png', label: 'مكملات', q: 'supplements vitamins', bg: 'bg-green-50', gradient: 'from-green-400 to-emerald-600', emoji: '💊' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/1261/1261163.png', label: 'منزل', q: 'home kitchen', bg: 'bg-teal-50', gradient: 'from-teal-400 to-cyan-600', emoji: '🏠' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/2972/2972531.png', label: 'ساعات', q: 'watches', bg: 'bg-gray-100', gradient: 'from-slate-500 to-gray-700', emoji: '⌚' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3163/3163186.png', label: 'رياضة', q: 'sports fitness', bg: 'bg-emerald-50', gradient: 'from-emerald-400 to-green-600', emoji: '🏋️' },
       ]
     : provider === '1688'
     ? [
-        { img: 'https://cdn-icons-png.flaticon.com/128/863/863684.png', label: 'أزياء', q: 'ملابس', bg: 'bg-purple-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'أحذية', q: 'أحذية', bg: 'bg-orange-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'حقائب', q: 'حقائب', bg: 'bg-amber-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'جمال', q: 'مكياج', bg: 'bg-pink-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'إلكترونيات', q: 'إلكترونيات', bg: 'bg-blue-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/3082/3082044.png', label: 'ألعاب', q: 'العاب اطفال', bg: 'bg-red-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/863/863684.png', label: 'أزياء', q: 'ملابس', bg: 'bg-purple-50', gradient: 'from-purple-400 to-indigo-600', emoji: '👗' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'أحذية', q: 'أحذية', bg: 'bg-orange-50', gradient: 'from-orange-400 to-red-500', emoji: '👟' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'حقائب', q: 'حقائب', bg: 'bg-amber-50', gradient: 'from-amber-400 to-orange-500', emoji: '👜' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'جمال', q: 'مكياج', bg: 'bg-pink-50', gradient: 'from-pink-400 to-rose-500', emoji: '💄' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'إلكترونيات', q: 'إلكترونيات', bg: 'bg-blue-50', gradient: 'from-blue-500 to-indigo-600', emoji: '🔌' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3082/3082044.png', label: 'ألعاب', q: 'العاب اطفال', bg: 'bg-red-50', gradient: 'from-red-400 to-pink-500', emoji: '🧸' },
       ]
     : [
-        { img: 'https://cdn-icons-png.flaticon.com/128/863/863684.png', label: 'أزياء', q: 'فساتين', bg: 'bg-purple-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'أحذية', q: 'أحذية', bg: 'bg-orange-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'حقائب', q: 'حقائب', bg: 'bg-amber-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'جمال', q: 'عطور', bg: 'bg-pink-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'إلكترونيات', q: 'سماعات', bg: 'bg-blue-50' },
-        { img: 'https://cdn-icons-png.flaticon.com/128/3082/3082044.png', label: 'ألعاب', q: 'العاب اطفال', bg: 'bg-red-50' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/863/863684.png', label: 'أزياء', q: 'فساتين', bg: 'bg-purple-50', gradient: 'from-purple-400 to-indigo-600', emoji: '👗' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'أحذية', q: 'أحذية', bg: 'bg-orange-50', gradient: 'from-orange-400 to-red-500', emoji: '👟' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/679/679922.png', label: 'حقائب', q: 'حقائب', bg: 'bg-amber-50', gradient: 'from-amber-400 to-orange-500', emoji: '👜' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'جمال', q: 'عطور', bg: 'bg-pink-50', gradient: 'from-pink-400 to-rose-500', emoji: '💄' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'إلكترونيات', q: 'سماعات', bg: 'bg-blue-50', gradient: 'from-blue-500 to-indigo-600', emoji: '🔌' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3082/3082044.png', label: 'ألعاب', q: 'العاب اطفال', bg: 'bg-red-50', gradient: 'from-red-400 to-pink-500', emoji: '🧸' },
       ]
+
+  const trendingSearches = provider === 'amazon'
+    ? ['AirPods Pro', 'Stanley Cup', 'Protein Powder', 'Gaming Mouse', 'Vitamin D', 'Running Shoes', 'Kindle', 'Smart Watch']
+    : ['حقيبة يد', 'سماعة بلوتوث', 'فستان سهرة', 'حذاء رياضي', 'عطر', 'ساعة يد', 'مكياج', 'العاب']
 
   const provColor = provider === 'amazon' ? 'from-slate-800 to-slate-900' : provider === 'shein' ? 'from-pink-500 to-pink-600' : 'from-indigo-500 to-indigo-600'
   const provAccent = provider === 'amazon' ? 'bg-indigo-600' : provider === 'shein' ? 'bg-pink-500' : 'bg-indigo-600'
@@ -1098,7 +1113,7 @@ export default function ChinaShop() {
 
       <div className="max-w-4xl mx-auto">
         {/* Search Section */}
-        <div className="bg-white rounded-2xl mx-4 mt-4 px-4 pt-4 pb-2 border border-slate-100 shadow-sm">
+        <div className="mx-4 mt-4">
           {/* Smart Search Bar */}
           <div className="relative">
             <Search className="w-[18px] h-[18px] absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
@@ -1106,34 +1121,30 @@ export default function ChinaShop() {
               ref={searchRef}
               type="text"
               dir="auto"
-              placeholder={provider === 'amazon' ? 'ابحث عن أي منتج تريده...' : `ابحث عن أي منتج تريده...`}
+              placeholder={!query && !searched ? `${searchSuggestions[activeSuggestion]}...` : 'ابحث عن أي منتج تريده...'}
               value={query}
               onChange={e => handleSmartInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const t = query.trim(); if (isUrl(t)) { setUrlInput(t); setTimeout(() => handleUrlSearch(), 50) } else { doSearch(0) } } }}
-              className="w-full h-12 pl-11 pr-12 bg-slate-50 rounded-2xl text-[14px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-indigo-100 border border-slate-200 focus:border-indigo-300 placeholder:text-slate-400"
+              className="w-full h-[52px] pl-11 pr-24 bg-white rounded-2xl text-[14px] outline-none transition-all focus:ring-2 focus:ring-indigo-100 border border-slate-200 focus:border-indigo-300 placeholder:text-slate-400 shadow-sm"
             />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 z-20">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 z-20">
               {query ? (
-                <button onClick={() => { setQuery(''); setUrlInput(''); setUrlError(''); setSearched(false); setResults([]); searchRef.current?.focus() }} className="w-9 h-9 flex items-center justify-center hover:bg-gray-200 rounded-full transition active:scale-90">
+                <button onClick={() => { setQuery(''); setUrlInput(''); setUrlError(''); setSearched(false); setResults([]); searchRef.current?.focus() }} className="w-9 h-9 flex items-center justify-center hover:bg-gray-100 rounded-full transition active:scale-90">
                   <X className="w-4 h-4 text-gray-400" />
                 </button>
               ) : (
-                <button onClick={() => fileInputRef.current?.click()} className="w-9 h-9 flex items-center justify-center hover:bg-gray-200 rounded-full transition active:scale-90" title="بحث بالصورة">
-                  <Camera className="w-5 h-5 text-gray-500" />
-                </button>
+                <>
+                  <button onClick={() => fileInputRef.current?.click()} className="w-9 h-9 flex items-center justify-center hover:bg-gray-100 rounded-xl transition active:scale-90" title="بحث بالصورة">
+                    <Camera className="w-[18px] h-[18px] text-gray-400" />
+                  </button>
+                  <button onClick={() => { if (!query && searchSuggestions[activeSuggestion]) { setQuery(searchSuggestions[activeSuggestion]); doSearch(0) } else { doSearch(0) } }}
+                    className="w-9 h-9 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 rounded-xl transition active:scale-90 shadow-sm">
+                    <Search className="w-4 h-4 text-white" />
+                  </button>
+                </>
               )}
             </div>
           </div>
-          {/* Smart hint */}
-          {!searched && !loading && !query && (
-            <div className="flex items-center justify-center gap-3 mt-2 text-[11px] text-gray-400">
-              <span className="flex items-center gap-1"><Search className="w-3 h-3" /> اكتب للبحث</span>
-              <span>·</span>
-              <span className="flex items-center gap-1"><LinkIcon className="w-3 h-3" /> ألصق رابط</span>
-              <span>·</span>
-              <span className="flex items-center gap-1"><Camera className="w-3 h-3" /> صورة</span>
-            </div>
-          )}
           {isUrl(query.trim()) && !loading && (
             <div className="flex items-center gap-2 mt-2 px-1">
               <LinkIcon className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
@@ -1141,77 +1152,176 @@ export default function ChinaShop() {
             </div>
           )}
           {urlError && <p className="text-[11px] text-red-500 mt-1.5 px-1">{urlError}</p>}
-          {/* Categories - Grid */}
-          {!searched && !loading && provider !== 'shein' && (
-            <div className="mt-5 pb-2">
-              <div ref={categoriesRef} className="grid grid-cols-4 gap-3">
-                {categories.map(cat => (
-                  <button key={cat.label}
-                    onClick={() => { setQuery(cat.q); doSearch(0) }}
-                    className="flex flex-col items-center gap-2 active:scale-95 transition-all">
-                    <div className={`w-16 h-16 rounded-full ${cat.bg} flex items-center justify-center shadow-sm border border-gray-100`}>
-                      <img src={cat.img} alt={cat.label} className="w-9 h-9 object-contain" loading="lazy" />
-                    </div>
-                    <span className="text-[11px] font-semibold text-gray-700">{cat.label}</span>
+        </div>
+
+        {/* ═══ Discovery Section (only when not searched) ═══ */}
+        {!searched && !loading && !urlLoading && (
+          <>
+            {/* Stories-style Categories */}
+            {provider !== 'shein' && (
+              <div className="mt-4 px-4">
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  {categories.map((cat, i) => (
+                    <button key={cat.label}
+                      onClick={() => { setQuery(cat.q); doSearch(0) }}
+                      className="flex flex-col items-center gap-1.5 flex-shrink-0 active:scale-95 transition-all group">
+                      <div className={`w-[68px] h-[68px] rounded-full bg-gradient-to-br ${cat.gradient} p-[3px] shadow-lg`}>
+                        <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
+                          <img src={cat.img} alt={cat.label} className="w-8 h-8 object-contain group-hover:scale-110 transition-transform" loading="lazy" />
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-semibold text-slate-600 whitespace-nowrap">{cat.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Image Search Card */}
+            <div className="mx-4 mt-4">
+              <button onClick={() => fileInputRef.current?.click()}
+                className="w-full bg-gradient-to-l from-violet-600 via-indigo-600 to-blue-600 rounded-2xl p-4 flex items-center gap-4 shadow-lg shadow-indigo-200/40 active:scale-[0.98] transition-all group overflow-hidden relative">
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIi8+PC9zdmc+')] opacity-50"></div>
+                <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                  <Camera className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 text-right">
+                  <h3 className="text-[15px] font-bold text-white">ابحث بالصورة</h3>
+                  <p className="text-[12px] text-white/70 mt-0.5">صوّر أي منتج واحصل على نتائج مشابهة فوراً</p>
+                </div>
+                <ChevronLeft className="w-5 h-5 text-white/50 flex-shrink-0" />
+              </button>
+            </div>
+
+            {/* Trending Searches */}
+            <div className="mt-5 px-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-1 h-5 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></div>
+                <h3 className="text-[14px] font-bold text-slate-800">ترند اليوم</h3>
+                <Flame className="w-4 h-4 text-orange-400" />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {trendingSearches.map((term, i) => (
+                  <button key={term}
+                    onClick={() => { setQuery(term); doSearch(0) }}
+                    className={`px-3.5 py-2 rounded-xl text-[12px] font-semibold transition-all active:scale-95 flex items-center gap-1.5 ${
+                      i === 0 ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md shadow-orange-200/50' :
+                      i === 1 ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-200/50' :
+                      i === 2 ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-200/50' :
+                      'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                    }`}>
+                    {i < 3 && <span className="text-[10px] font-black opacity-80">#{i + 1}</span>}
+                    {term}
                   </button>
                 ))}
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Provider Toggle */}
-        {(provider === 'taobao' || provider === '1688') && !searched && !loading && (
-          <div className="flex gap-2 mx-4 mt-3">
-            <button onClick={() => navigate('/china/taobao')}
-              className={`flex-1 h-10 rounded-xl flex items-center justify-center gap-2 font-bold text-[12px] transition-all active:scale-[0.97] ${
-                provider === 'taobao' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'
-              }`}>
-              <ShoppingBag className="w-3.5 h-3.5" />
-              Taobao
-            </button>
-            <button onClick={() => navigate('/china/1688')}
-              className={`flex-1 h-10 rounded-xl flex items-center justify-center gap-2 font-bold text-[12px] transition-all active:scale-[0.97] ${
-                provider === '1688' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'
-              }`}>
-              <Package className="w-3.5 h-3.5" />
-              1688
-            </button>
-          </div>
-        )}
+            {/* Provider Toggle */}
+            {(provider === 'taobao' || provider === '1688') && (
+              <div className="flex gap-2 mx-4 mt-4">
+                <button onClick={() => navigate('/china/taobao')}
+                  className={`flex-1 h-10 rounded-xl flex items-center justify-center gap-2 font-bold text-[12px] transition-all active:scale-[0.97] ${
+                    provider === 'taobao' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'
+                  }`}>
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  Taobao
+                </button>
+                <button onClick={() => navigate('/china/1688')}
+                  className={`flex-1 h-10 rounded-xl flex items-center justify-center gap-2 font-bold text-[12px] transition-all active:scale-[0.97] ${
+                    provider === '1688' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'
+                  }`}>
+                  <Package className="w-3.5 h-3.5" />
+                  1688
+                </button>
+              </div>
+            )}
 
-        {/* Popular Products */}
-        {!searched && !loading && !urlLoading && popularProducts.length > 0 && (
-          <div className="mt-4 px-4 mb-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[14px] font-bold text-slate-800 flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-indigo-500" /> منتجات رائجة
-              </h3>
-              <span className="text-[11px] text-slate-400">{popularProducts.length} منتج</span>
-            </div>
-            <div ref={popularRef} className="grid grid-cols-2 gap-3">
-              {popularProducts.map(pp => (
-                <div key={pp.id}
-                  onClick={() => loadProductById(pp.product_id, pp.provider)}
-                  className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer active:scale-[0.97]">
-                  <div className="relative aspect-square bg-slate-50 overflow-hidden">
-                    <img src={pp.image} alt={pp.title} className="w-full h-full object-contain p-3" loading="lazy"
-                      onError={e => { e.target.style.display = 'none' }} />
-                    {pp.search_count > 3 && (
-                      <span className="absolute top-2 right-2 text-[9px] bg-indigo-600/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5"><Flame className="w-2.5 h-2.5" /> رائج</span>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <p className="text-[11px] text-slate-600 font-medium line-clamp-2 min-h-[30px] leading-snug">{pp.title}</p>
-                    <p className="text-[14px] font-black text-slate-900 mt-1.5">
-                      {formatNum(pp.price_iqd)}
-                      <span className="text-[9px] text-slate-400 font-normal mr-0.5">?.?</span>
-                    </p>
-                  </div>
+            {/* Explore Categories - Big Cards */}
+            {provider !== 'shein' && (
+              <div className="mt-5 px-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></div>
+                  <h3 className="text-[14px] font-bold text-slate-800">استكشف</h3>
+                  <Sparkles className="w-4 h-4 text-indigo-400" />
                 </div>
-              ))}
+                <div className="grid grid-cols-2 gap-3">
+                  {categories.slice(0, 4).map((cat, i) => (
+                    <button key={cat.label + '-card'}
+                      onClick={() => { setQuery(cat.q); doSearch(0) }}
+                      className={`relative overflow-hidden rounded-2xl ${i === 0 ? 'col-span-2 h-32' : 'h-28'} bg-gradient-to-br ${cat.gradient} shadow-lg active:scale-[0.97] transition-all group`}>
+                      <div className="absolute inset-0 bg-black/10"></div>
+                      <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/30 to-transparent"></div>
+                      <img src={cat.img} alt="" className={`absolute ${i === 0 ? 'left-4 top-3 w-16 h-16' : 'left-3 top-2 w-12 h-12'} object-contain opacity-90 group-hover:scale-110 transition-transform drop-shadow-lg`} loading="lazy" />
+                      <div className="absolute bottom-3 right-4 text-right">
+                        <span className={`text-white font-black ${i === 0 ? 'text-[18px]' : 'text-[15px]'}`}>{cat.label}</span>
+                        <p className="text-white/70 text-[11px] mt-0.5">{cat.emoji} اكتشف المزيد</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Popular Products - Masonry Style */}
+            {popularProducts.length > 0 && (
+              <div className="mt-5 px-4 mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-5 bg-gradient-to-b from-orange-400 to-red-500 rounded-full"></div>
+                    <h3 className="text-[14px] font-bold text-slate-800">منتجات رائجة</h3>
+                    <Flame className="w-4 h-4 text-orange-500 animate-pulse" />
+                  </div>
+                  <span className="text-[11px] text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">{popularProducts.length} منتج</span>
+                </div>
+                <div ref={popularRef} className="columns-2 gap-3 space-y-3">
+                  {popularProducts.map((pp, idx) => (
+                    <div key={pp.id}
+                      onClick={() => loadProductById(pp.product_id, pp.provider)}
+                      className="break-inside-avoid bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer active:scale-[0.97] group">
+                      <div className={`relative ${idx % 3 === 0 ? 'aspect-[3/4]' : 'aspect-square'} bg-gradient-to-b from-slate-50 to-white overflow-hidden`}>
+                        <img src={pp.image} alt={pp.title} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform" loading="lazy"
+                          onError={e => { e.target.style.display = 'none' }} />
+                        {pp.search_count > 3 && (
+                          <span className="absolute top-2.5 right-2.5 text-[9px] bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-0.5 rounded-lg font-bold flex items-center gap-0.5 shadow-sm">
+                            <Flame className="w-2.5 h-2.5" /> رائج
+                          </span>
+                        )}
+                        <div className="absolute top-2.5 left-2.5 w-6 h-6 bg-white/80 backdrop-blur rounded-full flex items-center justify-center text-[10px] font-black text-slate-500 shadow-sm">
+                          {idx + 1}
+                        </div>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-[12px] text-slate-700 font-medium line-clamp-2 min-h-[34px] leading-snug">{pp.title}</p>
+                        <div className="flex items-end justify-between mt-2">
+                          <p className="text-[15px] font-black text-slate-900">
+                            {formatNum(pp.price_iqd)}
+                            <span className="text-[9px] text-slate-400 font-normal mr-0.5"> د.ع</span>
+                          </p>
+                          <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
+                            <Plus className="w-3.5 h-3.5 text-white" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quick Actions Footer */}
+            <div className="mx-4 mb-6 mt-2">
+              <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-4 flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Truck className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[13px] font-bold text-white">شحن مجاني للعراق</p>
+                  <p className="text-[11px] text-white/50 mt-0.5">على جميع الطلبات بدون حد أدنى</p>
+                </div>
+              </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* Shein iframe */}
