@@ -136,49 +136,132 @@ export default function ProductView(p) {
 
               {/* Options / Variants */}
               {((productDetail?.Configurators?.length > 0) || (productDetail?.variants?.length > 0)) && (
-                <div className="mt-6 space-y-6">
+                <div className="mt-6 space-y-5">
                   <hr className="border-slate-100" />
 
-                  {productDetail?.Configurators && productDetail.Configurators.map(cfg => (
-                    <div key={cfg.Pid}>
-                      <p className="mb-2 text-sm font-medium text-slate-900">{cfg.Name || 'خيار'}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {(cfg.Values || []).map(val => {
-                          const sel = p.selectedConfigs[cfg.Pid] === val.Vid
-                          return (
-                            <label key={val.Vid} className="cursor-pointer">
-                              <input type="radio" name={`cfg-${cfg.Pid}`} className="hidden peer" checked={sel} onChange={() => p.setSelectedConfigs(prev => ({...prev, [cfg.Pid]: sel ? undefined : val.Vid}))} />
-                              <div className={`cursor-pointer flex items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${sel ? 'bg-indigo-50 text-indigo-700 border-indigo-500 shadow-sm' : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50'}`}>
-                                {val.Name || val.Value || val.Vid}
-                              </div>
-                            </label>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  ))}
+                  {productDetail?.Configurators && productDetail.Configurators.map(cfg => {
+                    const isColor = /color|colour|لون|رنگ/i.test(cfg.Name || '')
+                    const hasImages = (cfg.Values || []).some(v => v.ImageUrl)
+                    return (
+                      <div key={cfg.Pid}>
+                        <div className="flex items-center gap-2 mb-3">
+                          <p className="text-sm font-semibold text-slate-900">{cfg.Name || 'خيار'}</p>
+                          {p.selectedConfigs[cfg.Pid] && (
+                            <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md font-medium">
+                              {(cfg.Values || []).find(v => v.Vid === p.selectedConfigs[cfg.Pid])?.Name || ''}
+                            </span>
+                          )}
+                        </div>
 
-                  {productDetail?.variants && productDetail.variants.map((variant, vi) => (
-                    <div key={vi}>
-                      <p className="mb-2 text-sm font-medium text-slate-900">{variant.title || 'خيار'}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {(variant.items || []).map((opt, oi) => {
-                          const loading = p.loadingVariant === opt.asin
-                          const cur = opt.selected || opt.asin === item.Id
-                          return (
-                            <label key={opt.asin || oi} className={`${p.loadingVariant && !loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
-                              <input type="radio" name={`var-${vi}`} className="hidden peer" checked={cur} disabled={loading || !!p.loadingVariant}
-                                onChange={() => { if (opt.asin && !cur) p.loadAmazonVariant(opt.asin) }} />
-                              <div className={`flex items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${cur ? 'bg-indigo-50 text-indigo-700 border-indigo-500 shadow-sm' : loading ? 'border-indigo-300 bg-indigo-50/50 animate-pulse text-indigo-400' : 'border-slate-200 bg-white text-slate-900 hover:bg-slate-50'}`}>
-                                {loading && <Loader2 className="w-3.5 h-3.5 animate-spin me-1.5" />}
-                                {opt.name || opt.asin}
-                              </div>
-                            </label>
-                          )
-                        })}
+                        {/* Color swatches */}
+                        {(isColor || hasImages) ? (
+                          <div className="flex flex-wrap gap-2.5">
+                            {(cfg.Values || []).map(val => {
+                              const sel = p.selectedConfigs[cfg.Pid] === val.Vid
+                              return (
+                                <button key={val.Vid}
+                                  onClick={() => p.setSelectedConfigs(prev => ({...prev, [cfg.Pid]: sel ? undefined : val.Vid}))}
+                                  className={`relative group transition-all duration-200 ${sel ? 'scale-110' : 'hover:scale-105'}`}
+                                  title={val.Name || val.Value || val.Vid}>
+                                  {val.ImageUrl ? (
+                                    <div className={`w-12 h-12 rounded-xl overflow-hidden border-2 transition-all ${sel ? 'border-indigo-500 shadow-md shadow-indigo-100 ring-2 ring-indigo-200' : 'border-slate-200 hover:border-slate-300'}`}>
+                                      <img src={val.ImageUrl} alt="" className="w-full h-full object-cover" />
+                                    </div>
+                                  ) : (
+                                    <div className={`w-10 h-10 rounded-full border-2 transition-all flex items-center justify-center ${sel ? 'border-indigo-500 shadow-md shadow-indigo-100 ring-2 ring-indigo-200' : 'border-slate-200 hover:border-slate-300'}`}
+                                      style={{ backgroundColor: val.Name?.toLowerCase() || '#ccc' }}>
+                                      {sel && <Check className="w-4 h-4 text-white drop-shadow" />}
+                                    </div>
+                                  )}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        ) : (
+                          /* Size/Text chips */
+                          <div className="flex flex-wrap gap-2">
+                            {(cfg.Values || []).map(val => {
+                              const sel = p.selectedConfigs[cfg.Pid] === val.Vid
+                              return (
+                                <button key={val.Vid}
+                                  onClick={() => p.setSelectedConfigs(prev => ({...prev, [cfg.Pid]: sel ? undefined : val.Vid}))}
+                                  className={`min-w-[44px] h-11 px-4 rounded-xl border-2 text-sm font-semibold transition-all duration-200 active:scale-95 ${
+                                    sel
+                                      ? 'bg-slate-900 text-white border-slate-900 shadow-md'
+                                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400 hover:bg-slate-50'
+                                  }`}>
+                                  {val.Name || val.Value || val.Vid}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
+
+                  {productDetail?.variants && productDetail.variants.map((variant, vi) => {
+                    const isColor = /color|colour|لون/i.test(variant.title || '')
+                    const hasImages = (variant.items || []).some(v => v.image)
+                    return (
+                      <div key={vi}>
+                        <div className="flex items-center gap-2 mb-3">
+                          <p className="text-sm font-semibold text-slate-900">{variant.title || 'خيار'}</p>
+                        </div>
+
+                        {(isColor || hasImages) ? (
+                          <div className="flex flex-wrap gap-2.5">
+                            {(variant.items || []).map((opt, oi) => {
+                              const loading = p.loadingVariant === opt.asin
+                              const cur = opt.selected || opt.asin === item.Id
+                              return (
+                                <button key={opt.asin || oi}
+                                  disabled={loading || !!p.loadingVariant}
+                                  onClick={() => { if (opt.asin && !cur) p.loadAmazonVariant(opt.asin) }}
+                                  className={`relative transition-all duration-200 ${cur ? 'scale-110' : 'hover:scale-105'} ${p.loadingVariant && !loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                  title={opt.name || opt.asin}>
+                                  {opt.image ? (
+                                    <div className={`w-12 h-12 rounded-xl overflow-hidden border-2 transition-all ${cur ? 'border-indigo-500 shadow-md ring-2 ring-indigo-200' : loading ? 'border-indigo-300 animate-pulse' : 'border-slate-200 hover:border-slate-300'}`}>
+                                      <img src={opt.image} alt="" className="w-full h-full object-cover" />
+                                      {loading && <div className="absolute inset-0 bg-white/60 flex items-center justify-center"><Loader2 className="w-4 h-4 animate-spin text-indigo-500" /></div>}
+                                    </div>
+                                  ) : (
+                                    <div className={`w-10 h-10 rounded-full border-2 transition-all flex items-center justify-center ${cur ? 'border-indigo-500 shadow-md ring-2 ring-indigo-200' : 'border-slate-200 hover:border-slate-300'}`}
+                                      style={{ backgroundColor: opt.name?.toLowerCase() || '#ccc' }}>
+                                      {cur && <Check className="w-4 h-4 text-white drop-shadow" />}
+                                      {loading && <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />}
+                                    </div>
+                                  )}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {(variant.items || []).map((opt, oi) => {
+                              const loading = p.loadingVariant === opt.asin
+                              const cur = opt.selected || opt.asin === item.Id
+                              return (
+                                <button key={opt.asin || oi}
+                                  disabled={loading || !!p.loadingVariant}
+                                  onClick={() => { if (opt.asin && !cur) p.loadAmazonVariant(opt.asin) }}
+                                  className={`min-w-[44px] h-11 px-4 rounded-xl border-2 text-sm font-semibold transition-all duration-200 active:scale-95 ${
+                                    cur
+                                      ? 'bg-slate-900 text-white border-slate-900 shadow-md'
+                                      : loading
+                                        ? 'border-indigo-300 bg-indigo-50/50 animate-pulse text-indigo-400'
+                                        : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400 hover:bg-slate-50'
+                                  } ${p.loadingVariant && !loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                  {loading && <Loader2 className="w-3.5 h-3.5 animate-spin me-1.5 inline" />}
+                                  {opt.name || opt.asin}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               )}
 
