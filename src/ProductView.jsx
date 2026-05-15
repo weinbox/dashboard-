@@ -10,9 +10,39 @@ import ExplainSheet from './ExplainSheet'
 
 export default function ProductView(p) {
   const [openSec, setOpenSec] = useState('details')
+  const [translated, setTranslated] = useState({})
+  const [translating, setTranslating] = useState(null)
   const { item, productDetail, pics, iqd, inCart, sales, reviews, provLabel, discountPercent, formatNum, loadingDetail, cartCount } = p
   const stars = Math.round(item.Rating || 0)
   const toggle = (s) => setOpenSec(prev => prev === s ? null : s)
+
+  const translateText = async (text, key) => {
+    if (translated[key]) return
+    setTranslating(key)
+    try {
+      const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text.substring(0, 500)) + '&langpair=en|ar')
+      const data = await res.json()
+      if (data.responseData?.translatedText) {
+        setTranslated(prev => ({ ...prev, [key]: data.responseData.translatedText }))
+      }
+    } catch (e) { console.error('Translation error:', e) }
+    setTranslating(null)
+  }
+
+  const translateAll = async (items, baseKey) => {
+    if (translated[baseKey]) return
+    setTranslating(baseKey)
+    try {
+      const combined = Array.isArray(items) ? items.join(' || ') : String(items)
+      const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(combined.substring(0, 500)) + '&langpair=en|ar')
+      const data = await res.json()
+      if (data.responseData?.translatedText) {
+        const parts = data.responseData.translatedText.split(' || ')
+        setTranslated(prev => ({ ...prev, [baseKey]: parts }))
+      }
+    } catch (e) { console.error('Translation error:', e) }
+    setTranslating(null)
+  }
 
   return (
     <div ref={p.pageRef} className="min-h-screen bg-slate-50 pb-32" dir="rtl">
@@ -311,17 +341,29 @@ export default function ProductView(p) {
               )}
 
               {/* AI Explain Button */}
-              <div className="mt-3">
+              <div className="mt-4">
                 <button onClick={() => {
                   p.setShowExplainSheet(true)
                   p.setExplainMessages([])
-                  const ctx = 'اشرح هذا المنتج بالعربي العراقي بشكل مبسط وواضح. اذكر: شنو هذا المنتج فوائده الرئيسية ولمن مناسب. لا تسأل المستخدم أي سؤال اشرح مباشرة:\n\nProduct: ' + item.Title + '\nPrice: ' + formatNum(iqd) + ' IQD\nRating: ' + (item.Rating || 'N/A') + (item.Badge ? '\nBadge: ' + item.Badge : '') + (reviews ? '\nReviews count: ' + reviews : '') + (item.BoughtLastMonth ? '\nBought last month: ' + item.BoughtLastMonth : '')
+                  let ctx = 'اشرح هذا المنتج بالعربي العراقي بشكل مبسط وواضح. اذكر: شنو هذا المنتج, فوائده الرئيسية, ولمن مناسب, وهل يستاهل سعره. لا تسأل المستخدم أي سؤال اشرح مباشرة:\n\n'
+                  ctx += 'Product: ' + item.Title + '\n'
+                  ctx += 'Price: ' + formatNum(iqd) + ' IQD\n'
+                  ctx += 'Rating: ' + (item.Rating || 'N/A') + '/5\n'
+                  if (reviews) ctx += 'Reviews: ' + reviews + '\n'
+                  if (item.Badge) ctx += 'Badge: ' + item.Badge + '\n'
+                  if (item.BoughtLastMonth) ctx += 'Bought last month: ' + item.BoughtLastMonth + '\n'
+                  if (productDetail?.categories?.length) ctx += 'Category: ' + productDetail.categories.join(' > ') + '\n'
+                  if (productDetail?.specifications?.length) ctx += 'Specifications: ' + productDetail.specifications.map(s => s.name + ': ' + s.value).join(', ') + '\n'
+                  if (productDetail?.about?.length) ctx += 'About: ' + productDetail.about.join('. ') + '\n'
+                  if (productDetail?.dimensions && typeof productDetail.dimensions === 'object') ctx += 'Dimensions: ' + Object.entries(productDetail.dimensions).filter(([k,v]) => v).map(([k,v]) => k + ': ' + v).join(', ') + '\n'
+                  if (productDetail?.Description) ctx += 'Description: ' + productDetail.Description.substring(0, 300) + '\n'
+                  if (productDetail?.FeatureBullets?.length) ctx += 'Features: ' + productDetail.FeatureBullets.slice(0,5).join('. ') + '\n'
                   p.askExplain('اشرح لي هذا المنتج', ctx)
-                }} className="w-full h-10 border border-dashed border-slate-200 bg-slate-50/50 text-slate-600 text-[12px] font-medium rounded-full flex items-center justify-center gap-1.5 transition-all hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 active:scale-[0.97]">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                }} className="w-full h-12 bg-gradient-to-l from-indigo-500 to-purple-600 text-white text-sm font-bold rounded-2xl flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-indigo-200/50 active:scale-[0.97]">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
                   </svg>
-                  اشرح لي هذا المنتج
+                  اشرح لي بالذكاء الاصطناعي
                 </button>
               </div>
 
@@ -340,19 +382,22 @@ export default function ProductView(p) {
               {/* Specifications */}
               {productDetail?.specifications?.length > 0 && (
                 <div className="mt-5">
-                  <button onClick={() => toggle('specs')} className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all active:scale-[0.99]">
-                    <div className="flex items-center gap-2.5">
-                      <Info className="w-5 h-5 text-indigo-500" />
-                      <span className="text-sm font-bold text-slate-800">المواصفات التقنية</span>
+                  <button onClick={() => { toggle('specs'); translateAll(productDetail.specifications.map(s => s.name + ': ' + s.value), 'specs') }} className="w-full flex items-center justify-between px-4 py-4 bg-white border border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/30 rounded-2xl transition-all active:scale-[0.99] shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center">
+                        <Info className="w-5 h-5 text-indigo-600" />
+                      </div>
+                      <span className="text-[15px] font-bold text-slate-900">المواصفات التقنية</span>
                     </div>
                     <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${openSec === 'specs' ? 'rotate-180' : ''}`} />
                   </button>
                   {openSec === 'specs' && (
-                    <div className="pb-4 space-y-0">
+                    <div className="mt-2 bg-white border border-slate-100 rounded-2xl p-3 space-y-0 shadow-sm">
+                      {translating === 'specs' && <div className="text-center py-2 text-xs text-indigo-500 animate-pulse">جاري الترجمة...</div>}
                       {productDetail.specifications.map((spec, i) => (
-                        <div key={i} className={`flex items-start gap-3 py-2.5 px-3 ${i % 2 === 0 ? 'bg-slate-50/80' : ''} rounded-lg`}>
-                          <span className="text-[12px] font-medium text-slate-500 min-w-[100px] flex-shrink-0">{spec.name || spec.key}</span>
-                          <span className="text-[12px] text-slate-800 font-medium">{spec.value}</span>
+                        <div key={i} className={`flex items-start gap-3 py-2.5 px-3 ${i % 2 === 0 ? 'bg-slate-50/60' : ''} rounded-lg`}>
+                          <span className="text-[13px] font-semibold text-slate-500 min-w-[110px] flex-shrink-0">{translated.specs?.[i]?.split(':')?.[0] || spec.name || spec.key}</span>
+                          <span className="text-[13px] text-slate-800 font-medium">{translated.specs?.[i]?.split(':')?.[1]?.trim() || spec.value}</span>
                         </div>
                       ))}
                     </div>
@@ -362,20 +407,23 @@ export default function ProductView(p) {
 
               {/* About Product */}
               {productDetail?.about?.length > 0 && (
-                <div className="mt-2">
-                  <button onClick={() => toggle('about')} className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all active:scale-[0.99]">
-                    <div className="flex items-center gap-2.5">
-                      <Info className="w-5 h-5 text-emerald-500" />
-                      <span className="text-sm font-bold text-slate-800">حول هذا المنتج</span>
+                <div className="mt-2.5">
+                  <button onClick={() => { toggle('about'); translateAll(productDetail.about, 'about') }} className="w-full flex items-center justify-between px-4 py-4 bg-white border border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30 rounded-2xl transition-all active:scale-[0.99] shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center">
+                        <Info className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <span className="text-[15px] font-bold text-slate-900">حول هذا المنتج</span>
                     </div>
                     <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${openSec === 'about' ? 'rotate-180' : ''}`} />
                   </button>
                   {openSec === 'about' && (
-                    <div className="pb-4 space-y-2 pr-2">
+                    <div className="mt-2 bg-white border border-slate-100 rounded-2xl p-4 space-y-2.5 shadow-sm">
+                      {translating === 'about' && <div className="text-center py-2 text-xs text-emerald-500 animate-pulse">جاري الترجمة...</div>}
                       {productDetail.about.map((point, i) => (
-                        <div key={i} className="flex items-start gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 flex-shrink-0" />
-                          <p className="text-[12px] text-slate-600 leading-relaxed">{point}</p>
+                        <div key={i} className="flex items-start gap-2.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 flex-shrink-0" />
+                          <p className="text-[13px] text-slate-700 leading-relaxed">{translated.about?.[i] || point}</p>
                         </div>
                       ))}
                     </div>
@@ -385,24 +433,26 @@ export default function ProductView(p) {
 
               {/* Dimensions */}
               {productDetail?.dimensions && (
-                <div className="mt-2">
-                  <button onClick={() => toggle('dimensions')} className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all active:scale-[0.99]">
-                    <div className="flex items-center gap-2.5">
-                      <Ruler className="w-5 h-5 text-orange-500" />
-                      <span className="text-sm font-bold text-slate-800">الأبعاد والوزن</span>
+                <div className="mt-2.5">
+                  <button onClick={() => toggle('dimensions')} className="w-full flex items-center justify-between px-4 py-4 bg-white border border-slate-200 hover:border-orange-200 hover:bg-orange-50/30 rounded-2xl transition-all active:scale-[0.99] shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center">
+                        <Ruler className="w-5 h-5 text-orange-600" />
+                      </div>
+                      <span className="text-[15px] font-bold text-slate-900">الأبعاد والوزن</span>
                     </div>
                     <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${openSec === 'dimensions' ? 'rotate-180' : ''}`} />
                   </button>
                   {openSec === 'dimensions' && (
-                    <div className="pb-4 px-3">
+                    <div className="mt-2 bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
                       {typeof productDetail.dimensions === 'string' ? (
-                        <p className="text-[12px] text-slate-700 bg-slate-50 rounded-xl p-3">{productDetail.dimensions}</p>
+                        <p className="text-[13px] text-slate-700 p-3">{productDetail.dimensions}</p>
                       ) : (
-                        <div className="space-y-2">
-                          {Object.entries(productDetail.dimensions).map(([key, val], i) => (
-                            <div key={i} className="flex justify-between py-2 px-3 bg-slate-50/80 rounded-lg">
-                              <span className="text-[12px] text-slate-500 font-medium">{key}</span>
-                              <span className="text-[12px] text-slate-800 font-semibold">{val}</span>
+                        <div className="space-y-1">
+                          {Object.entries(productDetail.dimensions).filter(([k,v]) => v).map(([key, val], i) => (
+                            <div key={i} className={`flex justify-between py-2.5 px-3 ${i % 2 === 0 ? 'bg-slate-50/60' : ''} rounded-lg`}>
+                              <span className="text-[13px] text-slate-500 font-semibold">{key}</span>
+                              <span className="text-[13px] text-slate-800 font-bold">{val}</span>
                             </div>
                           ))}
                         </div>
@@ -414,31 +464,37 @@ export default function ProductView(p) {
 
               {/* Questions & Answers */}
               {productDetail?.questionsAnswers?.length > 0 && (
-                <div className="mt-2">
-                  <button onClick={() => toggle('qa')} className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all active:scale-[0.99]">
-                    <div className="flex items-center gap-2.5">
-                      <HelpCircle className="w-5 h-5 text-purple-500" />
-                      <span className="text-sm font-bold text-slate-800">أسئلة وأجوبة</span>
-                      <span className="text-[11px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">{productDetail.questionsAnswers.length}</span>
+                <div className="mt-2.5">
+                  <button onClick={() => { toggle('qa'); translateAll(productDetail.questionsAnswers.map(qa => qa.question + ' | ' + qa.answer), 'qa') }} className="w-full flex items-center justify-between px-4 py-4 bg-white border border-slate-200 hover:border-purple-200 hover:bg-purple-50/30 rounded-2xl transition-all active:scale-[0.99] shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-purple-50 rounded-xl flex items-center justify-center">
+                        <HelpCircle className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <span className="text-[15px] font-bold text-slate-900">أسئلة وأجوبة</span>
+                      <span className="text-[12px] bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full font-bold">{productDetail.questionsAnswers.length}</span>
                     </div>
                     <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${openSec === 'qa' ? 'rotate-180' : ''}`} />
                   </button>
                   {openSec === 'qa' && (
-                    <div className="pb-4 space-y-3">
-                      {productDetail.questionsAnswers.map((qa, i) => (
-                        <div key={i} className="bg-slate-50/80 rounded-xl p-3.5 space-y-2">
-                          <div className="flex items-start gap-2">
-                            <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded flex-shrink-0">س</span>
-                            <p className="text-[12px] font-semibold text-slate-800 leading-relaxed">{qa.question}</p>
-                          </div>
-                          {qa.answer && (
-                            <div className="flex items-start gap-2 mr-4">
-                              <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex-shrink-0">ج</span>
-                              <p className="text-[12px] text-slate-600 leading-relaxed">{qa.answer}</p>
+                    <div className="mt-2 space-y-2.5">
+                      {translating === 'qa' && <div className="text-center py-2 text-xs text-purple-500 animate-pulse">جاري الترجمة...</div>}
+                      {productDetail.questionsAnswers.map((qa, i) => {
+                        const trParts = translated.qa?.[i]?.split(' | ')
+                        return (
+                          <div key={i} className="bg-white border border-slate-100 rounded-2xl p-4 space-y-2.5 shadow-sm">
+                            <div className="flex items-start gap-2.5">
+                              <span className="text-[12px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg flex-shrink-0">س</span>
+                              <p className="text-[13px] font-bold text-slate-800 leading-relaxed">{trParts?.[0] || qa.question}</p>
                             </div>
-                          )}
-                        </div>
-                      ))}
+                            {(trParts?.[1] || qa.answer) && (
+                              <div className="flex items-start gap-2.5 mr-5">
+                                <span className="text-[12px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg flex-shrink-0">ج</span>
+                                <p className="text-[13px] text-slate-600 leading-relaxed">{trParts?.[1] || qa.answer}</p>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
                 </div>
