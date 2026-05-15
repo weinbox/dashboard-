@@ -16,29 +16,45 @@ export default function ProductView(p) {
   const stars = Math.round(item.Rating || 0)
   const toggle = (s) => setOpenSec(prev => prev === s ? null : s)
 
-  const translateText = async (text, key) => {
-    if (translated[key]) return
-    setTranslating(key)
+  const translateOne = async (text) => {
     try {
       const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text.substring(0, 500)) + '&langpair=en|ar')
       const data = await res.json()
-      if (data.responseData?.translatedText) {
-        setTranslated(prev => ({ ...prev, [key]: data.responseData.translatedText }))
-      }
-    } catch (e) { console.error('Translation error:', e) }
-    setTranslating(null)
+      return data.responseData?.translatedText || text
+    } catch (e) { return text }
   }
 
   const translateAll = async (items, baseKey) => {
     if (translated[baseKey]) return
     setTranslating(baseKey)
     try {
-      const combined = Array.isArray(items) ? items.join(' || ') : String(items)
-      const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(combined.substring(0, 500)) + '&langpair=en|ar')
-      const data = await res.json()
-      if (data.responseData?.translatedText) {
-        const parts = data.responseData.translatedText.split(' || ')
-        setTranslated(prev => ({ ...prev, [baseKey]: parts }))
+      const results = []
+      for (let i = 0; i < items.length; i++) {
+        const tr = await translateOne(items[i])
+        results.push(tr)
+        setTranslated(prev => ({ ...prev, [baseKey]: [...results] }))
+      }
+    } catch (e) { console.error('Translation error:', e) }
+    setTranslating(null)
+  }
+
+  const translateDimensions = async () => {
+    if (translated.dimensions || !productDetail?.dimensions) return
+    setTranslating('dimensions')
+    try {
+      const dims = productDetail.dimensions
+      if (typeof dims === 'string') {
+        const tr = await translateOne(dims)
+        setTranslated(prev => ({ ...prev, dimensions: tr }))
+      } else {
+        const result = {}
+        for (const [key, val] of Object.entries(dims)) {
+          if (!val) continue
+          const trKey = await translateOne(key)
+          const trVal = await translateOne(String(val))
+          result[trKey] = trVal
+          setTranslated(prev => ({ ...prev, dimensions: { ...result } }))
+        }
       }
     } catch (e) { console.error('Translation error:', e) }
     setTranslating(null)
@@ -382,7 +398,8 @@ export default function ProductView(p) {
               {/* Specifications */}
               {productDetail?.specifications?.length > 0 && (
                 <div className="mt-5">
-                  <button onClick={() => { toggle('specs'); translateAll(productDetail.specifications.map(s => s.name + ': ' + s.value), 'specs') }} className="w-full flex items-center justify-between px-4 py-4 bg-white border border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/30 rounded-2xl transition-all active:scale-[0.99] shadow-sm">
+                  <button onClick={() => { toggle('specs'); translateAll(productDetail.specifications.map(s => s.name + ': ' + s.value), 'specs') }}
+ className="w-full flex items-center justify-between px-4 py-4 bg-white border border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/30 rounded-2xl transition-all active:scale-[0.99] shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center">
                         <Info className="w-5 h-5 text-indigo-600" />
@@ -408,7 +425,8 @@ export default function ProductView(p) {
               {/* About Product */}
               {productDetail?.about?.length > 0 && (
                 <div className="mt-2.5">
-                  <button onClick={() => { toggle('about'); translateAll(productDetail.about, 'about') }} className="w-full flex items-center justify-between px-4 py-4 bg-white border border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30 rounded-2xl transition-all active:scale-[0.99] shadow-sm">
+                  <button onClick={() => { toggle('about'); translateAll(productDetail.about, 'about') }}
+ className="w-full flex items-center justify-between px-4 py-4 bg-white border border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30 rounded-2xl transition-all active:scale-[0.99] shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center">
                         <Info className="w-5 h-5 text-emerald-600" />
@@ -434,7 +452,7 @@ export default function ProductView(p) {
               {/* Dimensions */}
               {productDetail?.dimensions && (
                 <div className="mt-2.5">
-                  <button onClick={() => toggle('dimensions')} className="w-full flex items-center justify-between px-4 py-4 bg-white border border-slate-200 hover:border-orange-200 hover:bg-orange-50/30 rounded-2xl transition-all active:scale-[0.99] shadow-sm">
+                  <button onClick={() => { toggle('dimensions'); translateDimensions() }} className="w-full flex items-center justify-between px-4 py-4 bg-white border border-slate-200 hover:border-orange-200 hover:bg-orange-50/30 rounded-2xl transition-all active:scale-[0.99] shadow-sm">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center">
                         <Ruler className="w-5 h-5 text-orange-600" />
@@ -445,11 +463,12 @@ export default function ProductView(p) {
                   </button>
                   {openSec === 'dimensions' && (
                     <div className="mt-2 bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+                      {translating === 'dimensions' && <div className="text-center py-2 text-xs text-orange-500 animate-pulse">جاري الترجمة...</div>}
                       {typeof productDetail.dimensions === 'string' ? (
-                        <p className="text-[13px] text-slate-700 p-3">{productDetail.dimensions}</p>
+                        <p className="text-[13px] text-slate-700 p-3">{translated.dimensions || productDetail.dimensions}</p>
                       ) : (
                         <div className="space-y-1">
-                          {Object.entries(productDetail.dimensions).filter(([k,v]) => v).map(([key, val], i) => (
+                          {Object.entries(translated.dimensions && typeof translated.dimensions === 'object' ? translated.dimensions : productDetail.dimensions).filter(([k,v]) => v).map(([key, val], i) => (
                             <div key={i} className={`flex justify-between py-2.5 px-3 ${i % 2 === 0 ? 'bg-slate-50/60' : ''} rounded-lg`}>
                               <span className="text-[13px] text-slate-500 font-semibold">{key}</span>
                               <span className="text-[13px] text-slate-800 font-bold">{val}</span>
