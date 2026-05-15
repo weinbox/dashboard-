@@ -971,8 +971,8 @@ export default function ChinaShop() {
         { img: 'https://cdn-icons-png.flaticon.com/128/3082/3082044.png', label: 'Ø£Ù„Ø¹Ø§Ø¨', q: 'Ø§Ù„Ø¹Ø§Ø¨ Ø§Ø·ÙØ§Ù„', bg: 'bg-red-50' },
       ]
 
-  const provColor = provider === 'amazon' ? 'from-gray-800 to-gray-900' : provider === 'shein' ? 'from-pink-500 to-pink-600' : 'from-orange-500 to-orange-600'
-  const provAccent = provider === 'amazon' ? 'bg-amber-500' : provider === 'shein' ? 'bg-pink-500' : 'bg-orange-500'
+  const provColor = provider === 'amazon' ? 'from-slate-800 to-slate-900' : provider === 'shein' ? 'from-pink-500 to-pink-600' : 'from-indigo-500 to-indigo-600'
+  const provAccent = provider === 'amazon' ? 'bg-indigo-600' : provider === 'shein' ? 'bg-pink-500' : 'bg-indigo-600'
 
   // Ø¯Ø§Ù„Ø© Ø§Ù„Ø¨Ø­Ø« Ø¨Ø¹Ø¯ Ø§Ù„ØªÙˆÙ‚Ù Ø¹Ù† Ø§Ù„ÙƒØªØ§Ø¨Ø© - Ø­Ù‚Ù„ Ø°ÙƒÙŠ ÙŠÙƒØªØ´Ù Ù†Øµ Ø£Ùˆ Ø±Ø§Ø¨Ø·
   const isUrl = (text) => /^https?:\/\//i.test(text.trim()) || /^(e|m)\.tb\.cn\//i.test(text.trim()) || /^a\.co\//i.test(text.trim())
@@ -990,52 +990,50 @@ export default function ChinaShop() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20" dir="rtl">
+    <div className="min-h-screen bg-slate-50 pb-20" dir="rtl">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-100">
-        <div className="max-w-3xl mx-auto px-4 py-2.5">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-2.5">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/')} className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 transition-all active:scale-95 flex-shrink-0">
-              <ArrowRight className="w-5 h-5 text-gray-600" />
+            <button onClick={() => navigate('/')} className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-slate-100 transition-all active:scale-95 flex-shrink-0">
+              <ArrowRight className="w-5 h-5 text-slate-600" />
             </button>
             {/* Provider Logo */}
             <div className="flex-1 flex items-center justify-center">
               {provider === 'amazon' ? (
                 <div className="flex items-center gap-0">
-                  <span className="text-[20px] font-black text-gray-900 tracking-tight" style={{ fontFamily: 'Arial, sans-serif' }}>amazon</span>
+                  <span className="text-[20px] font-black text-slate-900 tracking-tight" style={{ fontFamily: 'Arial, sans-serif' }}>amazon</span>
                   <svg viewBox="0 0 40 16" className="w-8 h-3 mt-1" fill="none"><path d="M2 8C8 14 16 16 24 12C28 10 32 7 38 6" stroke="#FF9900" strokeWidth="3" strokeLinecap="round" fill="none"/><path d="M30 2L38 6L30 8" fill="#FF9900"/></svg>
                 </div>
               ) : (
-                <h1 className="text-[16px] font-black text-gray-900 tracking-tight">{prov.label}</h1>
+                <h1 className="text-[16px] font-black text-slate-900 tracking-tight">{prov.label}</h1>
               )}
             </div>
-            <button onClick={() => setShowCart(true)} className="relative w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 transition-all active:scale-95 flex-shrink-0">
-              <ShoppingCart className="w-5 h-5 text-gray-600" />
+            <button onClick={() => setShowCart(true)} className="relative w-9 h-9 rounded-xl flex items-center justify-center hover:bg-slate-100 transition-all active:scale-95 flex-shrink-0">
+              <ShoppingCart className="w-5 h-5 text-slate-600" />
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5">{cartCount}</span>
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5">{cartCount}</span>
               )}
             </button>
           </div>
         </div>
       </header>
 
-      <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageUpload} />
-
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* Search Section */}
-        <div className="bg-white px-4 pt-4 pb-2">
+        <div className="bg-white rounded-2xl mx-4 mt-4 px-4 pt-4 pb-2 border border-slate-100 shadow-sm">
           {/* Smart Search Bar */}
           <div className="relative">
-            <Search className="w-[18px] h-[18px] absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 z-10" />
+            <Search className="w-[18px] h-[18px] absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
             <input
               ref={searchRef}
               type="text"
               dir="auto"
-              placeholder={provider === 'amazon' ? 'Ø¨Ø­Ø« Ø£Ùˆ Ù„ØµÙ‚ Ø±Ø§Ø¨Ø· Ù…Ù†ØªØ¬...' : `Ø¨Ø­Ø« Ø£Ùˆ Ù„ØµÙ‚ Ø±Ø§Ø¨Ø· Ù…Ù†ØªØ¬...`}
+              placeholder={provider === 'amazon' ? 'بحث أو لصق رابط منتج...' : `بحث أو لصق رابط منتج...`}
               value={query}
               onChange={e => handleSmartInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const t = query.trim(); if (isUrl(t)) { setUrlInput(t); setTimeout(() => handleUrlSearch(), 50) } else { doSearch(0) } } }}
-              className="w-full h-12 pl-11 pr-12 bg-gray-100 rounded-2xl text-[14px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-gray-300 border border-gray-200 focus:border-gray-400 placeholder:text-gray-400"
+              className="w-full h-12 pl-11 pr-12 bg-slate-50 rounded-2xl text-[14px] outline-none transition-all focus:bg-white focus:ring-2 focus:ring-indigo-100 border border-slate-200 focus:border-indigo-300 placeholder:text-slate-400"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
               {query ? (
@@ -1090,14 +1088,14 @@ export default function ChinaShop() {
           <div className="flex gap-2 mx-4 mt-3">
             <button onClick={() => navigate('/china/taobao')}
               className={`flex-1 h-10 rounded-xl flex items-center justify-center gap-2 font-bold text-[12px] transition-all active:scale-[0.97] ${
-                provider === 'taobao' ? 'bg-orange-500 text-white' : 'bg-white text-gray-500 border border-gray-200'
+                provider === 'taobao' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'
               }`}>
               <ShoppingBag className="w-3.5 h-3.5" />
               Taobao
             </button>
             <button onClick={() => navigate('/china/1688')}
               className={`flex-1 h-10 rounded-xl flex items-center justify-center gap-2 font-bold text-[12px] transition-all active:scale-[0.97] ${
-                provider === '1688' ? 'bg-orange-500 text-white' : 'bg-white text-gray-500 border border-gray-200'
+                provider === '1688' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'
               }`}>
               <Package className="w-3.5 h-3.5" />
               1688
@@ -1109,28 +1107,28 @@ export default function ChinaShop() {
         {!searched && !loading && !urlLoading && popularProducts.length > 0 && (
           <div className="mt-4 px-4 mb-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[14px] font-bold text-gray-800 flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-orange-500" /> Ø§Ù„Ø£ÙƒØ«Ø± Ø±ÙˆØ§Ø¬Ø§Ù‹
+              <h3 className="text-[14px] font-bold text-slate-800 flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-indigo-500" /> الأكثر رواجاً
               </h3>
-              <span className="text-[11px] text-gray-400">{popularProducts.length} Ù…Ù†ØªØ¬</span>
+              <span className="text-[11px] text-slate-400">{popularProducts.length} منتج</span>
             </div>
-            <div ref={popularRef} className="grid grid-cols-2 gap-2.5">
+            <div ref={popularRef} className="grid grid-cols-2 gap-3">
               {popularProducts.map(pp => (
                 <div key={pp.id}
                   onClick={() => loadProductById(pp.product_id, pp.provider)}
-                  className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-md transition-all cursor-pointer active:scale-[0.97]">
-                  <div className="relative aspect-square bg-gray-50 overflow-hidden">
+                  className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer active:scale-[0.97]">
+                  <div className="relative aspect-square bg-slate-50 overflow-hidden">
                     <img src={pp.image} alt={pp.title} className="w-full h-full object-contain p-3" loading="lazy"
                       onError={e => { e.target.style.display = 'none' }} />
                     {pp.search_count > 3 && (
-                      <span className="absolute top-2 right-2 text-[9px] bg-red-500/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5"><Flame className="w-2.5 h-2.5" /> Ø±Ø§Ø¦Ø¬</span>
+                      <span className="absolute top-2 right-2 text-[9px] bg-indigo-600/90 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5"><Flame className="w-2.5 h-2.5" /> رائج</span>
                     )}
                   </div>
-                  <div className="p-2.5">
-                    <p className="text-[11px] text-gray-600 font-medium line-clamp-2 min-h-[30px] leading-snug">{pp.title}</p>
-                    <p className="text-[14px] font-black text-gray-900 mt-1.5">
+                  <div className="p-3">
+                    <p className="text-[11px] text-slate-600 font-medium line-clamp-2 min-h-[30px] leading-snug">{pp.title}</p>
+                    <p className="text-[14px] font-black text-slate-900 mt-1.5">
                       {formatNum(pp.price_iqd)}
-                      <span className="text-[9px] text-gray-400 font-normal mr-0.5">Ø¯.Ø¹</span>
+                      <span className="text-[9px] text-slate-400 font-normal mr-0.5">د.ع</span>
                     </p>
                   </div>
                 </div>
@@ -1178,11 +1176,11 @@ export default function ChinaShop() {
         {imageResults.length > 0 && !loading && (
           <div className="px-4 mb-6 mt-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[15px] font-bold text-gray-800 flex items-center gap-2">
-                <span className="w-1 h-5 bg-blue-500 rounded-full"></span>
-                Ù†ØªØ§Ø¦Ø¬ Ø§Ù„Ø¨Ø­Ø« Ø¨Ø§Ù„ØµÙˆØ±Ø©
+              <h3 className="text-[15px] font-bold text-slate-800 flex items-center gap-2">
+                <span className="w-1 h-5 bg-indigo-500 rounded-full"></span>
+                نتائج البحث بالصورة
               </h3>
-              <span className="text-[12px] text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg">{imageResults.length} Ù†ØªÙŠØ¬Ø©</span>
+              <span className="text-[12px] text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">{imageResults.length} نتيجة</span>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {imageResults.map((item, idx) => (
@@ -1195,16 +1193,16 @@ export default function ChinaShop() {
                       if (asinFromLink) loadProductById(asinFromLink[1], 'amazon')
                     }
                   }}
-                  className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all cursor-pointer active:scale-[0.97]">
-                  <div className="relative aspect-square bg-gray-50 overflow-hidden">
+                  className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer active:scale-[0.97]">
+                  <div className="relative aspect-square bg-slate-50 overflow-hidden">
                     <img src={item.image} alt={item.title} className="w-full h-full object-contain p-3" loading="lazy"
                       onError={e => { e.target.style.display = 'none' }} />
-                    <span className="absolute top-2 right-2 text-[9px] bg-gray-900/80 backdrop-blur-sm text-white px-2 py-0.5 rounded-lg font-bold">Amazon</span>
+                    <span className="absolute top-2 right-2 text-[9px] bg-indigo-600/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-lg font-bold">Amazon</span>
                   </div>
                   <div className="p-3">
-                    <p className="text-[12px] text-gray-700 font-medium line-clamp-2 mb-2 leading-snug">{item.title}</p>
+                    <p className="text-[12px] text-slate-700 font-medium line-clamp-2 mb-2 leading-snug">{item.title}</p>
                     {item.price > 0 && (
-                      <p className="text-[14px] font-black text-gray-900">{formatNum(applyCommission(Math.round(item.price * USD_TO_IQD)))} <span className="text-[10px] text-gray-400 font-normal">Ø¯.Ø¹</span></p>
+                      <p className="text-[14px] font-black text-slate-900">{formatNum(applyCommission(Math.round(item.price * USD_TO_IQD)))} <span className="text-[10px] text-slate-400 font-normal">د.ع</span></p>
                     )}
                   </div>
                 </div>
@@ -1217,16 +1215,16 @@ export default function ChinaShop() {
         {searched && !loading && imageResults.length === 0 && (
           <div className="px-4 mt-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[15px] font-bold text-gray-800">
+              <h3 className="text-[15px] font-bold text-slate-800">
                 {totalCount > 0 ? (
                   <span className="flex items-center gap-2">
-                    <span className="w-1 h-5 bg-orange-500 rounded-full"></span>
-                    {formatNum(totalCount)} Ù†ØªÙŠØ¬Ø©
+                    <span className="w-1 h-5 bg-indigo-500 rounded-full"></span>
+                    {formatNum(totalCount)} نتيجة
                   </span>
-                ) : 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ù†ØªØ§Ø¦Ø¬'}
+                ) : 'لا توجد نتائج'}
               </h3>
               {totalCount > 0 && (
-                <span className="text-[12px] text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg">ØµÙØ­Ø© {page + 1}</span>
+                <span className="text-[12px] text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">صفحة {page + 1}</span>
               )}
             </div>
 
@@ -1234,16 +1232,16 @@ export default function ChinaShop() {
             {totalCount > 0 && (
               <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
                 {[
-                  { key: 'default', label: 'Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠ' },
-                  { key: 'price', label: 'Ø§Ù„Ø£Ø±Ø®Øµ' },
-                  { key: '-price', label: 'Ø§Ù„Ø£ØºÙ„Ù‰' },
-                  { key: 'volume', label: 'Ø§Ù„Ø£ÙƒØ«Ø± Ù…Ø¨ÙŠØ¹Ø§Ù‹' },
+                  { key: 'default', label: 'الافتراضي' },
+                  { key: 'price', label: 'الأرخص' },
+                  { key: '-price', label: 'الأغلى' },
+                  { key: 'volume', label: 'الأكثر مبيعاً' },
                 ].map(s => (
                   <button key={s.key} onClick={() => { setSortBy(s.key); doSearch(0, s.key) }}
                     className={`whitespace-nowrap px-4 py-2 rounded-xl text-[12px] font-bold transition-all active:scale-95 ${
                       sortBy === s.key
                         ? `${provAccent} text-white shadow-md`
-                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                     }`}>
                     {s.label}
                   </button>
@@ -1253,11 +1251,11 @@ export default function ChinaShop() {
 
             {results.length === 0 ? (
               <div className="text-center py-20">
-                <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Search className="w-8 h-8 text-gray-300" />
+                <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-8 h-8 text-slate-300" />
                 </div>
-                <p className="text-sm font-bold text-gray-500">Ù„Ù… Ù†Ø¬Ø¯ Ù†ØªØ§Ø¦Ø¬ Ù„Ù€ "{query}"</p>
-                <p className="text-[12px] text-gray-400 mt-1">Ø¬Ø±Ø¨ ÙƒÙ„Ù…Ø§Øª Ø¨Ø­Ø« Ù…Ø®ØªÙ„ÙØ©</p>
+                <p className="text-sm font-bold text-slate-500">لم نجد نتائج لـ "{query}"</p>
+                <p className="text-[12px] text-slate-400 mt-1">جرب كلمات بحث مختلفة</p>
               </div>
             ) : (
               <div ref={resultsGridRef} className="grid grid-cols-2 gap-3">
@@ -1271,15 +1269,15 @@ export default function ChinaShop() {
 
                   return (
                     <div key={item.Id}
-                      className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all cursor-pointer active:scale-[0.97]"
+                      className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer active:scale-[0.97]"
                       onClick={() => loadProductDetail(item)}>
                       {/* Image */}
-                      <div className="relative aspect-square bg-gradient-to-b from-gray-50 to-white overflow-hidden">
+                      <div className="relative aspect-square bg-gradient-to-b from-slate-50 to-white overflow-hidden">
                         {item.MainPictureUrl ? (
                           <img src={item.MainPictureUrl} alt="" className="w-full h-full object-contain p-3" loading="lazy" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <Package className="w-10 h-10 text-gray-200" />
+                            <Package className="w-10 h-10 text-slate-200" />
                           </div>
                         )}
                         {/* Provider badge */}
@@ -1289,24 +1287,24 @@ export default function ChinaShop() {
                         {/* Favorite button */}
                         <button onClick={(e) => { e.stopPropagation(); heartPulse(e.currentTarget); toggleFavorite(item) }}
                           className="absolute top-2.5 left-2.5 w-8 h-8 bg-white/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm active:scale-90 transition-all z-10">
-                          <Heart className={`w-4 h-4 ${isFavorite(item.Id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+                          <Heart className={`w-4 h-4 ${isFavorite(item.Id) ? 'text-red-500 fill-red-500' : 'text-slate-400'}`} />
                         </button>
                         {inCart && (
-                          <div className="absolute top-12 left-2.5 w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm z-10">
+                          <div className="absolute top-12 left-2.5 w-6 h-6 bg-indigo-600 rounded-lg flex items-center justify-center shadow-sm z-10">
                             <span className="text-white text-[10px] font-bold">{inCart.qty}</span>
                           </div>
                         )}
                         {sales && parseInt(sales) > 1000 && (
-                          <span className="absolute bottom-2.5 left-2.5 bg-red-500/90 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-0.5"><Flame className="w-3 h-3" /> HOT</span>
+                          <span className="absolute bottom-2.5 left-2.5 bg-indigo-600/90 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-0.5"><Flame className="w-3 h-3" /> HOT</span>
                         )}
                       </div>
                       {/* Info */}
                       <div className="p-3">
-                        <p className="text-[12px] text-gray-700 font-medium line-clamp-2 min-h-[34px] leading-snug">{item.Title}</p>
+                        <p className="text-[12px] text-slate-700 font-medium line-clamp-2 min-h-[34px] leading-snug">{item.Title}</p>
                         <div className="mt-2.5 flex items-end justify-between">
-                          <p className="text-[15px] font-black text-gray-900">
+                          <p className="text-[15px] font-black text-slate-900">
                             {formatNum(iqd)}
-                            <span className="text-[10px] text-gray-400 font-normal mr-0.5">Ø¯.Ø¹</span>
+                            <span className="text-[10px] text-slate-400 font-normal mr-0.5">د.ع</span>
                           </p>
                           <div className={`w-7 h-7 ${provAccent} rounded-lg flex items-center justify-center shadow-sm`}>
                             <Plus className="w-4 h-4 text-white" />
@@ -1323,15 +1321,15 @@ export default function ChinaShop() {
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-3 mt-8 mb-24">
                 <button onClick={() => doSearch(page - 1)} disabled={page === 0}
-                  className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center disabled:opacity-30 hover:bg-gray-200 transition-all active:scale-95">
-                  <ChevronRight className="w-5 h-5 text-gray-600" />
+                  className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center disabled:opacity-30 hover:bg-slate-200 transition-all active:scale-95">
+                  <ChevronRight className="w-5 h-5 text-slate-600" />
                 </button>
-                <div className="bg-gray-100 rounded-xl px-4 py-2.5">
-                  <span className="text-[13px] text-gray-700 font-bold">{page + 1} / {Math.min(totalPages, 100)}</span>
+                <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-2.5">
+                  <span className="text-[13px] text-indigo-700 font-bold">{page + 1} / {Math.min(totalPages, 100)}</span>
                 </div>
                 <button onClick={() => doSearch(page + 1)} disabled={page >= totalPages - 1 || page >= 99}
-                  className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center disabled:opacity-30 hover:bg-gray-200 transition-all active:scale-95">
-                  <ChevronLeft className="w-5 h-5 text-gray-600" />
+                  className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center disabled:opacity-30 hover:bg-slate-200 transition-all active:scale-95">
+                  <ChevronLeft className="w-5 h-5 text-slate-600" />
                 </button>
               </div>
             )}
@@ -1364,42 +1362,42 @@ export default function ChinaShop() {
 
       {/* Cart Full Page */}
       {showCart && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white" dir="rtl">
-          <div className="bg-white flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-100 flex-shrink-0">
+        <div className="fixed inset-0 z-50 flex flex-col bg-slate-50" dir="rtl">
+          <div className="bg-white/95 backdrop-blur-md flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 flex-shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                <ShoppingCart className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+                <ShoppingCart className="w-5 h-5 text-indigo-600" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Ø³Ù„Ø© Ø§Ù„ØªØ³ÙˆÙ‚</h3>
-                <p className="text-[12px] text-gray-400">{cartCount} Ù…Ù†ØªØ¬</p>
+                <h3 className="text-lg font-bold text-slate-900">سلة التسوق</h3>
+                <p className="text-[12px] text-slate-400">{cartCount} منتج</p>
               </div>
             </div>
-            <button onClick={() => setShowCart(false)} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all active:scale-95">
-              <X className="w-4 h-4 text-gray-500" />
+            <button onClick={() => setShowCart(false)} className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-all active:scale-95">
+              <X className="w-4 h-4 text-slate-500" />
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto">
             {cart.length === 0 ? (
               <div className="text-center py-32 px-6">
-                <div className="w-24 h-24 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
-                  <ShoppingCart className="w-12 h-12 text-gray-300" />
+                <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
+                  <ShoppingCart className="w-12 h-12 text-slate-300" />
                 </div>
-                <p className="text-lg font-bold text-gray-600">Ø§Ù„Ø³Ù„Ø© ÙØ§Ø±ØºØ©</p>
-                <p className="text-sm text-gray-400 mt-2">Ø£Ø¶Ù Ù…Ù†ØªØ¬Ø§Øª Ù„Ù„Ø¨Ø¯Ø¡ Ø¨Ø§Ù„ØªØ³ÙˆÙ‚</p>
-                <button onClick={() => setShowCart(false)} className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all">
-                  ØªØµÙØ­ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª
+                <p className="text-lg font-bold text-slate-600">السلة فارغة</p>
+                <p className="text-sm text-slate-400 mt-2">أضف منتجات للبدء بالتسوق</p>
+                <button onClick={() => setShowCart(false)} className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg shadow-indigo-200/50">
+                  تصفح المنتجات
                 </button>
               </div>
             ) : (
               <div className="p-4 space-y-3 pb-6">
                 {cart.map(c => (
-                  <div key={c.uniqueId || c.id} className="flex gap-3 bg-white rounded-2xl p-3 border border-gray-100 shadow-sm">
-                    <img src={c.image} alt="" className="w-20 h-20 rounded-xl object-cover flex-shrink-0 bg-gray-50" />
+                  <div key={c.uniqueId || c.id} className="flex gap-3 bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm">
+                    <img src={c.image} alt="" className="w-20 h-20 rounded-xl object-cover flex-shrink-0 bg-slate-50" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-semibold text-gray-700 line-clamp-2 leading-snug">{c.title}</p>
-                      <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-semibold inline-block mt-1">{c.providerLabel}</span>
+                      <p className="text-[13px] font-semibold text-slate-700 line-clamp-2 leading-snug">{c.title}</p>
+                      <span className="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md font-semibold inline-block mt-1">{c.providerLabel}</span>
                       
                       {c.selectedOptions && Object.keys(c.selectedOptions).length > 0 && (
                         <div className="mt-1.5 flex flex-wrap gap-1">
@@ -1407,7 +1405,7 @@ export default function ChinaShop() {
                             const config = productDetail?.Configurators?.find(cfg => cfg.Pid === pid)
                             const value = config?.Values?.find(v => v.Vid === vid)
                             return (
-                              <span key={`${pid}-${vid}`} className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md">
+                              <span key={`${pid}-${vid}`} className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-md">
                                 {config?.Name}: {value?.Name || value?.Value || vid}
                               </span>
                             )
@@ -1416,13 +1414,13 @@ export default function ChinaShop() {
                       )}
                       
                       <div className="flex items-center justify-between mt-2">
-                        <span className="text-[14px] font-black text-gray-900">{formatNum(c.priceIqd * c.qty)} <span className="text-[10px] text-gray-400 font-normal">Ø¯.Ø¹</span></span>
+                        <span className="text-[14px] font-black text-slate-900">{formatNum(c.priceIqd * c.qty)} <span className="text-[10px] text-slate-400 font-normal">د.ع</span></span>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => updateQty(c.uniqueId || c.id, -1)} className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition active:scale-90">
-                            {c.qty === 1 ? <X className="w-3 h-3 text-red-400" /> : <Minus className="w-3 h-3 text-gray-500" />}
+                          <button onClick={() => updateQty(c.uniqueId || c.id, -1)} className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition active:scale-90">
+                            {c.qty === 1 ? <X className="w-3 h-3 text-red-400" /> : <Minus className="w-3 h-3 text-slate-500" />}
                           </button>
-                          <span className="text-[13px] font-bold w-5 text-center text-gray-800">{c.qty}</span>
-                          <button onClick={() => updateQty(c.uniqueId || c.id, 1)} className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition active:scale-90 shadow-sm">
+                          <span className="text-[13px] font-bold w-5 text-center text-slate-800">{c.qty}</span>
+                          <button onClick={() => updateQty(c.uniqueId || c.id, 1)} className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center hover:bg-indigo-700 transition active:scale-90 shadow-sm">
                             <Plus className="w-3 h-3 text-white" />
                           </button>
                         </div>
@@ -1436,27 +1434,27 @@ export default function ChinaShop() {
 
           {/* Cart Footer */}
           {cart.length > 0 && (
-            <div className="bg-white border-t border-gray-100 px-5 py-4 flex-shrink-0 space-y-3">
+            <div className="bg-white border-t border-slate-100 px-5 py-4 flex-shrink-0 space-y-3 shadow-2xl">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª ({cartCount})</span>
-                <span className="text-sm font-bold text-gray-700">{formatNum(cartTotal)} Ø¯.Ø¹</span>
+                <span className="text-sm text-slate-500">المنتجات ({cartCount})</span>
+                <span className="text-sm font-bold text-slate-700">{formatNum(cartTotal)} د.ع</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Ø§Ù„Ø´Ø­Ù†</span>
-                <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg font-semibold">Ø¹Ù†Ø¯ Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…</span>
+                <span className="text-sm text-slate-500">الشحن</span>
+                <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg font-semibold">عند الاستلام</span>
               </div>
-              <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
-                <span className="text-base font-bold text-gray-800">Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹</span>
-                <span className="text-xl font-black text-gray-900">{formatNum(cartTotal)} <span className="text-[12px] font-bold text-gray-500">Ø¯.Ø¹</span></span>
+              <div className="border-t border-slate-200 pt-3 flex items-center justify-between">
+                <span className="text-base font-bold text-slate-800">المجموع</span>
+                <span className="text-xl font-black text-slate-900">{formatNum(cartTotal)} <span className="text-[12px] font-bold text-slate-500">د.ع</span></span>
               </div>
               <button onClick={() => { setShowCart(false); navigate('/china-checkout') }}
-                className="w-full h-[52px] bg-gradient-to-l from-blue-600 to-blue-700 text-white rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] shadow-lg shadow-blue-200/50">
+                className="w-full h-[52px] bg-gradient-to-l from-indigo-600 to-indigo-700 text-white rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] shadow-lg shadow-indigo-200/50">
                 <ShoppingCart className="w-5 h-5" />
-                Ø¥ØªÙ…Ø§Ù… Ø§Ù„Ø·Ù„Ø¨ â€” {formatNum(cartTotal)} Ø¯.Ø¹
+                إتمام الطلب — {formatNum(cartTotal)} د.ع
               </button>
               <button onClick={() => { setCart([]); setShowCart(false) }}
                 className="w-full text-[13px] text-red-400 hover:text-red-500 py-1 transition-colors font-medium">
-                ØªÙØ±ÙŠØº Ø§Ù„Ø³Ù„Ø©
+                تفريغ السلة
               </button>
             </div>
           )}
@@ -1465,32 +1463,32 @@ export default function ChinaShop() {
 
       {/* Favorites Full Page */}
       {showFavorites && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white" dir="rtl">
-          <div className="bg-white flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-100 flex-shrink-0">
+        <div className="fixed inset-0 z-50 flex flex-col bg-slate-50" dir="rtl">
+          <div className="bg-white/95 backdrop-blur-md flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-pink-50 rounded-xl flex items-center justify-center">
                 <Heart className="w-5 h-5 text-pink-500" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Ø§Ù„Ù…ÙØ¶Ù„Ø©</h3>
-                <p className="text-[12px] text-gray-400">{favorites.length} Ù…Ù†ØªØ¬</p>
+                <h3 className="text-lg font-bold text-slate-900">المفضلة</h3>
+                <p className="text-[12px] text-slate-400">{favorites.length} منتج</p>
               </div>
             </div>
-            <button onClick={() => setShowFavorites(false)} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all active:scale-95">
-              <X className="w-4 h-4 text-gray-500" />
+            <button onClick={() => setShowFavorites(false)} className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-all active:scale-95">
+              <X className="w-4 h-4 text-slate-500" />
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto">
             {favorites.length === 0 ? (
               <div className="text-center py-32 px-6">
-                <div className="w-24 h-24 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
-                  <Heart className="w-12 h-12 text-gray-300" />
+                <div className="w-24 h-24 bg-pink-50 rounded-3xl flex items-center justify-center mx-auto mb-5">
+                  <Heart className="w-12 h-12 text-pink-300" />
                 </div>
-                <p className="text-lg font-bold text-gray-600">Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ù†ØªØ¬Ø§Øª Ù…ÙØ¶Ù„Ø©</p>
-                <p className="text-sm text-gray-400 mt-2">Ø§Ø¶ØºØ· Ø¹Ù„Ù‰ Ø§Ù„Ù‚Ù„Ø¨ Ù„Ø¥Ø¶Ø§ÙØ© Ù…Ù†ØªØ¬Ø§Øª</p>
-                <button onClick={() => setShowFavorites(false)} className="mt-6 px-6 py-3 bg-pink-500 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all">
-                  ØªØµÙØ­ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª
+                <p className="text-lg font-bold text-slate-600">لا توجد منتجات مفضلة</p>
+                <p className="text-sm text-slate-400 mt-2">اضغط على القلب لإضافة منتجات</p>
+                <button onClick={() => setShowFavorites(false)} className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg shadow-indigo-200/50">
+                  تصفح المنتجات
                 </button>
               </div>
             ) : (
@@ -1498,11 +1496,11 @@ export default function ChinaShop() {
                 {favorites.map(item => {
                   const pr = formatPrice(item.Price, item.isSerpApi ? 'USD' : provCurrency)
                   return (
-                    <div key={item.Id} className="flex gap-3 bg-gray-50 rounded-2xl p-3">
-                      <img src={item.MainPictureUrl} alt="" className="w-20 h-20 rounded-xl object-cover bg-white flex-shrink-0 cursor-pointer" onClick={() => { setShowFavorites(false); setSelectedProduct(item) }} />
+                    <div key={item.Id} className="flex gap-3 bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm">
+                      <img src={item.MainPictureUrl} alt="" className="w-20 h-20 rounded-xl object-cover bg-slate-50 flex-shrink-0 cursor-pointer" onClick={() => { setShowFavorites(false); setSelectedProduct(item) }} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-semibold text-gray-800 line-clamp-2 cursor-pointer" onClick={() => { setShowFavorites(false); setSelectedProduct(item) }}>{item.Title}</p>
-                        <p className="text-[14px] font-black text-blue-600 mt-1">{formatNum(pr.iqd)} Ø¯.Ø¹</p>
+                        <p className="text-[13px] font-semibold text-slate-800 line-clamp-2 cursor-pointer" onClick={() => { setShowFavorites(false); setSelectedProduct(item) }}>{item.Title}</p>
+                        <p className="text-[14px] font-black text-indigo-600 mt-1">{formatNum(pr.iqd)} د.ع</p>
                       </div>
                       <button onClick={() => toggleFavorite(item)} className="w-8 h-8 flex-shrink-0 flex items-center justify-center">
                         <Heart className="w-5 h-5 text-red-500 fill-red-500" />

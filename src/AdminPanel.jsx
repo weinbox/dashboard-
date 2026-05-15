@@ -24,6 +24,7 @@ export default function AdminPanel() {
   const [stores, setStores] = useState([])
   const [orders, setOrders] = useState([])
   const [products, setProducts] = useState([])
+  const [localOrders, setLocalOrders] = useState([])
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState('stores')
   const [toast, setToast] = useState(null)
@@ -36,6 +37,19 @@ export default function AdminPanel() {
   const [nsPass, setNsPass] = useState('')
   const [nsDelivery, setNsDelivery] = useState('5000')
   const [nsSaving, setNsSaving] = useState(false)
+
+  // Local product form
+  const [showAddProduct, setShowAddProduct] = useState(false)
+  const [editingProduct, setEditingProduct] = useState(null)
+  const [pName, setPName] = useState('')
+  const [pDesc, setPDesc] = useState('')
+  const [pPrice, setPPrice] = useState('')
+  const [pOldPrice, setPOldPrice] = useState('')
+  const [pImage, setPImage] = useState('')
+  const [pCategory, setPCategory] = useState('')
+  const [pBrand, setPBrand] = useState('')
+  const [pStock, setPStock] = useState('')
+  const [pSaving, setPSaving] = useState(false)
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type })
@@ -53,15 +67,79 @@ export default function AdminPanel() {
 
   const loadAll = async () => {
     setLoading(true)
-    const [storesRes, ordersRes, prodsRes] = await Promise.all([
+    const [storesRes, ordersRes, prodsRes, localOrdersRes] = await Promise.all([
       supabase.from('stores').select('*').order('created_at', { ascending: false }),
+      supabase.from('china_orders').select('*').order('created_at', { ascending: false }),
+      supabase.from('products').select('*').order('created_at', { ascending: false }),
       supabase.from('store_orders').select('*').order('created_at', { ascending: false }),
-      supabase.from('products').select('*'),
     ])
     setStores(storesRes.data || [])
     setOrders(ordersRes.data || [])
     setProducts(prodsRes.data || [])
+    setLocalOrders(localOrdersRes.data || [])
     setLoading(false)
+  }
+
+  const resetProductForm = () => {
+    setPName(''); setPDesc(''); setPPrice(''); setPOldPrice('')
+    setPImage(''); setPCategory(''); setPBrand(''); setPStock('')
+    setEditingProduct(null)
+  }
+
+  const openEditProduct = (p) => {
+    setEditingProduct(p)
+    setPName(p.name || '')
+    setPDesc(p.description || '')
+    setPPrice(String(p.price || ''))
+    setPOldPrice(String(p.old_price || ''))
+    setPImage(p.image || '')
+    setPCategory(p.category || '')
+    setPBrand(p.brand || '')
+    setPStock(String(p.stock || ''))
+    setShowAddProduct(true)
+  }
+
+  const saveProduct = async () => {
+    if (!pName.trim() || !pPrice) { showToast('أدخل الاسم والسعر', 'error'); return }
+    setPSaving(true)
+    const productData = {
+      name: pName.trim(),
+      description: pDesc.trim(),
+      price: parseFloat(pPrice) || 0,
+      old_price: parseFloat(pOldPrice) || 0,
+      discount: pOldPrice && parseFloat(pOldPrice) > parseFloat(pPrice) ? Math.round((1 - parseFloat(pPrice) / parseFloat(pOldPrice)) * 100) : 0,
+      image: pImage.trim(),
+      category: pCategory.trim(),
+      brand: pBrand.trim(),
+      stock: parseInt(pStock) || 0,
+      is_available: true,
+    }
+    if (editingProduct) {
+      const { error } = await supabase.from('products').update(productData).eq('id', editingProduct.id)
+      if (error) showToast('خطأ: ' + error.message, 'error')
+      else showToast('تم تحديث المنتج')
+    } else {
+      const { error } = await supabase.from('products').insert(productData)
+      if (error) showToast('خطأ: ' + error.message, 'error')
+      else showToast('تم إضافة المنتج')
+    }
+    setShowAddProduct(false)
+    resetProductForm()
+    loadAll()
+    setPSaving(false)
+  }
+
+  const deleteProduct = async (p) => {
+    if (!confirm(`حذف "${p.name}"؟`)) return
+    await supabase.from('products').delete().eq('id', p.id)
+    showToast('تم حذف المنتج')
+    loadAll()
+  }
+
+  const updateLocalOrderStatus = async (orderId, newStatus) => {
+    await supabase.from('store_orders').update({ status: newStatus }).eq('id', orderId)
+    showToast('تم تحديث الحالة')
+    loadAll()
   }
 
   const createStore = async () => {
@@ -175,7 +253,9 @@ export default function AdminPanel() {
         <div className="flex gap-1 bg-neutral-100 rounded-xl p-1 mb-6">
           {[
             { key: 'stores', label: 'المتاجر' },
-            { key: 'orders', label: 'كل الطلبات' },
+            { key: 'local_products', label: 'منتجات المتجر' },
+            { key: 'local_orders', label: 'طلبات المتجر' },
+            { key: 'orders', label: 'طلبات الأسواق' },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${tab === t.key ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-400'}`}>
@@ -224,7 +304,91 @@ export default function AdminPanel() {
           </div>
         )}
 
-        {/* Orders Tab */}
+        {/* Local Products Tab */}
+        {tab === 'local_products' && (
+          <div>
+            <button onClick={() => { resetProductForm(); setShowAddProduct(true) }}
+              className="w-full border border-dashed border-neutral-200 rounded-xl py-4 flex items-center justify-center gap-2 text-neutral-500 text-sm font-medium hover:bg-neutral-50 transition-colors mb-4">
+              <Plus className="w-4 h-4" /> إضافة منتج جديد
+            </button>
+
+            {products.length === 0 ? (
+              <div className="text-center py-12">
+                <Package className="w-12 h-12 text-neutral-200 mx-auto mb-3" />
+                <p className="text-sm text-neutral-400">لا توجد منتجات</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {products.map(p => (
+                  <div key={p.id} className="border border-neutral-200 rounded-xl p-3 flex gap-3">
+                    <div className="w-16 h-16 rounded-lg bg-neutral-50 overflow-hidden flex-shrink-0">
+                      {p.image ? <img src={p.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Package className="w-6 h-6 text-neutral-200" /></div>}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-neutral-900 line-clamp-1">{p.name}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs font-bold text-neutral-700">{formatNum(p.price)} د.ع</span>
+                        {p.category && <span className="text-[9px] bg-neutral-100 text-neutral-500 px-1.5 py-0.5 rounded">{p.category}</span>}
+                        <span className="text-[9px] text-neutral-400">مخزون: {p.stock || 0}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button onClick={() => openEditProduct(p)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-neutral-100">
+                        <Save className="w-3.5 h-3.5 text-neutral-400" />
+                      </button>
+                      <button onClick={() => deleteProduct(p)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50">
+                        <Trash2 className="w-3.5 h-3.5 text-neutral-300" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Local Orders Tab */}
+        {tab === 'local_orders' && (
+          <div className="space-y-3">
+            {localOrders.length === 0 ? (
+              <div className="text-center py-12">
+                <ShoppingBag className="w-12 h-12 text-neutral-200 mx-auto mb-3" />
+                <p className="text-sm text-neutral-400">لا توجد طلبات محلية</p>
+              </div>
+            ) : localOrders.map(o => {
+              const st = STATUS_MAP[o.status] || STATUS_MAP.pending
+              return (
+                <div key={o.id} className="border border-neutral-200 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-neutral-900">{o.customer_name}</p>
+                      <p className="text-xs text-neutral-400">{o.customer_city || '—'}{o.customer_address ? ` • ${o.customer_address}` : ''}</p>
+                    </div>
+                    <select
+                      value={o.status || 'pending'}
+                      onChange={e => updateLocalOrderStatus(o.id, e.target.value)}
+                      className={`text-[11px] font-semibold px-2 py-1 rounded-lg border outline-none cursor-pointer ${st.color}`}
+                    >
+                      <option value="pending">جديد</option>
+                      <option value="confirmed">مؤكد</option>
+                      <option value="delivered">تم التوصيل</option>
+                      <option value="cancelled">ملغي</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-4 text-xs text-neutral-500">
+                    <span dir="ltr">{o.customer_phone}</span>
+                    <span>{formatNum(o.total_iqd || 0)} د.ع</span>
+                    <span>{o.items_count || 0} منتج</span>
+                    <span>{new Date(o.created_at).toLocaleDateString('ar-IQ')}</span>
+                  </div>
+                  {o.notes && <p className="text-[11px] text-neutral-400 bg-neutral-50 rounded-lg px-2 py-1">📝 {o.notes}</p>}
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Orders Tab (China/Global) */}
         {tab === 'orders' && (
           <div className="space-y-3">
             {orders.length === 0 ? (
@@ -234,19 +398,18 @@ export default function AdminPanel() {
               </div>
             ) : orders.map(o => {
               const st = STATUS_MAP[o.status] || STATUS_MAP.pending
-              const storeName = stores.find(s => s.id === o.store_id)?.name || '—'
               return (
                 <div key={o.id} className="border border-neutral-200 rounded-xl p-4 space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-bold text-neutral-900">{o.customer_name}</p>
-                      <p className="text-xs text-neutral-400">{storeName} • {o.city}{o.region ? ` — ${o.region}` : ''}</p>
+                      <p className="text-xs text-neutral-400">{o.city || '—'}{o.region ? ` — ${o.region}` : ''}</p>
                     </div>
                     <span className={`text-[11px] font-semibold px-2 py-1 rounded-lg border ${st.color}`}>{st.label}</span>
                   </div>
                   <div className="flex gap-4 text-xs text-neutral-500">
                     <span dir="ltr">{o.customer_phone}</span>
-                    <span>{formatNum(o.total + (o.delivery_price || 0))} د.ع</span>
+                    <span>{formatNum((o.total || 0) + (o.delivery_price || 0))} د.ع</span>
                     <span>{new Date(o.created_at).toLocaleDateString('ar-IQ')}</span>
                   </div>
                 </div>
@@ -255,6 +418,64 @@ export default function AdminPanel() {
           </div>
         )}
       </div>
+
+      {/* Add/Edit Product Modal */}
+      {showAddProduct && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={() => { setShowAddProduct(false); resetProductForm() }}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b border-neutral-100">
+              <h3 className="text-lg font-bold text-neutral-900">{editingProduct ? 'تعديل المنتج' : 'منتج جديد'}</h3>
+              <button onClick={() => { setShowAddProduct(false); resetProductForm() }} className="w-9 h-9 bg-neutral-100 rounded-lg flex items-center justify-center">
+                <X className="w-4 h-4 text-neutral-500" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-500 mb-2">اسم المنتج *</label>
+                <input type="text" value={pName} onChange={e => setPName(e.target.value)} placeholder="مثال: سماعات بلوتوث" className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-500 mb-2">الوصف</label>
+                <textarea value={pDesc} onChange={e => setPDesc(e.target.value)} placeholder="وصف المنتج..." rows={2} className={inputClass + " h-auto py-3 resize-none"} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-500 mb-2">السعر (د.ع) *</label>
+                  <input type="number" value={pPrice} onChange={e => setPPrice(e.target.value)} placeholder="45000" className={inputClass} dir="ltr" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-500 mb-2">السعر القديم</label>
+                  <input type="number" value={pOldPrice} onChange={e => setPOldPrice(e.target.value)} placeholder="65000" className={inputClass} dir="ltr" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-500 mb-2">رابط الصورة</label>
+                <input type="text" dir="ltr" value={pImage} onChange={e => setPImage(e.target.value)} placeholder="https://..." className={inputClass + " text-left"} />
+                {pImage && <img src={pImage} alt="" className="w-16 h-16 rounded-lg object-cover mt-2 border" onError={e => e.target.style.display='none'} />}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-500 mb-2">التصنيف</label>
+                  <input type="text" value={pCategory} onChange={e => setPCategory(e.target.value)} placeholder="إلكترونيات" className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-500 mb-2">الماركة</label>
+                  <input type="text" value={pBrand} onChange={e => setPBrand(e.target.value)} placeholder="Sony" className={inputClass} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-500 mb-2">المخزون</label>
+                <input type="number" value={pStock} onChange={e => setPStock(e.target.value)} placeholder="50" className={inputClass} dir="ltr" />
+              </div>
+              <button onClick={saveProduct} disabled={pSaving}
+                className={`w-full h-14 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${pSaving ? 'bg-neutral-200 text-neutral-400' : 'bg-neutral-900 hover:bg-neutral-800 text-white active:scale-[0.98]'}`}>
+                {pSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                {editingProduct ? 'تحديث المنتج' : 'إضافة المنتج'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* New Store Modal */}
       {showNewStore && (
