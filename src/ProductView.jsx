@@ -256,36 +256,41 @@ export default function ProductView(p) {
               )}
 
               {/* CTA Buttons */}
-              <div className="mt-6 sm:mt-8 space-y-4">
-                <div className="flex items-center gap-3">
+              <div className="mt-6 sm:mt-8 space-y-3">
+                {/* Cart + Favorite row */}
+                <div className="flex items-center gap-2">
                   {inCart ? (
                     <>
-                      <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden">
-                        <button onClick={() => p.updateQty(item.Id, -1)} className="w-10 h-10 flex items-center justify-center hover:bg-slate-100 transition">
-                          <Minus className="w-4 h-4 text-slate-600" />
+                      <div className="flex items-center bg-slate-100 rounded-full overflow-hidden">
+                        <button onClick={() => p.updateQty(item.Id, -1)} className="w-9 h-9 flex items-center justify-center hover:bg-slate-200 transition">
+                          <Minus className="w-3.5 h-3.5 text-slate-600" />
                         </button>
-                        <span className="w-10 text-center text-sm font-bold text-slate-900">{inCart.qty}</span>
-                        <button onClick={() => p.updateQty(item.Id, 1)} className="w-10 h-10 flex items-center justify-center hover:bg-slate-100 transition">
-                          <Plus className="w-4 h-4 text-slate-600" />
+                        <span className="w-7 text-center text-sm font-bold text-slate-900">{inCart.qty}</span>
+                        <button onClick={() => p.updateQty(item.Id, 1)} className="w-9 h-9 flex items-center justify-center hover:bg-slate-200 transition">
+                          <Plus className="w-3.5 h-3.5 text-slate-600" />
                         </button>
                       </div>
                       <button onClick={() => p.setShowCart(true)}
-                        className="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 font-medium rounded-xl text-sm px-5 py-3 flex items-center justify-center transition-all shadow-lg shadow-indigo-200/50 active:scale-[0.97]">
-                        <ShoppingCart className="w-5 h-5 -ms-2 me-2" />
+                        className="flex-1 h-11 bg-slate-900 text-white text-[13px] font-semibold rounded-full flex items-center justify-center gap-2 transition-all hover:bg-slate-800 active:scale-[0.97]">
                         عرض السلة
+                        <ShoppingCart className="w-4 h-4" />
                       </button>
                     </>
                   ) : (
                     <button onClick={(e) => { rippleEffect(e); p.flyToCart(e.currentTarget, '[data-cart-icon]'); p.addToCart(item) }}
-                      className="flex-1 text-white bg-indigo-600 hover:bg-indigo-700 font-medium rounded-xl text-sm px-5 py-3 flex items-center justify-center transition-all shadow-lg shadow-indigo-200/50 active:scale-[0.97]">
-                      <ShoppingCart className="w-5 h-5 -ms-2 me-2" />
+                      className="flex-1 h-11 bg-slate-900 text-white text-[13px] font-semibold rounded-full flex items-center justify-center gap-2 transition-all hover:bg-slate-800 active:scale-[0.97]">
                       أضف إلى السلة
+                      <ShoppingCart className="w-4 h-4" />
                     </button>
                   )}
 
                   <button onClick={(e) => { heartPulse(e.currentTarget); p.toggleFavorite(item) }}
-                    className="flex items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 hover:text-indigo-600 transition-all">
-                    <Heart className={`w-5 h-5 ${p.isFavorite(item.Id) ? 'text-red-500 fill-red-500' : ''}`} />
+                    className={`w-11 h-11 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                      p.isFavorite(item.Id)
+                        ? 'bg-red-50 border border-red-100'
+                        : 'bg-slate-100 hover:bg-slate-200'
+                    }`}>
+                    <Heart className={`w-[18px] h-[18px] ${p.isFavorite(item.Id) ? 'text-red-500 fill-red-500' : 'text-slate-500'}`} />
                   </button>
                 </div>
               </div>
@@ -305,17 +310,17 @@ export default function ProductView(p) {
               )}
 
               {/* AI Explain Button */}
-              <div className="mt-6">
+              <div className="mt-3">
                 <button onClick={() => {
                   p.setShowExplainSheet(true)
                   p.setExplainMessages([])
                   const ctx = 'اشرح هذا المنتج بالعربي العراقي بشكل مبسط وواضح. اذكر: شنو هذا المنتج فوائده الرئيسية ولمن مناسب. لا تسأل المستخدم أي سؤال اشرح مباشرة:\n\nProduct: ' + item.Title + '\nPrice: ' + formatNum(iqd) + ' IQD\nRating: ' + (item.Rating || 'N/A') + (item.Badge ? '\nBadge: ' + item.Badge : '') + (reviews ? '\nReviews count: ' + reviews : '') + (item.BoughtLastMonth ? '\nBought last month: ' + item.BoughtLastMonth : '')
                   p.askExplain('اشرح لي هذا المنتج', ctx)
-                }} className="w-full flex items-center justify-center gap-2 text-white bg-gradient-to-l from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 font-medium rounded-xl text-sm px-5 py-3.5 transition-all shadow-lg shadow-indigo-200/50 active:scale-[0.97]">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+                }} className="w-full h-10 border border-dashed border-slate-200 bg-slate-50/50 text-slate-600 text-[12px] font-medium rounded-full flex items-center justify-center gap-1.5 transition-all hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 active:scale-[0.97]">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
                   </svg>
-                  اشرح لي هذا المنتج بالذكاء الاصطناعي
+                  اشرح لي هذا المنتج
                 </button>
               </div>
 
