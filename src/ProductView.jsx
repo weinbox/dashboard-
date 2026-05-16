@@ -345,15 +345,13 @@ export default function ProductView(p) {
 
               {/* Description */}
               {productDetail?.FeatureBullets?.length > 0 && (
-                <p className="mb-6 text-slate-500">
-                  {productDetail.FeatureBullets.slice(0, 3).join('. ')}.
-                </p>
+                <div className="mb-6 text-slate-500 text-sm leading-relaxed [&_ul]:list-disc [&_ul]:pr-5 [&_li]:mb-1 [&_b]:font-bold [&_b]:text-slate-700 [&_p]:mb-2"
+                  dangerouslySetInnerHTML={{ __html: productDetail.FeatureBullets.slice(0, 3).join('<br/>') }} />
               )}
 
               {productDetail?.Description && (
-                <p className="text-slate-500 leading-relaxed">
-                  {productDetail.Description.substring(0, 400)}{productDetail.Description.length > 400 ? '...' : ''}
-                </p>
+                <div className="text-slate-500 leading-relaxed text-sm [&_ul]:list-disc [&_ul]:pr-5 [&_li]:mb-1 [&_b]:font-bold [&_b]:text-slate-700 [&_p]:mb-2"
+                  dangerouslySetInnerHTML={{ __html: productDetail.Description.substring(0, 600) + (productDetail.Description.length > 600 ? '...' : '') }} />
               )}
 
               {/* AI Explain Button */}

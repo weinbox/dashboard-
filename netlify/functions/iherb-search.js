@@ -2,6 +2,14 @@
 const APIFY_TOKEN = process.env.APIFY_TOKEN
 const ACTOR_ID = 'vaunted~iherb-scraper'
 
+// Convert cloudinary URLs to s3 (cloudinary blocks hotlinking)
+const fixImageUrl = (url) => {
+  if (!url) return ''
+  return url
+    .replace(/https:\/\/cloudinary\.images-iherb\.com\/image\/upload\/[^/]+\/images\//i, 'https://s3.images-iherb.com/')
+    .replace(/([A-Z]+)\/([A-Z]+-?)(\d+)/g, (m, p1, p2, p3) => `${p1.toLowerCase()}/${p2.toLowerCase().replace(/-/g, '')}${p3}`)
+}
+
 exports.handler = async (event) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -46,7 +54,7 @@ exports.handler = async (event) => {
       .map(item => ({
         id: String(item.productId || ''),
         title: item.title || '',
-        image: item.imageUrl || `https://cloudinary.images-iherb.com/image/upload/f_auto,q_auto:eco/images/${item.productId}.jpg`,
+        image: fixImageUrl(item.imageUrl) || `https://s3.images-iherb.com/${item.productId}.jpg`,
         price: String(item.price || '0'),
         currency: item.currency || 'USD',
         rating: item.rating || '0',
