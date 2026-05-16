@@ -22,6 +22,7 @@ const PROVIDERS = {
   '1688': { key: 'Taobao', restKey: 'alibaba1688', label: '1688', color: 'bg-orange-600', emoji: '1688', currency: 'CNY' },
   amazon: { key: 'Amazon', restKey: 'amazon', label: 'أمازون', color: 'bg-gray-900', emoji: 'AZ', currency: 'USD', useSerpApi: true },
   shein: { key: 'Shein', restKey: 'shein', label: 'شين', color: 'bg-pink-500', emoji: 'SH', currency: 'USD' },
+  iherb: { key: 'iHerb', restKey: 'iherb', label: 'آي هيرب', color: 'bg-green-600', emoji: 'iH', currency: 'USD', useApify: true },
 }
 
 const CNY_TO_USD = 6.5
@@ -424,6 +425,45 @@ export default function ChinaShop() {
         }
       } catch (err) {
         console.error('Shein search error:', err)
+        setResults([])
+        setTotalCount(0)
+      }
+      setLoading(false)
+      return
+    }
+
+    // iHerb: البحث عبر Apify API
+    if (prov.useApify) {
+      setSearched(true)
+      setPage(pageNum)
+      setSelectedProduct(null)
+      setProductDetail(null)
+      setLoading(true)
+      try {
+        const searchQuery = await translateToEn(query.trim())
+        const res = await fetch(`/.netlify/functions/iherb-search?keyword=${encodeURIComponent(searchQuery)}&page=${pageNum + 1}`)
+        const data = await res.json()
+        if (data.success && data.products) {
+          const formatted = data.products.map(item => ({
+            Id: `ih-${item.id}`,
+            Title: item.title,
+            MainPictureUrl: item.image,
+            Price: { OriginalPrice: parseFloat(item.price) || 0, OriginalCurrencyCode: 'USD' },
+            Rating: parseFloat(item.rating) || 0,
+            Reviews: item.reviews || 0,
+            Url: item.url,
+            Badge: item.stock === 'in_stock' ? null : 'نفذ',
+            Brand: item.brand,
+            isIHerb: true,
+          }))
+          setResults(formatted)
+          setTotalCount(data.total || formatted.length)
+        } else {
+          setResults([])
+          setTotalCount(0)
+        }
+      } catch (err) {
+        console.error('iHerb search error:', err)
         setResults([])
         setTotalCount(0)
       }
