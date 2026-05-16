@@ -46,7 +46,7 @@ exports.handler = async (event) => {
       .map(item => ({
         id: String(item.productId || ''),
         title: item.title || '',
-        image: `https://www.iherb.com/images/product/${item.productId}/-1_300.jpg`,
+        image: item.imageUrl || `https://cloudinary.images-iherb.com/image/upload/f_auto,q_auto:eco/images/${item.productId}.jpg`,
         price: String(item.price || '0'),
         currency: item.currency || 'USD',
         rating: item.rating || '0',
