@@ -897,6 +897,33 @@ export default function ChinaShop() {
           }))
           setSelectedConfigs({})
         }
+      } else if (item.isIHerb || prov.useApify) {
+        // iHerb: استخدام Apify لجلب التفاصيل الكاملة
+        const productUrl = item.Url || `https://www.iherb.com/pr/${item.Id.replace('ih-', '')}`
+        const res = await fetch(`/.netlify/functions/iherb-product?url=${encodeURIComponent(productUrl)}`)
+        const data = await res.json()
+        if (data.success && data.product) {
+          const p = data.product
+          const detailPics = (p.images || []).map(img => ({ Url: img }))
+          setProductDetail({
+            ...p,
+            Pictures: detailPics.length > 0 ? detailPics : [{ Url: item.MainPictureUrl }],
+            Description: p.description,
+            FeatureBullets: p.suggestedUse ? [`<b>طريقة الاستخدام:</b> ${p.suggestedUse}`] : [],
+            ingredients: p.ingredients,
+            warnings: p.warnings,
+            allergenInfo: p.allergenInfo,
+          })
+          setSelectedProduct(prev => ({
+            ...prev,
+            Price: { OriginalPrice: p.price || prev.Price?.OriginalPrice || 0, OriginalCurrencyCode: 'USD' },
+            MainPictureUrl: (p.images && p.images[0]) || prev.MainPictureUrl,
+            Rating: p.rating || prev.Rating,
+            Reviews: p.reviewCount || prev.Reviews,
+            Brand: p.brand || prev.Brand,
+          }))
+          setSelectedConfigs({})
+        }
       } else if (prov.currency === 'USD') {
         // USD providers: use proxy API
         const params = new URLSearchParams({
