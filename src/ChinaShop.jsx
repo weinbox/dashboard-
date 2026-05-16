@@ -1129,7 +1129,18 @@ export default function ChinaShop() {
 
   
   // --- Search & Results View ---
-  const categories = provider === 'amazon'
+  const categories = provider === 'iherb'
+    ? [
+        { img: 'https://cdn-icons-png.flaticon.com/128/3159/3159960.png', label: 'فيتامينات', q: 'vitamins', bg: 'bg-green-50', gradient: 'from-green-400 to-emerald-600', emoji: '💊' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/2927/2927347.png', label: 'بروتين', q: 'protein powder', bg: 'bg-orange-50', gradient: 'from-orange-400 to-red-500', emoji: '💪' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/1940/1940922.png', label: 'جمال', q: 'beauty skincare', bg: 'bg-pink-50', gradient: 'from-pink-400 to-rose-500', emoji: '💄' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/2913/2913520.png', label: 'أعشاب', q: 'herbs supplements', bg: 'bg-lime-50', gradient: 'from-lime-400 to-green-600', emoji: '🌿' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3163/3163186.png', label: 'رياضة', q: 'sports nutrition', bg: 'bg-blue-50', gradient: 'from-blue-400 to-indigo-600', emoji: '🏋️' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/3082/3082044.png', label: 'أطفال', q: 'baby kids health', bg: 'bg-amber-50', gradient: 'from-amber-400 to-orange-500', emoji: '👶' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/706/706164.png', label: 'أوميغا', q: 'omega fish oil', bg: 'bg-cyan-50', gradient: 'from-cyan-400 to-blue-600', emoji: '🐟' },
+        { img: 'https://cdn-icons-png.flaticon.com/128/1261/1261163.png', label: 'منزل', q: 'home essentials', bg: 'bg-teal-50', gradient: 'from-teal-400 to-cyan-600', emoji: '🏠' },
+      ]
+    : provider === 'amazon'
     ? [
         { img: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png', label: 'إلكترونيات', q: 'electronics', bg: 'bg-blue-50', gradient: 'from-blue-500 to-indigo-600', emoji: '🔌' },
         { img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png', label: 'أحذية', q: 'shoes', bg: 'bg-orange-50', gradient: 'from-orange-400 to-red-500', emoji: '👟' },
@@ -1158,12 +1169,14 @@ export default function ChinaShop() {
         { img: 'https://cdn-icons-png.flaticon.com/128/3082/3082044.png', label: 'ألعاب', q: 'العاب اطفال', bg: 'bg-red-50', gradient: 'from-red-400 to-pink-500', emoji: '🧸' },
       ]
 
-  const trendingSearches = provider === 'amazon'
+  const trendingSearches = provider === 'iherb'
+    ? ['Vitamin C', 'Omega 3', 'Collagen', 'Probiotics', 'Biotin', 'Zinc', 'Whey Protein', 'Creatine']
+    : provider === 'amazon'
     ? ['AirPods Pro', 'Stanley Cup', 'Protein Powder', 'Gaming Mouse', 'Vitamin D', 'Running Shoes', 'Kindle', 'Smart Watch']
     : ['حقيبة يد', 'سماعة بلوتوث', 'فستان سهرة', 'حذاء رياضي', 'عطر', 'ساعة يد', 'مكياج', 'العاب']
 
-  const provColor = provider === 'amazon' ? 'from-slate-800 to-slate-900' : provider === 'shein' ? 'from-pink-500 to-pink-600' : 'from-indigo-500 to-indigo-600'
-  const provAccent = provider === 'amazon' ? 'bg-indigo-600' : provider === 'shein' ? 'bg-pink-500' : 'bg-indigo-600'
+  const provColor = provider === 'amazon' ? 'from-slate-800 to-slate-900' : provider === 'shein' ? 'from-pink-500 to-pink-600' : provider === 'iherb' ? 'from-green-500 to-emerald-600' : 'from-indigo-500 to-indigo-600'
+  const provAccent = provider === 'amazon' ? 'bg-indigo-600' : provider === 'shein' ? 'bg-pink-500' : provider === 'iherb' ? 'bg-green-600' : 'bg-indigo-600'
 
   // دالة البحث بعد التوقف عن الكتابة - حقل ذكي يكتشف نص أو رابط
   const isUrl = (text) => /^https?:\/\//i.test(text.trim()) || /^(e|m)\.tb\.cn\//i.test(text.trim()) || /^a\.co\//i.test(text.trim())

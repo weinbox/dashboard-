@@ -30,6 +30,14 @@ const STORES = {
       route: true,
     },
     {
+      id: 'iherb',
+      name: 'iHerb',
+      subtitle: 'مكملات وصحة',
+      gradient: 'from-green-500 to-emerald-600',
+      hoverShadow: 'hover:shadow-green-200/60',
+      route: true,
+    },
+    {
       id: 'ebay',
       name: 'eBay',
       subtitle: 'مزادات ومنتجات',
