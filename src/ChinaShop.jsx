@@ -24,6 +24,7 @@ const PROVIDERS = {
   shein: { key: 'Shein', restKey: 'shein', label: 'شين', color: 'bg-pink-500', emoji: 'SH', currency: 'USD' },
   iherb: { key: 'iHerb', restKey: 'iherb', label: 'آي هيرب', color: 'bg-green-600', emoji: 'iH', currency: 'USD', useApify: true },
   bestbuy: { key: 'BestBuy', restKey: 'bestbuy', label: 'بست باي', color: 'bg-blue-700', emoji: 'BB', currency: 'USD', useSearchApi: true },
+  ebay: { key: 'eBay', restKey: 'ebay', label: 'إيباي', color: 'bg-blue-500', emoji: 'eB', currency: 'USD', useEbayApi: true },
 }
 
 const CNY_TO_USD = 6.5
@@ -164,6 +165,9 @@ const extractProductId = (url) => {
     // bestbuy: https://www.bestbuy.com/site/product/1234567 or /site/.../1234567.p
     const bbMatch = url.match(/bestbuy\.com.*\/(\d{7,})/)
     if (bbMatch) return { id: bbMatch[1], detectedProvider: 'bestbuy' }
+    // ebay: https://www.ebay.com/itm/123456789
+    const ebayMatch = url.match(/ebay\.com\/itm\/(\d+)/)
+    if (ebayMatch) return { id: ebayMatch[1], detectedProvider: 'ebay' }
     // fallback: أي رقم طويل في الرابط
     const numMatch = url.match(/(\d{10,})/)
     if (numMatch) {
@@ -397,6 +401,47 @@ export default function ChinaShop() {
     if (!query.trim()) return
     setImageResults([])
     
+    // eBay: البحث عبر SearchAPI.io
+    if (prov.useEbayApi) {
+      setSearched(true)
+      setPage(pageNum)
+      setSelectedProduct(null)
+      setProductDetail(null)
+      setLoading(true)
+      try {
+        const searchQuery = await translateToEn(query.trim())
+        const res = await fetch(`/.netlify/functions/ebay-search?keyword=${encodeURIComponent(searchQuery)}&page=${pageNum + 1}`)
+        const data = await res.json()
+        if (data.success && data.products) {
+          const formatted = data.products.map(item => ({
+            Id: `eb-${item.id}`,
+            Title: item.title,
+            MainPictureUrl: item.thumbnail,
+            Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' },
+            OldPrice: item.originalPrice > item.price ? item.originalPrice : null,
+            Rating: item.seller?.feedback ? (item.seller.feedback / 20) : 0,
+            Reviews: item.seller?.reviews || 0,
+            Url: item.link,
+            Badge: item.deal || (item.authenticity ? item.authenticity : null),
+            Brand: item.extensions?.[0] || '',
+            _eb: item,
+            isEbay: true,
+          }))
+          setResults(formatted)
+          setTotalCount(data.total || formatted.length)
+        } else {
+          setResults([])
+          setTotalCount(0)
+        }
+      } catch (err) {
+        console.error('eBay search error:', err)
+        setResults([])
+        setTotalCount(0)
+      }
+      setLoading(false)
+      return
+    }
+
     // Best Buy: البحث عبر SearchAPI.io
     if (prov.useSearchApi) {
       setSearched(true)
@@ -938,6 +983,37 @@ export default function ChinaShop() {
           }))
           setSelectedConfigs({})
         }
+      } else if (item.isEbay || prov.useEbayApi) {
+        // eBay: التفاصيل متوفرة من نتائج البحث
+        const eb = item._eb || {}
+        const specs = []
+        if (eb.condition) specs.push({ name: 'Condition', value: eb.condition })
+        if (eb.buyingFormat) specs.push({ name: 'Buying Format', value: eb.buyingFormat })
+        if (eb.seller?.name) specs.push({ name: 'Seller', value: eb.seller.name })
+        if (eb.seller?.feedback) specs.push({ name: 'Seller Feedback', value: `${eb.seller.feedback}%` })
+        if (eb.seller?.reviews) specs.push({ name: 'Seller Reviews', value: `${eb.seller.reviews.toLocaleString()}` })
+        if (eb.shipping) specs.push({ name: 'Shipping', value: eb.shipping })
+        if (eb.authenticity) specs.push({ name: 'Authenticity', value: eb.authenticity })
+        const about = []
+        if (eb.deal) about.push(`🚚 ${eb.deal}`)
+        if (eb.authenticity) about.push(`✅ ${eb.authenticity}`)
+        if (eb.condition) about.push(`📦 حالة المنتج: ${eb.condition}`)
+        if (eb.buyingFormat) about.push(`🛒 ${eb.buyingFormat}`)
+        if (eb.extensions?.length) about.push(...eb.extensions.map(e => `📌 ${e}`))
+        if (eb.priceRange) about.push(`💰 نطاق السعر: $${eb.priceRange.from} - $${eb.priceRange.to}`)
+        if (eb.shippingCost > 0) about.push(`📦 تكلفة الشحن: $${eb.shippingCost}`)
+        else if (eb.shippingCost === 0 || eb.deal?.toLowerCase().includes('free')) about.push(`🆓 شحن مجاني!`)
+        const descParts = []
+        if (eb.condition) descParts.push(eb.condition)
+        if (eb.buyingFormat) descParts.push(eb.buyingFormat)
+        if (eb.deal) descParts.push(eb.deal)
+        setProductDetail({
+          Pictures: [{ Url: item.MainPictureUrl }],
+          specifications: specs,
+          about: about.length > 0 ? about : null,
+          Description: descParts.length > 0 ? descParts.join(' • ') : null,
+        })
+        setSelectedConfigs({})
       } else if (item.isBestBuy || prov.useSearchApi) {
         // Best Buy: التفاصيل متوفرة من نتائج البحث مباشرة
         const bb = item._bb || {}

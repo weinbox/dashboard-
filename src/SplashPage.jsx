@@ -51,7 +51,7 @@ const STORES = {
       subtitle: 'مزادات ومنتجات',
       gradient: 'from-blue-500 to-indigo-600',
       hoverShadow: 'hover:shadow-blue-200/60',
-      external: 'https://www.ebay.com',
+      route: true,
     },
   ],
   wholesale: [
