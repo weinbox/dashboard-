@@ -23,6 +23,7 @@ const PROVIDERS = {
   amazon: { key: 'Amazon', restKey: 'amazon', label: 'أمازون', color: 'bg-gray-900', emoji: 'AZ', currency: 'USD', useSerpApi: true },
   shein: { key: 'Shein', restKey: 'shein', label: 'شين', color: 'bg-pink-500', emoji: 'SH', currency: 'USD' },
   iherb: { key: 'iHerb', restKey: 'iherb', label: 'آي هيرب', color: 'bg-green-600', emoji: 'iH', currency: 'USD', useApify: true },
+  bestbuy: { key: 'BestBuy', restKey: 'bestbuy', label: 'بست باي', color: 'bg-blue-700', emoji: 'BB', currency: 'USD', useSearchApi: true },
 }
 
 const CNY_TO_USD = 6.5
@@ -160,6 +161,9 @@ const extractProductId = (url) => {
     // amazon short: https://a.co/d/XXXXX or amzn.to/XXXXX
     const azShortMatch = url.match(/(?:a\.co\/d\/|amzn\.to\/)([A-Za-z0-9]+)/i)
     if (azShortMatch) return { id: azShortMatch[1], detectedProvider: 'amazon' }
+    // bestbuy: https://www.bestbuy.com/site/product/1234567 or /site/.../1234567.p
+    const bbMatch = url.match(/bestbuy\.com.*\/(\d{7,})/)
+    if (bbMatch) return { id: bbMatch[1], detectedProvider: 'bestbuy' }
     // fallback: أي رقم طويل في الرابط
     const numMatch = url.match(/(\d{10,})/)
     if (numMatch) {
@@ -393,6 +397,47 @@ export default function ChinaShop() {
     if (!query.trim()) return
     setImageResults([])
     
+    // Best Buy: البحث عبر SearchAPI.io
+    if (prov.useSearchApi) {
+      setSearched(true)
+      setPage(pageNum)
+      setSelectedProduct(null)
+      setProductDetail(null)
+      setLoading(true)
+      try {
+        const searchQuery = await translateToEn(query.trim())
+        const res = await fetch(`/.netlify/functions/bestbuy-search?keyword=${encodeURIComponent(searchQuery)}&page=${pageNum + 1}`)
+        const data = await res.json()
+        if (data.success && data.products) {
+          const formatted = data.products.map(item => ({
+            Id: `bb-${item.id}`,
+            Title: item.title,
+            MainPictureUrl: item.thumbnail,
+            Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' },
+            OldPrice: item.originalPrice > item.price ? item.originalPrice : null,
+            Rating: item.rating || 0,
+            Reviews: item.reviews || 0,
+            Url: item.link,
+            Badge: item.discountPercentage ? `-${item.discountPercentage}%` : null,
+            Brand: item.brand,
+            Images: item.images || [],
+            isBestBuy: true,
+          }))
+          setResults(formatted)
+          setTotalCount(data.total || formatted.length)
+        } else {
+          setResults([])
+          setTotalCount(0)
+        }
+      } catch (err) {
+        console.error('BestBuy search error:', err)
+        setResults([])
+        setTotalCount(0)
+      }
+      setLoading(false)
+      return
+    }
+
     // Shein: البحث عبر Apify API
     if (provider === 'shein') {
       setSearched(true)
@@ -892,6 +937,13 @@ export default function ChinaShop() {
           }))
           setSelectedConfigs({})
         }
+      } else if (item.isBestBuy || prov.useSearchApi) {
+        // Best Buy: التفاصيل متوفرة من نتائج البحث مباشرة
+        const detailPics = (item.Images || []).map(img => ({ Url: img }))
+        setProductDetail({
+          Pictures: detailPics.length > 0 ? detailPics : [{ Url: item.MainPictureUrl }],
+        })
+        setSelectedConfigs({})
       } else if (item.isSheinApi || item.isShein || provider === 'shein') {
         // Shein: استخدام Apify لجلب التفاصيل
         const productUrl = item.Url || `https://ar.shein.com/p-${item.Id.replace('sh-', '')}.html`

@@ -38,6 +38,14 @@ const STORES = {
       route: true,
     },
     {
+      id: 'bestbuy',
+      name: 'Best Buy',
+      subtitle: 'إلكترونيات وأجهزة',
+      gradient: 'from-blue-600 to-blue-800',
+      hoverShadow: 'hover:shadow-blue-200/60',
+      route: true,
+    },
+    {
       id: 'ebay',
       name: 'eBay',
       subtitle: 'مزادات ومنتجات',
