@@ -421,11 +421,7 @@ export default function ChinaShop() {
             Badge: item.discountPercentage ? `-${item.discountPercentage}%` : null,
             Brand: item.brand,
             Images: item.images || [],
-            Badges: item.badges || [],
-            ModelNumber: item.modelNumber || '',
-            Installment: item.installment || null,
-            Seller: item.seller || 'Best Buy',
-            Condition: item.condition || 'new',
+            _bb: item,
             isBestBuy: true,
           }))
           setResults(formatted)
@@ -944,14 +940,35 @@ export default function ChinaShop() {
         }
       } else if (item.isBestBuy || prov.useSearchApi) {
         // Best Buy: التفاصيل متوفرة من نتائج البحث مباشرة
+        const bb = item._bb || {}
         const detailPics = (item.Images || []).map(img => typeof img === 'string' ? ({ Url: img }) : ({ Url: img.link || img.url || '' }))
+        // بناء specifications من البيانات المتاحة
+        const specs = []
+        if (bb.brand) specs.push({ name: 'Brand', value: bb.brand })
+        if (bb.modelNumber) specs.push({ name: 'Model', value: bb.modelNumber })
+        if (bb.condition) specs.push({ name: 'Condition', value: bb.condition })
+        if (bb.seller) specs.push({ name: 'Seller', value: bb.seller })
+        if (bb.whatItIs?.length) specs.push({ name: 'Type', value: bb.whatItIs.join(', ') })
+        if (bb.classification?.department) specs.push({ name: 'Department', value: bb.classification.department })
+        // بناء about من badges و installment و finance
+        const about = []
+        if (bb.badges?.length) about.push(...bb.badges.map(b => `🏷️ ${b}`))
+        if (bb.installment) about.push(`💳 تقسيط: ${bb.installment.months} بـ ${bb.installment.cost_per_month}/شهر`)
+        if (bb.financeOption) about.push(`🏦 تمويل: ${bb.financeOption.months} بـ ${bb.financeOption.cost_per_month}/شهر بدون فوائد`)
+        if (bb.freeGiftsCount > 0) about.push(`🎁 يتضمن ${bb.freeGiftsCount} هدايا مجانية`)
+        if (bb.openBoxOptions?.length) about.push(`📦 متوفر Open Box من $${bb.openBoxOptions[0]?.price} (وفر $${bb.openBoxOptions[0]?.savings})`)
+        if (bb.syndicatedReviews?.length) about.push(...bb.syndicatedReviews.map(r => `⭐ ${r.source}: ${r.rating}/5 (${r.reviews} تقييم)`))
+        // Description
+        const descParts = []
+        if (bb.shortTitle) descParts.push(bb.shortTitle)
+        if (bb.whatItIs?.length) descParts.push(bb.whatItIs.join(' | '))
+        if (bb.discountPercentage > 0) descParts.push(`خصم ${bb.discountPercentage}% - وفر $${bb.discount}`)
         setProductDetail({
           Pictures: detailPics.length > 0 ? detailPics : [{ Url: item.MainPictureUrl }],
-          badges: item.Badges || [],
-          modelNumber: item.ModelNumber || '',
-          installment: item.Installment || null,
-          seller: item.Seller || 'Best Buy',
-          condition: item.Condition || 'new',
+          specifications: specs,
+          about: about.length > 0 ? about : null,
+          Description: descParts.length > 0 ? descParts.join('<br/>') : null,
+          FeatureBullets: bb.badges || [],
         })
         setSelectedConfigs({})
       } else if (item.isSheinApi || item.isShein || provider === 'shein') {
@@ -1133,7 +1150,7 @@ export default function ChinaShop() {
     const inCart = cart.find(c => c.id === item.Id && Object.keys(c.selectedOptions || {}).length === Object.keys(selectedConfigs || {}).length)
     const sales = item.FeaturedValues?.find(f => f.Name === 'SalesInLast30Days')?.Value
     const reviews = item.FeaturedValues?.find(f => f.Name === 'reviews')?.Value || item.Reviews
-    const provLabel = prov.currency === 'USD' ? 'Amazon' : prov.label
+    const provLabel = prov.label
     const provFlag = null
     const discountPercent = item.OldPrice > 0 && item.OldPrice > (item.Price?.OriginalPrice || 0) ? Math.round((1 - (item.Price?.OriginalPrice || 0) / item.OldPrice) * 100) : 0
 

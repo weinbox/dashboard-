@@ -57,8 +57,15 @@ exports.handler = async (event) => {
       images: (item.images || []).filter(i => i.title && i.title.includes('Zoom')).map(i => i.link).filter(Boolean),
       seller: item.seller?.name || 'Best Buy',
       installment: item.installment || null,
+      financeOption: item.finance_option || null,
       badges: item.badges || [],
-      buyingOptions: item.buying_options || [],
+      whatItIs: item.what_it_is || [],
+      classification: item.classification || null,
+      openBoxOptions: (item.open_box_options || []).map(o => ({
+        condition: o.condition, price: o.extracted_price, savings: o.extracted_savings,
+      })),
+      freeGiftsCount: (item.free_gifts || []).length,
+      syndicatedReviews: (item.syndicated_reviews || []).map(r => ({ source: r.source, rating: r.rating, reviews: r.reviews })),
     }))
 
     return {
