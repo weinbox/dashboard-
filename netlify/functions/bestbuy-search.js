@@ -54,7 +54,7 @@ exports.handler = async (event) => {
       discount: item.discount || 0,
       discountPercentage: item.discount_percentage || 0,
       thumbnail: item.thumbnail || '',
-      images: item.images || [],
+      images: (item.images || []).filter(i => i.title && i.title.includes('Zoom')).map(i => i.link).filter(Boolean),
       seller: item.seller?.name || 'Best Buy',
       installment: item.installment || null,
       badges: item.badges || [],

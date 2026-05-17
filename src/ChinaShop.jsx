@@ -421,6 +421,11 @@ export default function ChinaShop() {
             Badge: item.discountPercentage ? `-${item.discountPercentage}%` : null,
             Brand: item.brand,
             Images: item.images || [],
+            Badges: item.badges || [],
+            ModelNumber: item.modelNumber || '',
+            Installment: item.installment || null,
+            Seller: item.seller || 'Best Buy',
+            Condition: item.condition || 'new',
             isBestBuy: true,
           }))
           setResults(formatted)
@@ -939,9 +944,14 @@ export default function ChinaShop() {
         }
       } else if (item.isBestBuy || prov.useSearchApi) {
         // Best Buy: التفاصيل متوفرة من نتائج البحث مباشرة
-        const detailPics = (item.Images || []).map(img => ({ Url: img }))
+        const detailPics = (item.Images || []).map(img => typeof img === 'string' ? ({ Url: img }) : ({ Url: img.link || img.url || '' }))
         setProductDetail({
           Pictures: detailPics.length > 0 ? detailPics : [{ Url: item.MainPictureUrl }],
+          badges: item.Badges || [],
+          modelNumber: item.ModelNumber || '',
+          installment: item.Installment || null,
+          seller: item.Seller || 'Best Buy',
+          condition: item.Condition || 'new',
         })
         setSelectedConfigs({})
       } else if (item.isSheinApi || item.isShein || provider === 'shein') {
