@@ -169,6 +169,7 @@ const handler = async (event) => {
 
     if (action === 'image-search') {
       const imageUrl = params.image_url || ''
+      const site = (params.site || 'amazon').toLowerCase()
       if (!imageUrl) {
         return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing image_url' }) }
       }
@@ -176,16 +177,37 @@ const handler = async (event) => {
       const url = `https://serpapi.com/search.json?engine=google_lens&url=${encodeURIComponent(imageUrl)}&api_key=${SERPAPI_KEY}`
       const data = await fetchJson(url)
 
-      // فلترة النتائج لتظهر فقط Amazon
-      const amazonMatches = (data.visual_matches || []).filter(item => {
+      // خريطة المواقع للفلترة
+      const siteFilters = {
+        amazon: ['amazon.'],
+        bestbuy: ['bestbuy.com'],
+        ebay: ['ebay.com'],
+        iherb: ['iherb.com'],
+        shein: ['shein.com'],
+        taobao: ['taobao.com', 'tmall.com'],
+        '1688': ['1688.com'],
+      }
+      const filters = siteFilters[site] || ['amazon.']
+
+      const siteMatches = (data.visual_matches || []).filter(item => {
         const link = (item.link || '').toLowerCase()
         const source = (item.source || '').toLowerCase()
-        return link.includes('amazon.') || source.includes('amazon')
+        return filters.some(f => link.includes(f) || source.includes(f))
       })
 
-      const results = amazonMatches.slice(0, 20).map(item => {
-        // استخراج ASIN من رابط Amazon
-        const asinMatch = (item.link || '').match(/(?:\/dp\/|\/product\/|\/gp\/product\/)([A-Z0-9]{10})/i)
+      const results = siteMatches.slice(0, 20).map(item => {
+        // استخراج ID من الرابط حسب الموقع
+        let productId = ''
+        if (site === 'amazon') {
+          const m = (item.link || '').match(/(?:\/dp\/|\/product\/|\/gp\/product\/)([A-Z0-9]{10})/i)
+          if (m) productId = m[1]
+        } else if (site === 'bestbuy') {
+          const m = (item.link || '').match(/bestbuy\.com.*\/(\d{7,})/)
+          if (m) productId = m[1]
+        } else if (site === 'ebay') {
+          const m = (item.link || '').match(/ebay\.com\/itm\/(\d+)/)
+          if (m) productId = m[1]
+        }
         return {
           title: item.title || '',
           image: item.thumbnail || '',
@@ -196,7 +218,8 @@ const handler = async (event) => {
           rating: item.rating || 0,
           reviews: item.reviews || 0,
           inStock: item.in_stock || false,
-          asin: asinMatch ? asinMatch[1] : '',
+          asin: productId,
+          site: site,
         }
       })
 
@@ -207,6 +230,7 @@ const handler = async (event) => {
           success: true,
           results,
           totalResults: results.length,
+          site,
         })
       }
     }

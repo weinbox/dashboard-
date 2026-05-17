@@ -852,7 +852,7 @@ export default function ChinaShop() {
     setProductDetail(null)
     setImageResults([])
     try {
-      const res = await fetch(`/.netlify/functions/amazon-serpapi?action=image-search&image_url=${encodeURIComponent(imageUrl)}`)
+      const res = await fetch(`/.netlify/functions/amazon-serpapi?action=image-search&image_url=${encodeURIComponent(imageUrl)}&site=${encodeURIComponent(provider)}`)
       const data = await res.json()
       if (data.success && data.results) {
         setImageResults(data.results)
@@ -1696,18 +1696,21 @@ export default function ChinaShop() {
               {imageResults.map((item, idx) => (
                 <div key={idx}
                   onClick={() => {
-                    if (item.asin) {
+                    if (item.asin && provider === 'amazon') {
                       loadProductById(item.asin, 'amazon')
+                    } else if (item.asin && provider === 'bestbuy') {
+                      loadProductById(`bb-${item.asin}`, 'bestbuy')
+                    } else if (item.asin && provider === 'ebay') {
+                      loadProductById(`eb-${item.asin}`, 'ebay')
                     } else if (item.link) {
-                      const asinFromLink = item.link.match(/(?:\/dp\/|\/product\/|\/gp\/product\/)([A-Z0-9]{10})/i)
-                      if (asinFromLink) loadProductById(asinFromLink[1], 'amazon')
+                      window.open(item.link, '_blank')
                     }
                   }}
                   className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer active:scale-[0.97]">
                   <div className="relative aspect-square bg-slate-50 overflow-hidden">
                     <img src={item.image} alt={item.title} className="w-full h-full object-contain p-3" loading="lazy"
                       onError={e => { e.target.style.display = 'none' }} />
-                    <span className="absolute top-2 right-2 text-[9px] bg-indigo-600/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-lg font-bold">Amazon</span>
+                    <span className={`absolute top-2 right-2 text-[9px] ${prov.color}/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-lg font-bold`}>{prov.label}</span>
                   </div>
                   <div className="p-3">
                     <p className="text-[12px] text-slate-700 font-medium line-clamp-2 mb-2 leading-snug">{item.title}</p>
