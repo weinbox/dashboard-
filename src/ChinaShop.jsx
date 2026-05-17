@@ -643,35 +643,30 @@ export default function ChinaShop() {
       // Shein يستخدم scraping، 1688 يحتاج بادئة abb-
       if (providerKey === 'shein') {
         try {
-          const res = await fetch('/.netlify/functions/shein-scraper', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'get-product',
-              productId: productId.replace('sh-', '')
-            })
-          })
+          const sheinUrl = `https://ar.shein.com/p-${productId.replace('sh-', '')}.html`
+          const res = await fetch(`/.netlify/functions/shein-product?url=${encodeURIComponent(sheinUrl)}`)
           const data = await res.json()
           
           if (data.success && data.product) {
-            // تحويل بيانات Shein للتنسيق الموحد
+            const p = data.product
             const sheinItem = {
-              Id: `sh-${data.product.id}`,
-              Title: data.product.title,
-              MainPictureUrl: data.product.image,
+              Id: `sh-${p.id}`,
+              Title: p.title,
+              MainPictureUrl: p.mainImage,
               Price: {
-                OriginalPrice: parseFloat(data.product.price.replace(/[^0-9.]/g, '')) || 0,
-                OriginalCurrencyCode: data.product.currency || 'USD'
+                OriginalPrice: p.salePrice || 0,
+                OriginalCurrencyCode: p.currency || 'USD'
               },
-              OriginalPrice: parseFloat(data.product.originalPrice.replace(/[^0-9.]/g, '')) || 0,
-              DiscountPrice: parseFloat(data.product.price.replace(/[^0-9.]/g, '')) || 0,
-              Images: data.product.images || [],
-              Url: `https://ar.shein.com/p-${data.product.id}.html`,
-              Description: data.product.description || '',
-              isScraped: true
+              OldPrice: p.retailPrice || 0,
+              Url: p.url || sheinUrl,
+              isShein: true,
             }
+            const detailPics = (p.images || []).map(img => ({ Url: img }))
             setSelectedProduct(sheinItem)
-            setProductDetail(data.product)
+            setProductDetail({
+              Pictures: detailPics.length > 0 ? detailPics : [{ Url: p.mainImage }],
+              discountPercentage: p.discountPercentage,
+            })
           } else {
             setUrlError('لم يتم العثور على المنتج')
           }
@@ -894,6 +889,28 @@ export default function ChinaShop() {
             OldPrice: p.oldPrice || prev.OldPrice || 0,
             Badge: p.badge || prev.Badge,
             BoughtLastMonth: p.boughtLastMonth || prev.BoughtLastMonth,
+          }))
+          setSelectedConfigs({})
+        }
+      } else if (item.isSheinApi || item.isShein || provider === 'shein') {
+        // Shein: استخدام Apify لجلب التفاصيل
+        const productUrl = item.Url || `https://ar.shein.com/p-${item.Id.replace('sh-', '')}.html`
+        const res = await fetch(`/.netlify/functions/shein-product?url=${encodeURIComponent(productUrl)}`)
+        const data = await res.json()
+        if (data.success && data.product) {
+          const p = data.product
+          const detailPics = (p.images || []).map(img => ({ Url: img }))
+          setProductDetail({
+            Pictures: detailPics.length > 0 ? detailPics : [{ Url: item.MainPictureUrl }],
+            discountPercentage: p.discountPercentage,
+          })
+          setSelectedProduct(prev => ({
+            ...prev,
+            Title: p.title || prev.Title,
+            Price: { OriginalPrice: p.salePrice || prev.Price?.OriginalPrice || 0, OriginalCurrencyCode: p.currency || 'USD' },
+            MainPictureUrl: p.mainImage || prev.MainPictureUrl,
+            OldPrice: p.retailPrice || prev.OldPrice || 0,
+            Url: p.url || prev.Url,
           }))
           setSelectedConfigs({})
         }
