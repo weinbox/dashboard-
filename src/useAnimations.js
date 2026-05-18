@@ -48,14 +48,18 @@ export function useCountUp(targetValue, dep) {
   const ref = useRef(null)
   useEffect(() => {
     if (!ref.current || !targetValue) return
+    // حفظ النص الأصلي بعد الرقم (مثل " د.ع")
+    const el = ref.current
+    const priceNode = el.childNodes[0] // النص الأول (الرقم)
+    if (!priceNode || priceNode.nodeType !== 3) return // تأكد أنه text node
     const obj = { val: 0 }
     gsap.to(obj, {
       val: targetValue,
       duration: 0.8,
       ease: 'power2.out',
       onUpdate: () => {
-        if (ref.current) {
-          ref.current.textContent = Math.round(obj.val).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+        if (priceNode) {
+          priceNode.textContent = Math.round(obj.val).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' '
         }
       }
     })
