@@ -53,6 +53,14 @@ const STORES = {
       hoverShadow: 'hover:shadow-blue-200/60',
       route: true,
     },
+    {
+      id: 'walmart',
+      name: 'Walmart',
+      subtitle: 'تسوق وتوفير',
+      gradient: 'from-yellow-400 to-amber-500',
+      hoverShadow: 'hover:shadow-yellow-200/60',
+      route: true,
+    },
   ],
   wholesale: [
     {

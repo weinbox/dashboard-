@@ -25,6 +25,7 @@ const PROVIDERS = {
   iherb: { key: 'iHerb', restKey: 'iherb', label: 'آي هيرب', color: 'bg-green-600', emoji: 'iH', currency: 'USD', useApify: true },
   bestbuy: { key: 'BestBuy', restKey: 'bestbuy', label: 'بست باي', color: 'bg-blue-700', emoji: 'BB', currency: 'USD', useSearchApi: true },
   ebay: { key: 'eBay', restKey: 'ebay', label: 'إيباي', color: 'bg-blue-500', emoji: 'eB', currency: 'USD', useEbayApi: true },
+  walmart: { key: 'Walmart', restKey: 'walmart', label: 'وولمارت', color: 'bg-yellow-500', emoji: 'WM', currency: 'USD', useWalmartApi: true },
 }
 
 const CNY_TO_USD = 6.5
@@ -168,6 +169,9 @@ const extractProductId = (url) => {
     // ebay: https://www.ebay.com/itm/123456789
     const ebayMatch = url.match(/ebay\.com\/itm\/(\d+)/)
     if (ebayMatch) return { id: ebayMatch[1], detectedProvider: 'ebay' }
+    // walmart: https://www.walmart.com/ip/product-name/123456789
+    const wmMatch = url.match(/walmart\.com\/ip\/[^\/]*\/(\d+)/)
+    if (wmMatch) return { id: wmMatch[1], detectedProvider: 'walmart' }
     // fallback: أي رقم طويل في الرابط
     const numMatch = url.match(/(\d{10,})/)
     if (numMatch) {
@@ -401,6 +405,47 @@ export default function ChinaShop() {
     if (!query.trim()) return
     setImageResults([])
     
+    // Walmart: البحث عبر SearchAPI.io
+    if (prov.useWalmartApi) {
+      setSearched(true)
+      setPage(pageNum)
+      setSelectedProduct(null)
+      setProductDetail(null)
+      setLoading(true)
+      try {
+        const searchQuery = await translateToEn(query.trim())
+        const res = await fetch(`/.netlify/functions/walmart-search?keyword=${encodeURIComponent(searchQuery)}&page=${pageNum + 1}`)
+        const data = await res.json()
+        if (data.success && data.products) {
+          const formatted = data.products.map(item => ({
+            Id: `wm-${item.id}`,
+            Title: item.title,
+            MainPictureUrl: item.thumbnail,
+            Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' },
+            OldPrice: item.priceRange?.from && item.priceRange.from < item.price ? null : null,
+            Rating: item.rating || 0,
+            Reviews: item.reviews || 0,
+            Url: item.link,
+            Badge: item.flag || (item.freeShipping ? 'شحن مجاني' : null),
+            Brand: item.sellerName || 'Walmart',
+            _wm: item,
+            isWalmart: true,
+          }))
+          setResults(formatted)
+          setTotalCount(data.total || formatted.length)
+        } else {
+          setResults([])
+          setTotalCount(0)
+        }
+      } catch (err) {
+        console.error('Walmart search error:', err)
+        setResults([])
+        setTotalCount(0)
+      }
+      setLoading(false)
+      return
+    }
+
     // eBay: البحث عبر SearchAPI.io
     if (prov.useEbayApi) {
       setSearched(true)
@@ -852,7 +897,7 @@ export default function ChinaShop() {
     setProductDetail(null)
     setImageResults([])
     try {
-      const res = await fetch(`/.netlify/functions/image-search?image_url=${encodeURIComponent(imageUrl)}&site=${encodeURIComponent(provider)}`)
+      const res = await fetch(`/.netlify/functions/amazon-serpapi?action=image-search&image_url=${encodeURIComponent(imageUrl)}&site=${encodeURIComponent(provider)}`)
       const data = await res.json()
       if (data.success && data.results) {
         setImageResults(data.results)
@@ -983,6 +1028,26 @@ export default function ChinaShop() {
           }))
           setSelectedConfigs({})
         }
+      } else if (item.isWalmart || prov.useWalmartApi) {
+        // Walmart: التفاصيل متوفرة من نتائج البحث
+        const wm = item._wm || {}
+        const specs = []
+        if (wm.sellerName) specs.push({ name: 'Seller', value: wm.sellerName })
+        if (wm.fulfillment?.date) specs.push({ name: 'Delivery', value: wm.fulfillment.date })
+        if (wm.priceRange?.text) specs.push({ name: 'Price Range', value: wm.priceRange.text })
+        const about = []
+        if (wm.badges?.length) about.push(...wm.badges.map(b => `🏷️ ${b}`))
+        if (wm.flag) about.push(`🔥 ${wm.flag}`)
+        if (wm.freeShipping) about.push('🆓 شحن مجاني!')
+        if (wm.walmartPlus) about.push('⭐ شحن مجاني مع Walmart+')
+        if (wm.fulfillment?.text) about.push(`🚚 ${wm.fulfillment.text}${wm.fulfillment.date ? ` - يصل ${wm.fulfillment.date}` : ''}`)
+        setProductDetail({
+          Pictures: [{ Url: item.MainPictureUrl }],
+          specifications: specs.length > 0 ? specs : null,
+          about: about.length > 0 ? about : null,
+          Description: wm.flag || null,
+        })
+        setSelectedConfigs({})
       } else if (item.isEbay || prov.useEbayApi) {
         // eBay: التفاصيل متوفرة من نتائج البحث
         const eb = item._eb || {}
@@ -1702,6 +1767,8 @@ export default function ChinaShop() {
                       loadProductById(`bb-${item.asin}`, 'bestbuy')
                     } else if (item.asin && provider === 'ebay') {
                       loadProductById(`eb-${item.asin}`, 'ebay')
+                    } else if (item.asin && provider === 'walmart') {
+                      loadProductById(`wm-${item.asin}`, 'walmart')
                     } else if (item.link) {
                       window.open(item.link, '_blank')
                     }

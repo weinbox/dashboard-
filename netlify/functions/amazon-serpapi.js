@@ -182,6 +182,7 @@ const handler = async (event) => {
         amazon: ['amazon.'],
         bestbuy: ['bestbuy.com'],
         ebay: ['ebay.com'],
+        walmart: ['walmart.com'],
         iherb: ['iherb.com'],
         shein: ['shein.com'],
         taobao: ['taobao.com', 'tmall.com'],
@@ -206,6 +207,9 @@ const handler = async (event) => {
           if (m) productId = m[1]
         } else if (site === 'ebay') {
           const m = (item.link || '').match(/ebay\.com\/itm\/(\d+)/)
+          if (m) productId = m[1]
+        } else if (site === 'walmart') {
+          const m = (item.link || '').match(/walmart\.com\/ip\/[^\/]*\/(\d+)/)
           if (m) productId = m[1]
         }
         return {
