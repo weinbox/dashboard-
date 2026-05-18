@@ -387,7 +387,7 @@ export default function ChinaShop() {
   }
 
   if (!prov) {
-    navigate('/submit', { replace: true })
+    navigate('/', { replace: true })
     return null
   }
 

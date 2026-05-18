@@ -1,6 +1,6 @@
 const https = require('https')
 
-const SERPAPI_KEY = '3cb92272765301cf580f95c22d1964d8a08d7e73bbe868459042e98ab44e2e11'
+const SERPAPI_KEY = process.env.SERPAPI_KEY || '3cb92272765301cf580f95c22d1964d8a08d7e73bbe868459042e98ab44e2e11'
 
 const fetchJson = (url) => {
   return new Promise((resolve, reject) => {
