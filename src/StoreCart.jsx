@@ -13,6 +13,7 @@ export default function StoreCart() {
 
   useEffect(() => {
     localStorage.setItem('store_cart', JSON.stringify(cart))
+    window.dispatchEvent(new Event('cart-updated'))
   }, [cart])
 
   const updateQty = (id, delta) => {

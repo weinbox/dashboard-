@@ -32,10 +32,12 @@ export default function StorePage() {
 
   useEffect(() => {
     localStorage.setItem('store_cart', JSON.stringify(cart))
+    window.dispatchEvent(new Event('cart-updated'))
   }, [cart])
 
   useEffect(() => {
     localStorage.setItem('store_favorites', JSON.stringify(favorites))
+    window.dispatchEvent(new Event('cart-updated'))
   }, [favorites])
 
   const loadProducts = async () => {

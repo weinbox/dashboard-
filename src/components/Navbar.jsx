@@ -20,14 +20,17 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
-    try { setCart(JSON.parse(localStorage.getItem('store_cart') || '[]')) } catch {}
-    try { setFavorites(JSON.parse(localStorage.getItem('store_favorites') || '[]')) } catch {}
-
-    const interval = setInterval(() => {
+    const sync = () => {
       try { setCart(JSON.parse(localStorage.getItem('store_cart') || '[]')) } catch {}
       try { setFavorites(JSON.parse(localStorage.getItem('store_favorites') || '[]')) } catch {}
-    }, 1000)
-    return () => clearInterval(interval)
+    }
+    sync()
+    window.addEventListener('storage', sync)
+    window.addEventListener('cart-updated', sync)
+    return () => {
+      window.removeEventListener('storage', sync)
+      window.removeEventListener('cart-updated', sync)
+    }
   }, [])
 
   const cartCount = cart.reduce((sum, c) => sum + (c.qty || 1), 0)

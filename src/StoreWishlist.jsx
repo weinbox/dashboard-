@@ -16,10 +16,12 @@ export default function StoreWishlist() {
 
   useEffect(() => {
     localStorage.setItem('store_favorites', JSON.stringify(favorites))
+    window.dispatchEvent(new Event('cart-updated'))
   }, [favorites])
 
   useEffect(() => {
     localStorage.setItem('store_cart', JSON.stringify(cart))
+    window.dispatchEvent(new Event('cart-updated'))
   }, [cart])
 
   const removeFavorite = (id) => {
