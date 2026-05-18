@@ -1266,6 +1266,15 @@ export default function ChinaShop() {
       setCart(cart.map(c => c.uniqueId === uniqueId ? { ...c, qty: c.qty + 1 } : c))
     } else {
       const price = formatPrice(item.Price, prov.currency)
+      // حفظ أسماء الخيارات المقروءة لعرضها في السلة بدون الاعتماد على productDetail
+      let optionsDisplay = null
+      if (Object.keys(selectedConfigs).length > 0 && productDetail?.Configurators) {
+        optionsDisplay = Object.entries(selectedConfigs).map(([pid, vid]) => {
+          const cfg = productDetail.Configurators.find(c => c.Pid === pid)
+          const val = cfg?.Values?.find(v => v.Vid === vid)
+          return { label: cfg?.Name || pid, value: val?.Name || val?.Value || vid }
+        })
+      }
       setCart([...cart, {
         uniqueId,
         id: item.Id,
@@ -1278,6 +1287,7 @@ export default function ChinaShop() {
         providerLabel: prov.label,
         url: item.Url || item.ExternalItemUrl || item.TaobaoItemUrl || '',
         selectedOptions: Object.keys(selectedConfigs).length > 0 ? { ...selectedConfigs } : null,
+        optionsDisplay,
         qty: 1,
       }])
     }
@@ -1372,6 +1382,15 @@ export default function ChinaShop() {
                       <div className="flex-1 min-w-0">
                         <p className="text-[13px] font-semibold text-slate-700 line-clamp-2 leading-snug">{c.title}</p>
                         <span className="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md font-semibold inline-block mt-1">{c.providerLabel}</span>
+                        {c.optionsDisplay && c.optionsDisplay.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {c.optionsDisplay.map((opt, oi) => (
+                              <span key={oi} className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-md">
+                                {opt.label}: {opt.value}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-[14px] font-black text-slate-900">{formatNum(c.priceIqd * c.qty)} <span className="text-[10px] text-slate-400 font-normal">د.ع</span></span>
                           <div className="flex items-center gap-2">
@@ -2002,17 +2021,13 @@ export default function ChinaShop() {
                       <p className="text-[13px] font-semibold text-slate-700 line-clamp-2 leading-snug">{c.title}</p>
                       <span className="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md font-semibold inline-block mt-1">{c.providerLabel}</span>
                       
-                      {c.selectedOptions && Object.keys(c.selectedOptions).length > 0 && (
+                      {c.optionsDisplay && c.optionsDisplay.length > 0 && (
                         <div className="mt-1.5 flex flex-wrap gap-1">
-                          {Object.entries(c.selectedOptions).map(([pid, vid]) => {
-                            const config = productDetail?.Configurators?.find(cfg => cfg.Pid === pid)
-                            const value = config?.Values?.find(v => v.Vid === vid)
-                            return (
-                              <span key={`${pid}-${vid}`} className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-md">
-                                {config?.Name}: {value?.Name || value?.Value || vid}
-                              </span>
-                            )
-                          })}
+                          {c.optionsDisplay.map((opt, oi) => (
+                            <span key={oi} className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-md">
+                              {opt.label}: {opt.value}
+                            </span>
+                          ))}
                         </div>
                       )}
                       
