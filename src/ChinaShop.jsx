@@ -422,7 +422,7 @@ export default function ChinaShop() {
             Title: item.title,
             MainPictureUrl: item.thumbnail,
             Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' },
-            OldPrice: item.priceRange?.from && item.priceRange.from < item.price ? null : null,
+            OldPrice: item.priceRange?.from && item.priceRange.from < item.price ? item.priceRange.from : null,
             Rating: item.rating || 0,
             Reviews: item.reviews || 0,
             Url: item.link,
@@ -772,6 +772,28 @@ export default function ChinaShop() {
           console.error('SerpApi product error:', err)
           setUrlError('حدث خطأ في جلب المنتج')
         }
+        setUrlLoading(false)
+        return
+      }
+
+      // eBay: فتح الرابط مباشرة (لا يوجد API للتفاصيل)
+      if (providerKey === 'ebay') {
+        // eBay لا يدعم جلب تفاصيل بالـ ID مباشرة - نعرض المعلومات المتوفرة
+        setUrlError('افتح المنتج من نتائج البحث لعرض تفاصيله')
+        setUrlLoading(false)
+        return
+      }
+
+      // BestBuy: لا يوجد API للتفاصيل بالـ ID
+      if (providerKey === 'bestbuy') {
+        setUrlError('افتح المنتج من نتائج البحث لعرض تفاصيله')
+        setUrlLoading(false)
+        return
+      }
+
+      // Walmart: لا يوجد API للتفاصيل بالـ ID
+      if (providerKey === 'walmart') {
+        setUrlError('افتح المنتج من نتائج البحث لعرض تفاصيله')
         setUrlLoading(false)
         return
       }
@@ -1777,7 +1799,7 @@ export default function ChinaShop() {
                   <div className="relative aspect-square bg-slate-50 overflow-hidden">
                     <img src={item.image} alt={item.title} className="w-full h-full object-contain p-3" loading="lazy"
                       onError={e => { e.target.style.display = 'none' }} />
-                    <span className={`absolute top-2 right-2 text-[9px] ${prov.color}/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-lg font-bold`}>{prov.label}</span>
+                    <span className={`absolute top-2 right-2 text-[9px] ${prov.color} backdrop-blur-sm text-white px-2 py-0.5 rounded-lg font-bold opacity-90`}>{prov.label}</span>
                   </div>
                   <div className="p-3">
                     <p className="text-[12px] text-slate-700 font-medium line-clamp-2 mb-2 leading-snug">{item.title}</p>
@@ -1861,7 +1883,7 @@ export default function ChinaShop() {
                           </div>
                         )}
                         {/* Provider badge */}
-                        <span className={`absolute top-2.5 right-2.5 text-[9px] ${prov.color}/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-lg font-bold`}>
+                        <span className={`absolute top-2.5 right-2.5 text-[9px] ${prov.color} backdrop-blur-sm text-white px-2 py-0.5 rounded-lg font-bold opacity-90`}>
                           {prov.label}
                         </span>
                         {/* Favorite button */}
@@ -1884,7 +1906,7 @@ export default function ChinaShop() {
                         <div className="mt-2.5 flex items-end justify-between">
                           <p className="text-[15px] font-black text-slate-900">
                             {formatNum(iqd)}
-                            <span className="text-[10px] text-slate-400 font-normal mr-0.5">?.?</span>
+                            <span className="text-[10px] text-slate-400 font-normal mr-0.5">د.ع</span>
                           </p>
                           <div className={`w-7 h-7 ${provAccent} rounded-lg flex items-center justify-center shadow-sm`}>
                             <Plus className="w-4 h-4 text-white" />
@@ -2075,13 +2097,13 @@ export default function ChinaShop() {
             ) : (
               <div className="p-4 space-y-3 pb-8">
                 {favorites.map(item => {
-                  const pr = formatPrice(item.Price, item.isSerpApi ? 'USD' : provCurrency)
+                  const pr = formatPrice(item.Price, item.isSerpApi ? 'USD' : prov.currency)
                   return (
                     <div key={item.Id} className="flex gap-3 bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm">
                       <img src={item.MainPictureUrl} alt="" className="w-20 h-20 rounded-xl object-cover bg-slate-50 flex-shrink-0 cursor-pointer" onClick={() => { setShowFavorites(false); setSelectedProduct(item) }} />
                       <div className="flex-1 min-w-0">
                         <p className="text-[13px] font-semibold text-slate-800 line-clamp-2 cursor-pointer" onClick={() => { setShowFavorites(false); setSelectedProduct(item) }}>{item.Title}</p>
-                        <p className="text-[14px] font-black text-indigo-600 mt-1">{formatNum(pr.iqd)} ?.?</p>
+                        <p className="text-[14px] font-black text-indigo-600 mt-1">{formatNum(pr.iqd)} <span className="text-[10px] text-slate-400 font-normal">د.ع</span></p>
                       </div>
                       <button onClick={() => toggleFavorite(item)} className="w-8 h-8 flex-shrink-0 flex items-center justify-center">
                         <Heart className="w-5 h-5 text-red-500 fill-red-500" />
