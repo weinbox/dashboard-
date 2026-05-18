@@ -212,7 +212,7 @@ export default function AdminPanel() {
   }
 
   const totalOrders = orders.length
-  const totalRevenue = orders.filter(o => o.status === 'delivered').reduce((s, o) => s + Number(o.total || 0), 0)
+  const totalRevenue = orders.filter(o => o.status === 'delivered').reduce((s, o) => s + Number(o.total_iqd || o.total || 0), 0)
   const pendingOrders = orders.filter(o => o.status === 'pending').length
 
   return (
@@ -403,13 +403,13 @@ export default function AdminPanel() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-bold text-neutral-900">{o.customer_name}</p>
-                      <p className="text-xs text-neutral-400">{o.city || '—'}{o.region ? ` — ${o.region}` : ''}</p>
+                      <p className="text-xs text-neutral-400">{o.customer_city || o.city || '—'}{o.customer_address || o.region ? ` — ${o.customer_address || o.region}` : ''}</p>
                     </div>
                     <span className={`text-[11px] font-semibold px-2 py-1 rounded-lg border ${st.color}`}>{st.label}</span>
                   </div>
                   <div className="flex gap-4 text-xs text-neutral-500">
                     <span dir="ltr">{o.customer_phone}</span>
-                    <span>{formatNum((o.total || 0) + (o.delivery_price || 0))} د.ع</span>
+                    <span>{formatNum((o.total_iqd || o.total || 0))} د.ع</span>
                     <span>{new Date(o.created_at).toLocaleDateString('ar-IQ')}</span>
                   </div>
                 </div>
