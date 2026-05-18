@@ -20,6 +20,7 @@ export default function StoreCheckout() {
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [savedTotal, setSavedTotal] = useState(0)
 
   const cartTotal = cart.reduce((sum, c) => sum + (c.price || 0) * c.qty, 0)
   const cartCount = cart.reduce((sum, c) => sum + c.qty, 0)
@@ -58,6 +59,7 @@ export default function StoreCheckout() {
       await supabase.from('store_order_items').insert(items)
 
       // Clear cart
+      setSavedTotal(cartTotal)
       localStorage.removeItem('store_cart')
       setCart([])
       setDone(true)
@@ -82,7 +84,7 @@ export default function StoreCheckout() {
           <div className="bg-slate-50 rounded-2xl p-4 mb-6 border border-slate-100">
             <div className="flex items-center justify-between text-sm">
               <span className="text-slate-500">المجموع</span>
-              <span className="font-black text-slate-900">{formatNum(cartTotal)} د.ع</span>
+              <span className="font-black text-slate-900">{formatNum(savedTotal)} د.ع</span>
             </div>
           </div>
           <div className="space-y-3">

@@ -257,7 +257,7 @@ export default function ChinaShop() {
     setFavorites(prev => {
       const exists = prev.find(f => f.Id === product.Id)
       if (exists) return prev.filter(f => f.Id !== product.Id)
-      return [...prev, product]
+      return [...prev, { ...product, _favProvider: provider, _favCurrency: prov.currency }]
     })
   }
 
@@ -2098,7 +2098,7 @@ export default function ChinaShop() {
             ) : (
               <div className="p-4 space-y-3 pb-8">
                 {favorites.map(item => {
-                  const pr = formatPrice(item.Price, item.isSerpApi ? 'USD' : prov.currency)
+                  const pr = formatPrice(item.Price, item._favCurrency || (item.isSerpApi ? 'USD' : prov.currency))
                   return (
                     <div key={item.Id} className="flex gap-3 bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm">
                       <img src={item.MainPictureUrl} alt="" className="w-20 h-20 rounded-xl object-cover bg-slate-50 flex-shrink-0 cursor-pointer" onClick={() => { setShowFavorites(false); setSelectedProduct(item) }} />

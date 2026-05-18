@@ -18,9 +18,9 @@ export default function ProductView(p) {
 
   const translateOne = async (text) => {
     try {
-      const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text.substring(0, 500)) + '&langpair=en|ar')
+      const res = await fetch('/.netlify/functions/translate?text=' + encodeURIComponent(text.substring(0, 500)) + '&from=en&to=ar')
       const data = await res.json()
-      return data.responseData?.translatedText || text
+      return data.translated || text
     } catch (e) { return text }
   }
 

@@ -47,7 +47,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 500,
       headers: resHeaders,
-      body: JSON.stringify({ error: err.message, stack: err.stack }),
+      body: JSON.stringify({ error: err.message }),
     };
   }
 };

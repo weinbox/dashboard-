@@ -142,6 +142,12 @@ export default function AdminPanel() {
     loadAll()
   }
 
+  const updateChinaOrderStatus = async (orderId, newStatus) => {
+    await supabase.from('china_orders').update({ status: newStatus }).eq('id', orderId)
+    showToast('تم تحديث الحالة')
+    loadAll()
+  }
+
   const createStore = async () => {
     if (!nsName.trim() || !nsSlug.trim() || !nsUser.trim() || !nsPass.trim()) {
       showToast('املأ جميع الحقول', 'error'); return
@@ -405,7 +411,16 @@ export default function AdminPanel() {
                       <p className="text-sm font-bold text-neutral-900">{o.customer_name}</p>
                       <p className="text-xs text-neutral-400">{o.customer_city || o.city || '—'}{o.customer_address || o.region ? ` — ${o.customer_address || o.region}` : ''}</p>
                     </div>
-                    <span className={`text-[11px] font-semibold px-2 py-1 rounded-lg border ${st.color}`}>{st.label}</span>
+                    <select
+                      value={o.status || 'pending'}
+                      onChange={e => updateChinaOrderStatus(o.id, e.target.value)}
+                      className={`text-[11px] font-semibold px-2 py-1 rounded-lg border outline-none cursor-pointer ${st.color}`}
+                    >
+                      <option value="pending">جديد</option>
+                      <option value="confirmed">مؤكد</option>
+                      <option value="delivered">تم التوصيل</option>
+                      <option value="cancelled">ملغي</option>
+                    </select>
                   </div>
                   <div className="flex gap-4 text-xs text-neutral-500">
                     <span dir="ltr">{o.customer_phone}</span>
