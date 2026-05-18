@@ -852,7 +852,7 @@ export default function ChinaShop() {
     setProductDetail(null)
     setImageResults([])
     try {
-      const res = await fetch(`/.netlify/functions/amazon-serpapi?action=image-search&image_url=${encodeURIComponent(imageUrl)}&site=${encodeURIComponent(provider)}`)
+      const res = await fetch(`/.netlify/functions/image-search?image_url=${encodeURIComponent(imageUrl)}&site=${encodeURIComponent(provider)}`)
       const data = await res.json()
       if (data.success && data.results) {
         setImageResults(data.results)
