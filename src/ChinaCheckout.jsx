@@ -30,14 +30,15 @@ export default function ChinaCheckout() {
 
   const updateQty = (id, delta) => {
     setCart(cart.map(c => {
-      if (c.id !== id) return c
+      const match = c.uniqueId ? c.uniqueId === id : c.id === id
+      if (!match) return c
       const newQty = c.qty + delta
       return newQty > 0 ? { ...c, qty: newQty } : c
     }).filter(c => c.qty > 0))
   }
 
   const removeItem = (id) => {
-    setCart(cart.filter(c => c.id !== id))
+    setCart(cart.filter(c => c.uniqueId ? c.uniqueId !== id : c.id !== id))
   }
 
   const cartTotal = cart.reduce((sum, c) => sum + c.priceIqd * c.qty, 0)
@@ -190,7 +191,7 @@ export default function ChinaCheckout() {
           </div>
           <div className="divide-y divide-gray-50">
             {cart.map(c => (
-              <div key={c.id} className="flex gap-4 p-4 hover:bg-gray-50/50 transition-colors">
+              <div key={c.uniqueId || c.id} className="flex gap-4 p-4 hover:bg-gray-50/50 transition-colors">
                 <img src={c.image} alt="" className="w-[80px] h-[80px] rounded-xl object-cover flex-shrink-0 shadow-sm border border-gray-100" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-700 line-clamp-2 leading-snug">{c.title}</p>
@@ -198,12 +199,12 @@ export default function ChinaCheckout() {
                   <div className="flex items-center justify-between mt-2.5">
                     <span className="text-[15px] font-bold text-orange-600">{formatNum(c.priceIqd * c.qty)} <span className="text-[11px] font-normal text-gray-400">د.ع</span></span>
                     <div className="flex items-center gap-2.5">
-                      <button type="button" onClick={() => updateQty(c.id, -1)}
+                      <button type="button" onClick={() => updateQty(c.uniqueId || c.id, -1)}
                         className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
                         {c.qty === 1 ? <Trash2 className="w-3.5 h-3.5 text-red-400" /> : <Minus className="w-3.5 h-3.5 text-gray-500" />}
                       </button>
                       <span className="text-base font-bold w-6 text-center text-gray-800">{c.qty}</span>
-                      <button type="button" onClick={() => updateQty(c.id, 1)}
+                      <button type="button" onClick={() => updateQty(c.uniqueId || c.id, 1)}
                         className="w-8 h-8 rounded-xl bg-orange-500 flex items-center justify-center hover:bg-orange-600 transition-colors shadow-sm">
                         <Plus className="w-3.5 h-3.5 text-white" />
                       </button>

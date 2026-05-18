@@ -72,6 +72,12 @@ exports.handler = async (event) => {
         provider = '1688';
       }
 
+      // Amazon: https://www.amazon.com/dp/B0XXXXXX
+      const amazonMatch = resolvedUrl.match(/amazon\.com.*\/(?:dp|gp\/product)\/([A-Z0-9]{10})/i);
+      if (amazonMatch) {
+        productId = amazonMatch[1];
+        provider = 'amazon';
+      }
 
       return {
         statusCode: 200,

@@ -688,15 +688,16 @@ export default function ChinaShop() {
     setSelectedProduct(null)
     setProductDetail(null)
     setUrlError('')
+    setLoading(true)
     const sort = sortOverride ?? sortBy
     // التحقق من Cache أولاً
     const cached = await getCache(provider, trimmedQuery, sort, pageNum)
     if (cached) {
       setResults(cached.results)
       setTotalCount(cached.totalCount)
+      setLoading(false)
       return
     }
-    setLoading(true)
     try {
       const orderTag = sort !== 'default' ? `<OrderBy>${sort === 'price' ? 'Price' : sort === '-price' ? 'Price:Desc' : 'Volume:Desc'}</OrderBy>` : ''
       const params = new URLSearchParams({
@@ -881,7 +882,7 @@ export default function ChinaShop() {
       setUrlLoading(true)
       setUrlError('')
       try {
-        const res = await fetch(`/api/resolve-url?url=${encodeURIComponent(cleanUrl)}`)
+        const res = await fetch(`/.netlify/functions/resolve-url?url=${encodeURIComponent(cleanUrl)}`)
         const data = await res.json()
         if (data.productId && data.provider) {
           loadProductById(data.productId, data.provider)
@@ -1275,7 +1276,7 @@ export default function ChinaShop() {
         priceIqd: price.iqd,
         provider: provider,
         providerLabel: prov.label,
-        url: item.ExternalItemUrl || item.TaobaoItemUrl,
+        url: item.Url || item.ExternalItemUrl || item.TaobaoItemUrl || '',
         selectedOptions: Object.keys(selectedConfigs).length > 0 ? { ...selectedConfigs } : null,
         qty: 1,
       }])
