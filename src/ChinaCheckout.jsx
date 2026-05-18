@@ -23,6 +23,7 @@ export default function ChinaCheckout() {
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [savedTotal, setSavedTotal] = useState(0)
 
   useEffect(() => {
     localStorage.setItem('china_cart', JSON.stringify(cart))
@@ -81,6 +82,7 @@ export default function ChinaCheckout() {
 
       await supabase.from('china_order_items').insert(items)
 
+      setSavedTotal(cartTotal)
       localStorage.removeItem('china_cart')
       setCart([])
       setDone(true)
@@ -102,6 +104,9 @@ export default function ChinaCheckout() {
             <CheckCircle className="w-12 h-12 text-emerald-500" />
           </div>
           <h1 className="text-2xl font-bold text-gray-800 mb-3">تم إرسال طلبك بنجاح!</h1>
+          {savedTotal > 0 && (
+            <p className="text-lg font-black text-orange-600 mb-3">{formatNum(savedTotal)} <span className="text-sm font-bold text-gray-500">د.ع</span></p>
+          )}
           <p className="text-sm text-gray-400 leading-relaxed mb-8">
             سنتواصل معك قريباً لتأكيد الطلب وتفاصيل الشحن والتكلفة النهائية.
           </p>
