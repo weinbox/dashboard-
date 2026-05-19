@@ -1,17 +1,22 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Search, Loader2, X, ArrowRight, ShoppingCart, Plus, Minus,
   ChevronLeft, ChevronRight, Star, Package, Filter, Heart,
   Link as LinkIcon, CheckCircle2, ExternalLink, ArrowUpDown, Camera, Image as ImageIcon,
   Flame, Lightbulb, Home, Headphones, Footprints, Briefcase, Sparkles, Smartphone,
-  Watch, Shirt, ToyBrick, ShoppingBag, Truck, Pill, MessageCircle, Send, Bot
+  Watch, Shirt, ToyBrick, ShoppingBag, Truck, Pill, MessageCircle
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import ExplainSheet from './ExplainSheet'
 import { ProductSkeleton, SearchSkeleton } from './Skeletons'
 import ProductView from './ProductView'
 import { useStaggerIn, useZoomIn, useSlideUp, useCountUp, useAddToCartAnim, useScrollReveal, usePageTransition, heartPulse, toastAnim, swipeDelete, rippleEffect } from './useAnimations'
+import BottomTabBar from './components/BottomTabBar'
+
+const CartOverlay = lazy(() => import('./components/CartOverlay'))
+const FavoritesOverlay = lazy(() => import('./components/FavoritesOverlay'))
+const AiChat = lazy(() => import('./components/AiChat'))
 
 const API_KEY = 'ccaff9b1-804a-4041-8118-70ce26977867'
 const PROXY_BASE = '/api/otapi-proxy'
@@ -95,6 +100,21 @@ const setCache = async (providerKey, q, sort, pg, results, totalCount) => {
       created_at: new Date().toISOString(),
     }, { onConflict: 'provider,query,sort,page' })
   } catch (e) { console.error('Cache save error:', e) }
+}
+
+// ─── Product detail cache (in-memory, 6 hours) ───
+const _productCache = {}
+const PRODUCT_CACHE_MS = 6 * 3600000
+
+const getProductCache = (key) => {
+  const c = _productCache[key]
+  if (!c) return null
+  if (Date.now() - c.ts > PRODUCT_CACHE_MS) { delete _productCache[key]; return null }
+  return c.data
+}
+
+const setProductCache = (key, data) => {
+  _productCache[key] = { data, ts: Date.now() }
 }
 
 const savePopularProduct = async (item, providerKey, priceIqd) => {
@@ -568,7 +588,7 @@ export default function ChinaShop() {
       return
     }
 
-    // iHerb: البحث عبر Apify API
+    // iHerb: البحث عبر Apify API مع Cache
     if (prov.useApify) {
       setSearched(true)
       setPage(pageNum)
@@ -577,6 +597,15 @@ export default function ChinaShop() {
       setLoading(true)
       try {
         const searchQuery = await translateToEn(query.trim())
+        const sort = sortOverride ?? sortBy
+        // التحقق من Cache أولاً
+        const cached = await getCache('iherb', searchQuery, sort, pageNum)
+        if (cached) {
+          setResults(cached.results)
+          setTotalCount(cached.totalCount)
+          setLoading(false)
+          return
+        }
         const res = await fetch(`/.netlify/functions/iherb-search?keyword=${encodeURIComponent(searchQuery)}&page=${pageNum + 1}`)
         const data = await res.json()
         if (data.success && data.products) {
@@ -594,6 +623,8 @@ export default function ChinaShop() {
           }))
           setResults(formatted)
           setTotalCount(data.total || formatted.length)
+          // حفظ في Cache
+          setCache('iherb', searchQuery, sort, pageNum, formatted, data.total || formatted.length)
         } else {
           setResults([])
           setTotalCount(0)
@@ -1158,12 +1189,20 @@ export default function ChinaShop() {
           setSelectedConfigs({})
         }
       } else if (item.isIHerb || prov.useApify) {
-        // iHerb: استخدام Apify لجلب التفاصيل الكاملة
+        // iHerb: استخدام Apify لجلب التفاصيل الكاملة مع Cache
         const productUrl = item.Url || `https://www.iherb.com/pr/${item.Id.replace('ih-', '')}`
-        const res = await fetch(`/.netlify/functions/iherb-product?url=${encodeURIComponent(productUrl)}`)
-        const data = await res.json()
-        if (data.success && data.product) {
-          const p = data.product
+        const cacheKey = `ih-detail-${item.Id}`
+        const cachedDetail = getProductCache(cacheKey)
+        let p = cachedDetail
+        if (!p) {
+          const res = await fetch(`/.netlify/functions/iherb-product?url=${encodeURIComponent(productUrl)}`)
+          const data = await res.json()
+          if (data.success && data.product) {
+            p = data.product
+            setProductCache(cacheKey, p)
+          }
+        }
+        if (p) {
           const detailPics = (p.images || []).map(img => ({ Url: img }))
           setProductDetail({
             ...p,
@@ -1999,155 +2038,19 @@ export default function ChinaShop() {
 
       {/* Cart Full Page */}
       {showCart && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-slate-50" dir="rtl">
-          <div className="bg-white/95 backdrop-blur-md flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
-                <ShoppingCart className="w-5 h-5 text-indigo-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">سلة التسوق</h3>
-                <p className="text-[12px] text-slate-400">{cartCount} منتج</p>
-              </div>
-            </div>
-            <button onClick={() => setShowCart(false)} className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-all active:scale-95">
-              <X className="w-4 h-4 text-slate-500" />
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            {cart.length === 0 ? (
-              <div className="text-center py-32 px-6">
-                <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
-                  <ShoppingCart className="w-12 h-12 text-slate-300" />
-                </div>
-                <p className="text-lg font-bold text-slate-600">السلة فارغة</p>
-                <p className="text-sm text-slate-400 mt-2">ابدأ بإضافة منتجات للسلة</p>
-                <button onClick={() => setShowCart(false)} className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg shadow-indigo-200/50">
-                  تصفح المنتجات
-                </button>
-              </div>
-            ) : (
-              <div className="p-4 space-y-3 pb-6">
-                {cart.map(c => (
-                  <div key={c.uniqueId || c.id} className="flex gap-3 bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm">
-                    <img src={c.image} alt="" className="w-20 h-20 rounded-xl object-cover flex-shrink-0 bg-slate-50" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-semibold text-slate-700 line-clamp-2 leading-snug">{c.title}</p>
-                      <span className="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md font-semibold inline-block mt-1">{c.providerLabel}</span>
-                      
-                      {c.optionsDisplay && c.optionsDisplay.length > 0 && (
-                        <div className="mt-1.5 flex flex-wrap gap-1">
-                          {c.optionsDisplay.map((opt, oi) => (
-                            <span key={oi} className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-md">
-                              {opt.label}: {opt.value}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-[14px] font-black text-slate-900">{formatNum(c.priceIqd * c.qty)} <span className="text-[10px] text-slate-400 font-normal">د.ع</span></span>
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => updateQty(c.uniqueId || c.id, -1)} className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition active:scale-90">
-                            {c.qty === 1 ? <X className="w-3 h-3 text-red-400" /> : <Minus className="w-3 h-3 text-slate-500" />}
-                          </button>
-                          <span className="text-[13px] font-bold w-5 text-center text-slate-800">{c.qty}</span>
-                          <button onClick={() => updateQty(c.uniqueId || c.id, 1)} className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center hover:bg-indigo-700 transition active:scale-90 shadow-sm">
-                            <Plus className="w-3 h-3 text-white" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <button onClick={() => { setCart([]); setShowCart(false) }}
-                  className="w-full mt-3 py-3.5 bg-red-50 border-2 border-red-200 text-red-500 rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2 transition-all active:scale-[0.97] hover:bg-red-100">
-                  <X className="w-4 h-4" />
-                  تفريغ السلة
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Cart Footer */}
-          {cart.length > 0 && (
-            <div className="bg-white border-t border-slate-100 px-5 py-4 flex-shrink-0 space-y-3 shadow-2xl">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">المنتجات ({cartCount})</span>
-                <span className="text-sm font-bold text-slate-700">{formatNum(cartTotal)} د.ع</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">الشحن</span>
-                <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg font-semibold">مجاني للعراق</span>
-              </div>
-              <div className="border-t border-slate-200 pt-3 flex items-center justify-between">
-                <span className="text-base font-bold text-slate-800">المجموع</span>
-                <span className="text-xl font-black text-slate-900">{formatNum(cartTotal)} <span className="text-[12px] font-bold text-slate-500">د.ع</span></span>
-              </div>
-              <button onClick={() => { setShowCart(false); navigate('/china-checkout') }}
-                className="w-full h-[52px] bg-gradient-to-l from-indigo-600 to-indigo-700 text-white rounded-2xl font-bold text-[14px] flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] shadow-lg shadow-indigo-200/50">
-                <ShoppingCart className="w-5 h-5" />
-                إتمام الطلب — {formatNum(cartTotal)} د.ع
-              </button>
-            </div>
-          )}
-        </div>
+        <Suspense fallback={<div className="fixed inset-0 z-50 bg-slate-50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /></div>}>
+          <CartOverlay cart={cart} cartCount={cartCount} cartTotal={cartTotal} formatNum={formatNum} updateQty={updateQty} setCart={setCart} setShowCart={setShowCart} />
+        </Suspense>
       )}
 
       {/* Favorites Full Page */}
       {showFavorites && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-slate-50" dir="rtl">
-          <div className="bg-white/95 backdrop-blur-md flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-pink-50 rounded-xl flex items-center justify-center">
-                <Heart className="w-5 h-5 text-pink-500" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">المفضلة</h3>
-                <p className="text-[12px] text-slate-400">{favorites.length} منتج</p>
-              </div>
-            </div>
-            <button onClick={() => setShowFavorites(false)} className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-all active:scale-95">
-              <X className="w-4 h-4 text-slate-500" />
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            {favorites.length === 0 ? (
-              <div className="text-center py-32 px-6">
-                <div className="w-24 h-24 bg-pink-50 rounded-3xl flex items-center justify-center mx-auto mb-5">
-                  <Heart className="w-12 h-12 text-pink-300" />
-                </div>
-                <p className="text-lg font-bold text-slate-600">لا توجد مفضلات بعد</p>
-                <p className="text-sm text-slate-400 mt-2">اضغط على القلب لحفظ المنتجات</p>
-                <button onClick={() => setShowFavorites(false)} className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg shadow-indigo-200/50">
-                  تصفح المنتجات
-                </button>
-              </div>
-            ) : (
-              <div className="p-4 space-y-3 pb-8">
-                {favorites.map(item => {
-                  const pr = formatPrice(item.Price, item._favCurrency || (item.isSerpApi ? 'USD' : prov.currency))
-                  return (
-                    <div key={item.Id} className="flex gap-3 bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm">
-                      <img src={item.MainPictureUrl} alt="" className="w-20 h-20 rounded-xl object-cover bg-slate-50 flex-shrink-0 cursor-pointer" onClick={() => { setShowFavorites(false); setSelectedProduct(item) }} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-semibold text-slate-800 line-clamp-2 cursor-pointer" onClick={() => { setShowFavorites(false); setSelectedProduct(item) }}>{item.Title}</p>
-                        <p className="text-[14px] font-black text-indigo-600 mt-1">{formatNum(pr.iqd)} <span className="text-[10px] text-slate-400 font-normal">د.ع</span></p>
-                      </div>
-                      <button onClick={() => toggleFavorite(item)} className="w-8 h-8 flex-shrink-0 flex items-center justify-center">
-                        <Heart className="w-5 h-5 text-red-500 fill-red-500" />
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        </div>
+        <Suspense fallback={<div className="fixed inset-0 z-50 bg-slate-50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-pink-500" /></div>}>
+          <FavoritesOverlay favorites={favorites} formatPrice={formatPrice} formatNum={formatNum} prov={prov} toggleFavorite={toggleFavorite} setShowFavorites={setShowFavorites} setSelectedProduct={setSelectedProduct} />
+        </Suspense>
       )}
 
+      <Suspense fallback={null}>
       <AiChat provider={provider} externalOpen={openAiChat} onExternalClose={() => setOpenAiChat(false)} initialMessage={aiInitialMessage} onInitialMessageSent={() => setAiInitialMessage(null)} onSearchResults={(serpResults, totalCount) => {
         const formatted = serpResults.map(item => ({
           Id: item.asin,
@@ -2166,6 +2069,7 @@ export default function ChinaShop() {
         setTotalCount(totalCount || formatted.length)
         setSearched(true)
       }} />
+      </Suspense>
 
       {/* ═══ Floating Bottom Bar - Image Search + AI Assistant ═══ */}
       {!selectedProduct && !showCart && !showFavorites && !openAiChat && (
@@ -2189,259 +2093,3 @@ export default function ChinaShop() {
   )
 }
 
-// ─── Bottom Tab Bar Component ───
-function BottomTabBar({ cartCount, favCount, onCartClick, onFavClick, onAiClick }) {
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-gray-200/80" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      <div className="max-w-lg mx-auto flex items-center justify-around px-2 py-1.5">
-        {/* السلة */}
-        <button onClick={onCartClick} className="flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl transition-all active:scale-90 group">
-          <div className="relative">
-            <svg className="w-6 h-6 text-gray-500 group-active:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-            </svg>
-            {cartCount > 0 && (
-              <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">{cartCount}</span>
-            )}
-          </div>
-          <span className="text-[10px] font-medium text-gray-500 group-active:text-blue-600">السلة</span>
-        </button>
-
-        {/* المفضلة */}
-        <button onClick={onFavClick} className="flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl transition-all active:scale-90 group">
-          <div className="relative">
-            <svg className="w-6 h-6 text-gray-500 group-active:text-pink-500 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-            </svg>
-            {favCount > 0 && (
-              <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] bg-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">{favCount}</span>
-            )}
-          </div>
-          <span className="text-[10px] font-medium text-gray-500 group-active:text-pink-500">المفضلة</span>
-        </button>
-
-        {/* المساعد الذكي */}
-        <button onClick={onAiClick} className="flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-xl transition-all active:scale-90 group">
-          <div className="relative">
-            <svg className="w-6 h-6 text-gray-500 group-active:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
-            </svg>
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">AI</span>
-          </div>
-          <span className="text-[10px] font-medium text-gray-500 group-active:text-blue-600">المساعد</span>
-        </button>
-      </div>
-    </div>
-  )
-}
-
-// ─── AI Chat Component ───
-function AiChat({ provider, onSearchResults, externalOpen, onExternalClose, initialMessage, onInitialMessageSent }) {
-  const [open, setOpen] = useState(false)
-  const [messages, setMessages] = useState([])
-  const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
-  const messagesEndRef = useRef(null)
-  const inputRef = useRef(null)
-  const initialMsgSentRef = useRef(false)
-
-  useEffect(() => {
-    if (externalOpen) setOpen(true)
-  }, [externalOpen])
-
-  const closeChat = () => {
-    setOpen(false)
-    if (onExternalClose) onExternalClose()
-  }
-
-  useEffect(() => {
-    if (open && messages.length === 0) {
-      setMessages([{
-        role: 'assistant',
-        content: 'هلا! 👋 أنا مساعدك الذكي للتسوق.\nاكتب لي شنو تدور عليه وأساعدك تلاقيه بأفضل سعر! 🛍️'
-      }])
-    }
-  }, [open])
-
-  useEffect(() => {
-    if (open && initialMessage && !initialMsgSentRef.current && !loading) {
-      initialMsgSentRef.current = true
-      setTimeout(() => {
-        if (typeof initialMessage === 'object' && initialMessage.displayText) {
-          sendMessage(initialMessage.displayText, initialMessage.context)
-        } else if (typeof initialMessage === 'string') {
-          sendMessage(initialMessage)
-        }
-        if (onInitialMessageSent) onInitialMessageSent()
-        initialMsgSentRef.current = false
-      }, 500)
-    }
-  }, [open, initialMessage])
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
-
-  useEffect(() => {
-    if (open) inputRef.current?.focus()
-  }, [open])
-
-  const sendMessage = async (directText, hiddenContext) => {
-    const text = (typeof directText === 'string' ? directText : input).trim()
-    if (!text || loading) return
-    
-    const userMsg = { role: 'user', content: text }
-    const newMessages = [...messages, userMsg]
-    setMessages(newMessages)
-    setInput('')
-    setLoading(true)
-
-    const apiMessages = newMessages.filter(m => m.role !== 'system')
-    if (hiddenContext) {
-      apiMessages.push({ role: 'user', content: `[سياق المنتج - لا تعرضه للمستخدم، استخدمه فقط للإجابة]:\n${hiddenContext}` })
-    }
-
-    try {
-      const res = await fetch('/.netlify/functions/ai-assistant', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: apiMessages,
-        })
-      })
-      const data = await res.json()
-      
-      if (data.action === 'search' && data.searchQuery) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.reply + '\n\n🔍 جاري البحث...' }])
-        // Search using existing amazon-serpapi function and show in main page
-        try {
-          const searchRes = await fetch(`/.netlify/functions/amazon-serpapi?action=search&query=${encodeURIComponent(data.searchQuery)}&page=1`)
-          const searchData = await searchRes.json()
-          if (searchData.success && searchData.results && searchData.results.length > 0 && onSearchResults) {
-            onSearchResults(searchData.results, searchData.totalResults || searchData.results.length)
-            setMessages(prev => {
-              const updated = [...prev]
-              updated[updated.length - 1] = { role: 'assistant', content: data.reply + '\n\n📦 تم عرض المنتجات في صفحة البحث!' }
-              return updated
-            })
-            setTimeout(() => closeChat(), 1200)
-          } else {
-            setMessages(prev => {
-              const updated = [...prev]
-              updated[updated.length - 1] = { role: 'assistant', content: data.reply + '\n\n⚠️ لم يتم العثور على نتائج، جرب وصف مختلف.' }
-              return updated
-            })
-          }
-        } catch (searchErr) {
-          console.error('Search error:', searchErr)
-          setMessages(prev => {
-            const updated = [...prev]
-            updated[updated.length - 1] = { role: 'assistant', content: data.reply + '\n\n⚠️ حدث خطأ بالبحث.' }
-            return updated
-          })
-        }
-      } else if (data.reply) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
-      }
-    } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'عذراً، حدث خطأ. حاول مرة ثانية 🙏' }])
-    }
-    setLoading(false)
-  }
-
-  const quickActions = [
-    { label: '🎁 أبحث عن هدية', msg: 'أبي هدية حلوة' },
-    { label: '💄 منتجات عناية', msg: 'أريد منتجات عناية بالبشرة' },
-    { label: '💪 مكملات', msg: 'أريد فيتامينات ومكملات' },
-    { label: '📱 إلكترونيات', msg: 'أبي سماعات أو أجهزة إلكترونية' },
-  ]
-
-  return (
-    <>
-      {/* Chat Window */}
-      {open && (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-white" dir="rtl">
-          {/* Chat Header */}
-          <div className="bg-gradient-to-l from-blue-500 to-blue-600 px-4 py-3 flex items-center gap-3 flex-shrink-0">
-            <button onClick={closeChat} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-              <X className="w-4 h-4 text-white" />
-            </button>
-            <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center">
-              <Bot className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1">
-              <p className="text-[14px] font-bold text-white">مساعد الشراء الذكي</p>
-              <p className="text-[11px] text-blue-100">يساعدك تلاقي أفضل المنتجات</p>
-            </div>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50">
-            {messages.map((msg, i) => (
-              <div key={i}>
-                <div className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-5 py-3 text-[15px] leading-relaxed whitespace-pre-wrap ${
-                    msg.role === 'user' 
-                      ? 'bg-blue-500 text-white rounded-tl-sm' 
-                      : 'bg-white text-gray-800 shadow-sm border border-gray-100 rounded-tr-sm'
-                  }`}>
-                    {msg.content}
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {/* Loading indicator */}
-            {loading && (
-              <div className="flex justify-end">
-                <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 rounded-tr-sm">
-                  <div className="flex gap-1.5">
-                    <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Quick Actions - only show at start */}
-            {messages.length <= 1 && !loading && (
-              <div className="flex flex-wrap gap-2 justify-end mt-2">
-                {quickActions.map((a, i) => (
-                  <button key={i}
-                    onClick={() => sendMessage(a.msg)}
-                    className="bg-white border border-gray-200 rounded-full px-3.5 py-2 text-[12px] text-gray-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-all active:scale-95 shadow-sm">
-                    {a.label}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input */}
-          <div className="bg-white border-t border-gray-100 px-3 py-3 flex items-center gap-2 flex-shrink-0">
-            <input
-              ref={inputRef}
-              type="text"
-              dir="auto"
-              placeholder="اكتب سؤالك هنا..."
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); sendMessage() } }}
-              className="flex-1 h-11 px-4 bg-gray-100 rounded-full text-[14px] outline-none focus:bg-white focus:ring-2 focus:ring-blue-200 border border-gray-200 focus:border-blue-300 placeholder:text-gray-400"
-            />
-            <button 
-              onClick={() => sendMessage()}
-              disabled={!input.trim() || loading}
-              className="w-11 h-11 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 rounded-full flex items-center justify-center transition-all active:scale-90 flex-shrink-0">
-              {loading ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Send className="w-5 h-5 text-white" />}
-            </button>
-          </div>
-        </div>
-      )}
-
-    </>
-  )
-}
