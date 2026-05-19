@@ -1811,6 +1811,15 @@ export default function ChinaShop() {
                       loadProductById(`eb-${item.asin}`, 'ebay')
                     } else if (item.asin && provider === 'walmart') {
                       loadProductById(`wm-${item.asin}`, 'walmart')
+                    } else if (item.asin && provider === 'iherb') {
+                      loadProductDetail({ Id: `ih-${item.asin}`, Title: item.title, MainPictureUrl: item.image, Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' }, Url: item.link, isIHerb: true })
+                    } else if (provider === 'iherb' && item.link) {
+                      const m = item.link.match(/iherb\.com\/pr\/[^/]*\/(\d+)/)
+                      if (m) {
+                        loadProductDetail({ Id: `ih-${m[1]}`, Title: item.title, MainPictureUrl: item.image, Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' }, Url: item.link, isIHerb: true })
+                      } else {
+                        loadProductDetail({ Id: `ih-0`, Title: item.title, MainPictureUrl: item.image, Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' }, Url: item.link, isIHerb: true })
+                      }
                     } else if (item.link) {
                       window.open(item.link, '_blank')
                     }

@@ -211,6 +211,9 @@ const handler = async (event) => {
         } else if (site === 'walmart') {
           const m = (item.link || '').match(/walmart\.com\/ip\/[^\/]*\/(\d+)/)
           if (m) productId = m[1]
+        } else if (site === 'iherb') {
+          const m = (item.link || '').match(/iherb\.com\/pr\/[^\/]*\/(\d+)/)
+          if (m) productId = m[1]
         }
         return {
           title: item.title || '',
