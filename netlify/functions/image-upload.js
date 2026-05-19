@@ -1,5 +1,8 @@
 const https = require('https')
-const http = require('http')
+
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://wlzwtsvvvzlprlmzukks.supabase.co'
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indsend0c3Z2dnpscHJsbXp1a2tzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNzc0MzYsImV4cCI6MjA5Mjg1MzQzNn0.1LlRBp6V2FY2kqtqJ-rFqQTtfnq8b2MeTd8KQRSALBQ'
+const BUCKET = 'image-search'
 
 const handler = async (event) => {
   const headers = {
@@ -23,49 +26,41 @@ const handler = async (event) => {
     }
 
     const imageBuffer = Buffer.from(base64, 'base64')
-    const boundary = '----FormBoundary' + Math.random().toString(36).substring(2)
-    
-    // Build multipart form data
-    const fname = filename || 'image.jpg'
     const ctype = contentType || 'image/jpeg'
-    
-    const parts = []
-    parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${fname}"\r\nContent-Type: ${ctype}\r\n\r\n`))
-    parts.push(imageBuffer)
-    parts.push(Buffer.from(`\r\n--${boundary}--\r\n`))
-    const body = Buffer.concat(parts)
+    const ext = ctype.includes('png') ? 'png' : ctype.includes('webp') ? 'webp' : 'jpg'
+    const filePath = `search/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`
 
-    // Upload to tmpfiles.org
+    // Upload to Supabase Storage
+    const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${filePath}`
+    
     const url = await new Promise((resolve, reject) => {
+      const parsed = new URL(uploadUrl)
       const req = https.request({
-        hostname: 'tmpfiles.org',
+        hostname: parsed.hostname,
         port: 443,
-        path: '/api/v1/upload',
+        path: parsed.pathname,
         method: 'POST',
         headers: {
-          'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          'Content-Length': body.length,
+          'Content-Type': ctype,
+          'Content-Length': imageBuffer.length,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'apikey': SUPABASE_KEY,
+          'x-upsert': 'true',
         },
       }, (res) => {
         let data = ''
         res.on('data', chunk => data += chunk)
         res.on('end', () => {
-          try {
-            const json = JSON.parse(data)
-            if (json.status === 'success' && json.data?.url) {
-              // Convert tmpfiles.org/12345/file.png to tmpfiles.org/dl/12345/file.png for direct link
-              const directUrl = json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/')
-              resolve(directUrl)
-            } else {
-              reject(new Error('Upload failed: ' + data.substring(0, 200)))
-            }
-          } catch (e) {
-            reject(new Error(`Upload parse error: ${res.statusCode} - ${data.substring(0, 200)}`))
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${filePath}`
+            resolve(publicUrl)
+          } else {
+            reject(new Error(`Supabase upload failed (${res.statusCode}): ${data.substring(0, 300)}`))
           }
         })
       })
       req.on('error', reject)
-      req.write(body)
+      req.write(imageBuffer)
       req.end()
     })
 
