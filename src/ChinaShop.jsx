@@ -1806,22 +1806,28 @@ export default function ChinaShop() {
                     if (item.asin && provider === 'amazon') {
                       loadProductById(item.asin, 'amazon')
                     } else if (item.asin && provider === 'bestbuy') {
-                      loadProductById(`bb-${item.asin}`, 'bestbuy')
+                      loadProductDetail({ Id: `bb-${item.asin}`, Title: item.title, MainPictureUrl: item.image, Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' }, Url: item.link, isBestBuy: true, _bb: {} })
                     } else if (item.asin && provider === 'ebay') {
-                      loadProductById(`eb-${item.asin}`, 'ebay')
+                      loadProductDetail({ Id: `eb-${item.asin}`, Title: item.title, MainPictureUrl: item.image, Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' }, Url: item.link, isEbay: true, _eb: {} })
                     } else if (item.asin && provider === 'walmart') {
-                      loadProductById(`wm-${item.asin}`, 'walmart')
+                      loadProductDetail({ Id: `wm-${item.asin}`, Title: item.title, MainPictureUrl: item.image, Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' }, Url: item.link, isWalmart: true, _wm: {} })
                     } else if (item.asin && provider === 'iherb') {
                       loadProductDetail({ Id: `ih-${item.asin}`, Title: item.title, MainPictureUrl: item.image, Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' }, Url: item.link, isIHerb: true })
                     } else if (provider === 'iherb' && item.link) {
                       const m = item.link.match(/iherb\.com\/pr\/[^/]*\/(\d+)/)
-                      if (m) {
-                        loadProductDetail({ Id: `ih-${m[1]}`, Title: item.title, MainPictureUrl: item.image, Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' }, Url: item.link, isIHerb: true })
-                      } else {
-                        loadProductDetail({ Id: `ih-0`, Title: item.title, MainPictureUrl: item.image, Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' }, Url: item.link, isIHerb: true })
-                      }
+                      const ihId = m ? m[1] : '0'
+                      loadProductDetail({ Id: `ih-${ihId}`, Title: item.title, MainPictureUrl: item.image, Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' }, Url: item.link, isIHerb: true })
+                    } else if (provider === 'bestbuy' && item.link) {
+                      const m = item.link.match(/bestbuy\.com.*\/(\d{7,})/)
+                      loadProductDetail({ Id: `bb-${m ? m[1] : '0'}`, Title: item.title, MainPictureUrl: item.image, Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' }, Url: item.link, isBestBuy: true, _bb: {} })
+                    } else if (provider === 'ebay' && item.link) {
+                      const m = item.link.match(/ebay\.com\/itm\/(\d+)/)
+                      loadProductDetail({ Id: `eb-${m ? m[1] : '0'}`, Title: item.title, MainPictureUrl: item.image, Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' }, Url: item.link, isEbay: true, _eb: {} })
+                    } else if (provider === 'walmart' && item.link) {
+                      const m = item.link.match(/walmart\.com\/ip\/[^/]*\/(\d+)/)
+                      loadProductDetail({ Id: `wm-${m ? m[1] : '0'}`, Title: item.title, MainPictureUrl: item.image, Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: 'USD' }, Url: item.link, isWalmart: true, _wm: {} })
                     } else if (item.link) {
-                      window.open(item.link, '_blank')
+                      loadProductDetail({ Id: `${provider}-0`, Title: item.title, MainPictureUrl: item.image, Price: { OriginalPrice: item.price || 0, OriginalCurrencyCode: prov.currency || 'USD' }, Url: item.link })
                     }
                   }}
                   className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer active:scale-[0.97]">
