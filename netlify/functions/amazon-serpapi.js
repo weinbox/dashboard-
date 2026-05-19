@@ -195,10 +195,22 @@ const handler = async (event) => {
         const source = (item.source || '').toLowerCase()
         const matchesSite = filters.some(f => link.includes(f) || source.includes(f))
         if (!matchesSite) return false
-        // iHerb: استبعاد صفحات المراجعات وإبقاء صفحات المنتجات فقط
+        // استبعاد صفحات المراجعات/المقالات وإبقاء صفحات المنتجات فقط
         if (site === 'iherb') {
           if (link.includes('/r/') || link.includes('/review') || link.includes('/ugc') || link.includes('#reviews')) return false
           if (!link.includes('/pr/')) return false
+        } else if (site === 'amazon') {
+          if (link.includes('/review') || link.includes('/forum') || link.includes('/ask/') || link.includes('/gp/customer-reviews') || link.includes('/profile/')) return false
+          if (!(/\/dp\/|\/product\/|\/gp\/product\//.test(link))) return false
+        } else if (site === 'bestbuy') {
+          if (link.includes('/review') || link.includes('/question') || link.includes('/blog') || link.includes('/site/misc/')) return false
+          if (!link.includes('/site/') || link.includes('/site/search')) return false
+        } else if (site === 'ebay') {
+          if (link.includes('/review') || link.includes('/sch/') || link.includes('/b/') || link.includes('/usr/') || link.includes('/str/')) return false
+          if (!link.includes('/itm/')) return false
+        } else if (site === 'walmart') {
+          if (link.includes('/review') || link.includes('/search') || link.includes('/browse/') || link.includes('/cp/') || link.includes('/seller/')) return false
+          if (!link.includes('/ip/')) return false
         }
         return true
       })
