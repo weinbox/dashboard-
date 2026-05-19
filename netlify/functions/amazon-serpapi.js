@@ -193,7 +193,14 @@ const handler = async (event) => {
       const siteMatches = (data.visual_matches || []).filter(item => {
         const link = (item.link || '').toLowerCase()
         const source = (item.source || '').toLowerCase()
-        return filters.some(f => link.includes(f) || source.includes(f))
+        const matchesSite = filters.some(f => link.includes(f) || source.includes(f))
+        if (!matchesSite) return false
+        // iHerb: استبعاد صفحات المراجعات وإبقاء صفحات المنتجات فقط
+        if (site === 'iherb') {
+          if (link.includes('/r/') || link.includes('/review') || link.includes('/ugc') || link.includes('#reviews')) return false
+          if (!link.includes('/pr/')) return false
+        }
+        return true
       })
 
       const results = siteMatches.slice(0, 20).map(item => {
