@@ -88,6 +88,17 @@ const FEATURES = [
   { icon: Truck, title: 'تتبع الشحنة', desc: 'تتبع مباشر لطلبك' },
 ]
 
+const prefetchMap = {
+  store: () => import('./StorePage'),
+  china: () => import('./ChinaShop'),
+}
+const prefetched = new Set()
+const prefetchRoute = (key) => {
+  if (prefetched.has(key) || !prefetchMap[key]) return
+  prefetched.add(key)
+  prefetchMap[key]()
+}
+
 export default function SplashPage() {
   const navigate = useNavigate()
 
@@ -146,6 +157,8 @@ export default function SplashPage() {
         {/* ── Local Store Button ── */}
         <button
           onClick={() => navigate('/store')}
+          onMouseEnter={() => prefetchRoute('store')}
+          onTouchStart={() => prefetchRoute('store')}
           className="w-full bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-5 animate-slide-up flex items-center gap-4 hover:shadow-md hover:border-indigo-200 transition-all active:scale-[0.98] group"
         >
           <div className="w-12 h-12 bg-gradient-to-bl from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200/50 group-hover:scale-105 transition-transform">
@@ -183,6 +196,8 @@ export default function SplashPage() {
             <button
               key={store.id}
               onClick={() => handleStoreClick(store)}
+              onMouseEnter={() => prefetchRoute('china')}
+              onTouchStart={() => prefetchRoute('china')}
               className={`relative h-[88px] bg-gradient-to-l ${store.gradient} rounded-2xl flex flex-col items-center justify-center overflow-hidden ${store.hoverShadow} hover:shadow-lg hover:scale-[1.02] transition-all duration-200 active:scale-[0.97] group`}
             >
               <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors"></div>
@@ -221,6 +236,8 @@ export default function SplashPage() {
             <button
               key={store.id}
               onClick={() => handleStoreClick(store)}
+              onMouseEnter={() => store.route && prefetchRoute('china')}
+              onTouchStart={() => store.route && prefetchRoute('china')}
               className={`relative h-[88px] bg-gradient-to-l ${store.gradient} rounded-2xl flex flex-col items-center justify-center overflow-hidden ${store.hoverShadow} hover:shadow-lg hover:scale-[1.02] transition-all duration-200 active:scale-[0.97] group`}
             >
               <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors"></div>
