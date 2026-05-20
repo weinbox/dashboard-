@@ -1,91 +1,25 @@
 import { useNavigate } from 'react-router-dom'
-import { ShoppingBag, Globe, Truck, Shield, Star, ArrowLeft, Sparkles, TrendingUp, Store } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 
-const STORES = {
-  retail: [
-    {
-      id: 'taobao',
-      name: 'Taobao',
-      subtitle: '天猫 Tmall',
-      gradient: 'from-orange-500 to-amber-500',
-      hoverShadow: 'hover:shadow-orange-200/60',
-      icon: '淘',
-      route: true,
-    },
-    {
-      id: 'amazon',
-      name: 'Amazon',
-      subtitle: 'أمازون',
-      gradient: 'from-slate-800 to-slate-900',
-      hoverShadow: 'hover:shadow-slate-300/50',
-      svgLogo: true,
-      route: true,
-    },
-    {
-      id: 'shein',
-      name: 'SHEIN',
-      subtitle: 'أزياء عالمية',
-      gradient: 'from-pink-500 to-rose-600',
-      hoverShadow: 'hover:shadow-pink-200/60',
-      route: true,
-    },
-    {
-      id: 'iherb',
-      name: 'iHerb',
-      subtitle: 'مكملات وصحة',
-      gradient: 'from-green-500 to-emerald-600',
-      hoverShadow: 'hover:shadow-green-200/60',
-      route: true,
-    },
-    {
-      id: 'bestbuy',
-      name: 'Best Buy',
-      subtitle: 'إلكترونيات وأجهزة',
-      gradient: 'from-blue-600 to-blue-800',
-      hoverShadow: 'hover:shadow-blue-200/60',
-      route: true,
-    },
-    {
-      id: 'ebay',
-      name: 'eBay',
-      subtitle: 'مزادات ومنتجات',
-      gradient: 'from-blue-500 to-indigo-600',
-      hoverShadow: 'hover:shadow-blue-200/60',
-      route: true,
-    },
-    {
-      id: 'walmart',
-      name: 'Walmart',
-      subtitle: 'تسوق وتوفير',
-      gradient: 'from-yellow-400 to-amber-500',
-      hoverShadow: 'hover:shadow-yellow-200/60',
-      route: true,
-    },
-  ],
-  wholesale: [
-    {
-      id: '1688',
-      name: '1688',
-      subtitle: 'الجملة من الصين',
-      gradient: 'from-red-500 to-orange-500',
-      hoverShadow: 'hover:shadow-red-200/60',
-      route: true,
-    },
-    {
-      id: 'alibaba',
-      name: 'Alibaba',
-      subtitle: 'B2B عالمي',
-      gradient: 'from-orange-400 to-yellow-500',
-      hoverShadow: 'hover:shadow-orange-200/60',
-      external: 'https://www.alibaba.com',
-    },
-  ],
-}
+const INTERNATIONAL_STORES = [
+  { id: 'shein', name: 'SHEIN', label: 'شي ان', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/SHEIN_logo.svg/512px-SHEIN_logo.svg.png', bg: 'bg-white' },
+  { id: 'amazon', name: 'amazon', label: 'Amazon...', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/603px-Amazon_logo.svg.png', bg: 'bg-white' },
+  { id: 'ebay', name: 'eBay', label: 'ايباي امريكا', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/EBay_logo.svg/500px-EBay_logo.svg.png', bg: 'bg-white' },
+  { id: 'iherb', name: 'iHerb', label: 'أديداس', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Adidas_Logo.svg/800px-Adidas_Logo.svg.png', bg: 'bg-white' },
+  { id: 'bestbuy', name: 'Best Buy', label: 'مايكل كورس', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Michael_Kors_logo.svg/1200px-Michael_Kors_logo.svg.png', bg: 'bg-white' },
+  { id: 'walmart', name: 'Walmart', label: 'ترندبول', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Trendyol_logo.svg/512px-Trendyol_logo.svg.png', bg: 'bg-[#f27a1a]' },
+  { id: 'taobao', name: 'Taobao', label: 'زارا', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Zara_Logo.svg/1200px-Zara_Logo.svg.png', bg: 'bg-white' },
+  { id: '1688', name: '1688', label: 'امازون تركيا', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/603px-Amazon_logo.svg.png', bg: 'bg-[#febd69]' },
+  { id: 'alibaba', name: 'Alibaba', label: 'ترندبول ميلا', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Trendyol_logo.svg/512px-Trendyol_logo.svg.png', bg: 'bg-[#5c3d8f]' },
+  { id: 'noon', name: 'Noon', label: 'أون', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Noon_logo.svg/512px-Noon_logo.svg.png', bg: 'bg-[#feee00]' },
+]
 
-const FEATURES = [
-  { icon: Globe, title: 'شحن دولي', desc: 'نوصل لباب بيتك' },
-  { icon: Shield, title: 'ضمان المنتج', desc: 'حماية كاملة للمشتري' },
-  { icon: Truck, title: 'تتبع الشحنة', desc: 'تتبع مباشر لطلبك' },
+const LOCAL_STORES = [
+  { id: 'laqta-us', name: 'لكطة امريكي', logo: '🇺🇸', bg: 'bg-gradient-to-br from-blue-100 to-red-100', emoji: true },
+  { id: 'kafo', name: 'كفو', logo: '🌿', bg: 'bg-gradient-to-br from-green-100 to-emerald-50', emoji: true },
+  { id: 'laqta', name: 'لكطة', logo: '🏷️', bg: 'bg-gradient-to-br from-yellow-100 to-amber-50', emoji: true },
+  { id: 'sima', name: 'بطاقات سيما', logo: '💳', bg: 'bg-gradient-to-br from-purple-100 to-pink-50', emoji: true },
+  { id: 'uplus', name: 'يوبلس', logo: '📦', bg: 'bg-gradient-to-br from-sky-100 to-blue-50', emoji: true },
 ]
 
 const prefetchMap = {
@@ -105,176 +39,134 @@ export default function SplashPage() {
   const handleStoreClick = (store) => {
     if (store.external) {
       window.open(store.external, '_blank')
-    } else if (store.route) {
+    } else {
       navigate(`/china/${store.id}`)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col" dir="rtl">
+    <div className="min-h-screen bg-[#f5f5f5]" dir="rtl">
 
-      {/* ─── Hero Section ─── */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-bl from-indigo-600 via-blue-600 to-purple-700"></div>
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-10 right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-400/10 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/3 w-32 h-32 bg-blue-300/10 rounded-full blur-2xl"></div>
-        </div>
-
-        <div className="relative z-10 px-6 pt-16 pb-14 text-center max-w-lg mx-auto">
-          <div className="w-16 h-16 bg-white/15 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-5 border border-white/20 shadow-2xl">
-            <ShoppingBag className="w-8 h-8 text-white" />
+      {/* ─── Header ─── */}
+      <header className="bg-white px-4 pt-3 pb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center">
+            <span className="text-white text-sm font-black">بـ</span>
           </div>
-          <h1 className="text-3xl font-black text-white mb-2 tracking-tight">الأسواق العالمية</h1>
-          <p className="text-blue-100 text-sm leading-relaxed max-w-xs mx-auto">
-            نشتري لك من أفضل المتاجر العالمية ونوصلها لباب بيتك
-          </p>
+          <h1 className="text-lg font-black text-slate-900">أهلاً!</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
+            <span className="text-sm">🎯</span>
+          </div>
+          <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+            <span className="text-sm">🔔</span>
+          </div>
+          <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
+            <span className="text-sm">🎧</span>
+          </div>
+        </div>
+      </header>
 
-          {/* Stats */}
-          <div className="flex items-center justify-center gap-6 mt-6 text-white/80">
+      {/* ─── Banner ─── */}
+      <div className="px-4 mt-3">
+        <div className="relative w-full h-[160px] rounded-2xl overflow-hidden bg-gradient-to-l from-yellow-400 via-yellow-300 to-amber-400 shadow-md">
+          <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <p className="text-lg font-bold text-white">+5000</p>
-              <p className="text-[10px]">طلب مكتمل</p>
-            </div>
-            <div className="w-px h-8 bg-white/20"></div>
-            <div className="text-center">
-              <p className="text-lg font-bold text-white">6+</p>
-              <p className="text-[10px]">متجر عالمي</p>
-            </div>
-            <div className="w-px h-8 bg-white/20"></div>
-            <div className="text-center">
-              <p className="text-lg font-bold text-white flex items-center gap-0.5 justify-center">4.9 <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /></p>
-              <p className="text-[10px]">تقييم العملاء</p>
+              <p className="text-[13px] text-slate-800 font-bold">SHEIN</p>
+              <p className="text-5xl font-black text-slate-900">60%</p>
+              <p className="text-[11px] text-slate-700 font-bold mt-1">خصم</p>
+              <p className="text-[13px] text-slate-800 font-bold mt-1">على متجر لكطة</p>
+              <p className="text-[10px] text-slate-600 mt-1">* ويوصلك قبل العيد</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ─── Content ─── */}
-      <div className="max-w-lg mx-auto px-5 py-8 flex-1 flex flex-col w-full -mt-4">
+      {/* ─── المتاجر العالمية ─── */}
+      <div className="px-4 mt-5">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-[15px] font-black text-slate-900">المتاجر العالمية</h2>
+          <button className="flex items-center gap-1 text-[12px] text-slate-500 font-medium border border-slate-200 rounded-full px-3 py-1.5 bg-white">
+            مشاهدة المزيد
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+        </div>
 
-        {/* ── Local Store Button ── */}
-        <button
-          onClick={() => navigate('/store')}
-          onMouseEnter={() => prefetchRoute('store')}
-          onTouchStart={() => prefetchRoute('store')}
-          className="w-full bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-5 animate-slide-up flex items-center gap-4 hover:shadow-md hover:border-indigo-200 transition-all active:scale-[0.98] group"
-        >
-          <div className="w-12 h-12 bg-gradient-to-bl from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200/50 group-hover:scale-105 transition-transform">
-            <Store className="w-6 h-6 text-white" />
-          </div>
-          <div className="flex-1 text-right">
-            <p className="text-sm font-black text-slate-800">متجرنا المحلي</p>
-            <p className="text-[11px] text-slate-400">منتجات مختارة بأسعار خاصة</p>
-          </div>
-          <ArrowLeft className="w-5 h-5 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-[-3px] transition-all" />
-        </button>
-
-        {/* ── Features Bar ── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-8 animate-slide-up">
-          <div className="grid grid-cols-3 gap-3">
-            {FEATURES.map((f, i) => (
-              <div key={i} className="text-center">
-                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center mx-auto mb-1.5">
-                  <f.icon className="w-5 h-5 text-indigo-600" />
+        <div className="overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
+            {INTERNATIONAL_STORES.map((store) => (
+              <button
+                key={store.id}
+                onClick={() => handleStoreClick(store)}
+                onMouseEnter={() => prefetchRoute('china')}
+                onTouchStart={() => prefetchRoute('china')}
+                className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+              >
+                <div className={`w-[72px] h-[72px] ${store.bg} rounded-2xl border border-slate-200 flex items-center justify-center p-2.5 shadow-sm`}>
+                  <img src={store.logo} alt={store.name} className="w-full h-full object-contain" loading="lazy" />
                 </div>
-                <p className="text-[11px] font-bold text-slate-800">{f.title}</p>
-                <p className="text-[9px] text-slate-400">{f.desc}</p>
-              </div>
+                <span className="text-[11px] text-slate-600 font-medium max-w-[72px] truncate text-center">{store.label}</span>
+              </button>
             ))}
           </div>
         </div>
+      </div>
 
-        {/* ── مواقع المفرد ── */}
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-4 h-4 text-indigo-500" />
-          <p className="text-sm font-bold text-slate-700">مواقع المفرد</p>
-        </div>
-        <div className="grid grid-cols-2 gap-3 mb-8">
-          {STORES.retail.map((store) => (
-            <button
-              key={store.id}
-              onClick={() => handleStoreClick(store)}
-              onMouseEnter={() => prefetchRoute('china')}
-              onTouchStart={() => prefetchRoute('china')}
-              className={`relative h-[88px] bg-gradient-to-l ${store.gradient} rounded-2xl flex flex-col items-center justify-center overflow-hidden ${store.hoverShadow} hover:shadow-lg hover:scale-[1.02] transition-all duration-200 active:scale-[0.97] group`}
-            >
-              <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors"></div>
-              <div className="relative z-10 text-center">
-                {store.svgLogo ? (
-                  <svg viewBox="0 0 120 40" className="w-20 h-7 mx-auto mb-1">
-                    <text x="60" y="24" textAnchor="middle" fill="white" fontSize="18" fontWeight="bold" fontFamily="Arial, sans-serif">amazon</text>
-                    <path d="M28 30 C42 36 78 36 92 30" stroke="#FF9900" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-                    <path d="M86 27 L92 30 L89 34" stroke="#FF9900" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                ) : store.icon ? (
-                  <div className="flex items-center justify-center gap-1.5 mb-1">
-                    <svg viewBox="0 0 28 28" className="w-6 h-6" fill="none">
-                      <circle cx="14" cy="14" r="13" fill="white" fillOpacity="0.2"/>
-                      <text x="14" y="18" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold" fontFamily="sans-serif">{store.icon}</text>
-                    </svg>
-                    <p className="text-white text-base font-black">{store.name}</p>
-                  </div>
-                ) : (
-                  <p className="text-white text-xl font-black mb-1">{store.name}</p>
-                )}
-                <p className="text-white/70 text-[10px] font-medium">{store.subtitle}</p>
-              </div>
-              <ArrowLeft className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-hover:text-white/60 group-hover:translate-x-[-2px] transition-all" />
-            </button>
-          ))}
+      {/* ─── المتاجر المحلية ─── */}
+      <div className="px-4 mt-6">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-[15px] font-black text-slate-900">المتاجر المحلية</h2>
+          <button className="flex items-center gap-1 text-[12px] text-slate-500 font-medium border border-slate-200 rounded-full px-3 py-1.5 bg-white">
+            مشاهدة المزيد
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
         </div>
 
-        {/* ── مواقع الجملة ── */}
-        <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-4 h-4 text-orange-500" />
-          <p className="text-sm font-bold text-slate-700">مواقع الجملة</p>
-        </div>
-        <div className="grid grid-cols-2 gap-3 mb-8">
-          {STORES.wholesale.map((store) => (
-            <button
-              key={store.id}
-              onClick={() => handleStoreClick(store)}
-              onMouseEnter={() => store.route && prefetchRoute('china')}
-              onTouchStart={() => store.route && prefetchRoute('china')}
-              className={`relative h-[88px] bg-gradient-to-l ${store.gradient} rounded-2xl flex flex-col items-center justify-center overflow-hidden ${store.hoverShadow} hover:shadow-lg hover:scale-[1.02] transition-all duration-200 active:scale-[0.97] group`}
-            >
-              <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors"></div>
-              <div className="relative z-10 text-center">
-                <p className="text-white text-2xl font-black mb-1">{store.name}</p>
-                <p className="text-white/70 text-[10px] font-medium">{store.subtitle}</p>
-              </div>
-              <ArrowLeft className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-hover:text-white/60 group-hover:translate-x-[-2px] transition-all" />
-            </button>
-          ))}
-        </div>
-
-        {/* ── How it works ── */}
-        <div className="bg-gradient-to-l from-indigo-50 to-purple-50 rounded-2xl p-5 mb-6 border border-indigo-100/50">
-          <p className="text-sm font-bold text-slate-800 mb-3">كيف نشتغل؟</p>
-          <div className="space-y-3">
-            {[
-              { step: '1', text: 'اختر المتجر وابحث عن المنتج' },
-              { step: '2', text: 'أضف للسلة وأكمل الطلب' },
-              { step: '3', text: 'نشتري ونشحن لباب بيتك' },
-            ].map((item) => (
-              <div key={item.step} className="flex items-center gap-3">
-                <div className="w-7 h-7 bg-indigo-600 rounded-full flex items-center justify-center shrink-0">
-                  <span className="text-white text-xs font-bold">{item.step}</span>
+        <div className="overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
+            {LOCAL_STORES.map((store) => (
+              <button
+                key={store.id}
+                onClick={() => navigate('/store')}
+                onMouseEnter={() => prefetchRoute('store')}
+                onTouchStart={() => prefetchRoute('store')}
+                className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+              >
+                <div className={`w-[72px] h-[72px] ${store.bg} rounded-2xl border border-slate-200 flex items-center justify-center shadow-sm`}>
+                  {store.emoji ? (
+                    <span className="text-3xl">{store.logo}</span>
+                  ) : (
+                    <img src={store.logo} alt={store.name} className="w-full h-full object-contain p-2" loading="lazy" />
+                  )}
                 </div>
-                <p className="text-xs text-slate-600 font-medium">{item.text}</p>
-              </div>
+                <span className="text-[11px] text-slate-600 font-medium max-w-[72px] truncate text-center">{store.name}</span>
+              </button>
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Footer */}
-        <div className="text-center mt-auto pt-6 border-t border-slate-100">
-          <p className="text-[11px] text-slate-400 font-medium">
-            بوكس للشحن الدولي &copy; {new Date().getFullYear()}
-          </p>
+      {/* ─── CTA ─── */}
+      <div className="px-4 mt-8 mb-6">
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
+          <div className="flex-1">
+            <h3 className="text-[15px] font-black text-slate-900 leading-relaxed">ابتدي رحلة تسوق مميزة وياه سما</h3>
+          </div>
+          <button
+            onClick={() => navigate('/store')}
+            className="bg-gradient-to-l from-green-400 to-emerald-500 text-white text-[13px] font-bold px-5 py-3 rounded-full shadow-lg shadow-emerald-200/50 whitespace-nowrap active:scale-95 transition-transform"
+          >
+            انشئ حسابك
+          </button>
         </div>
+      </div>
+
+      {/* Footer */}
+      <div className="text-center py-4 border-t border-slate-200 bg-white mt-4">
+        <p className="text-[11px] text-slate-400 font-medium">
+          بوكس للشحن الدولي &copy; {new Date().getFullYear()}
+        </p>
       </div>
     </div>
   )
