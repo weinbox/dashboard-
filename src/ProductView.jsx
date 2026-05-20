@@ -7,6 +7,7 @@ import {
 import { heartPulse, rippleEffect, toastAnim } from './useAnimations'
 import { ProductSkeleton } from './Skeletons'
 import ExplainSheet from './ExplainSheet'
+import LazyImage from './components/LazyImage'
 
 export default function ProductView(p) {
   const [openSec, setOpenSec] = useState('details')
@@ -91,9 +92,9 @@ export default function ProductView(p) {
             <div className="shrink-0 max-w-md lg:max-w-lg mx-auto" ref={p.productImageRef}>
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center justify-center aspect-square overflow-hidden">
                 {pics.length > 0 ? (
-                  <img src={pics[p.activeImage]?.Large?.Url || pics[p.activeImage]?.Url} alt="" className="w-full h-full object-contain transition-opacity duration-300" />
+                  <LazyImage src={pics[p.activeImage]?.Large?.Url || pics[p.activeImage]?.Url} alt="" className="w-full h-full object-contain" wrapperClassName="w-full h-full" />
                 ) : item.MainPictureUrl ? (
-                  <img src={item.MainPictureUrl} alt="" className="w-full h-full object-contain" />
+                  <LazyImage src={item.MainPictureUrl} alt="" className="w-full h-full object-contain" wrapperClassName="w-full h-full" />
                 ) : (
                   <Package className="w-24 h-24 text-slate-300" />
                 )}
@@ -106,7 +107,7 @@ export default function ProductView(p) {
                     <li key={i} className="me-0">
                       <button onClick={() => p.setActiveImage(i)}
                         className={`w-[72px] h-[72px] rounded-xl border-2 p-1 transition-all bg-white hover:border-slate-300 ${p.activeImage === i ? 'border-indigo-500 shadow-sm' : 'border-slate-200 hover:border-slate-300'}`}>
-                        <img src={pic.Large?.Url || pic.Url} alt="" className="w-full h-full object-contain" />
+                        <LazyImage src={pic.Large?.Url || pic.Url} alt="" className="w-full h-full object-contain" wrapperClassName="w-full h-full" />
                       </button>
                     </li>
                   ))}
@@ -556,7 +557,7 @@ export default function ProductView(p) {
                     <button key={rp.asin || i} onClick={() => { if (rp.asin) p.loadProductById(rp.asin, 'amazon') }}
                       className="flex-shrink-0 w-[160px] bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-[0.98]">
                       <div className="w-full h-[130px] bg-slate-50 flex items-center justify-center">
-                        {rp.image && <img src={rp.image} alt="" className="w-full h-full object-contain p-3" />}
+                        {rp.image && <LazyImage src={rp.image} alt="" className="w-full h-full object-contain p-3" wrapperClassName="w-full h-full" />}
                       </div>
                       <div className="p-3">
                         <p className="text-xs text-slate-600 line-clamp-2 leading-snug mb-2">{rp.title}</p>
@@ -573,7 +574,7 @@ export default function ProductView(p) {
           {pics.length > 2 && (
             <div className="mt-8 rounded-lg overflow-hidden">
               {pics.slice(2, 6).map((pic, i) => (
-                <img key={i} src={pic.Large?.Url || pic.Url} alt="" className="w-full" loading="lazy" />
+                <LazyImage key={i} src={pic.Large?.Url || pic.Url} alt="" className="w-full" wrapperClassName="w-full" />
               ))}
             </div>
           )}

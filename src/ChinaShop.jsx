@@ -11,6 +11,7 @@ import { supabase } from './lib/supabase'
 import { ProductSkeleton, SearchSkeleton } from './Skeletons'
 import { useStaggerIn, useZoomIn, useSlideUp, useCountUp, useAddToCartAnim, useScrollReveal, usePageTransition, heartPulse, toastAnim, swipeDelete, rippleEffect } from './useAnimations'
 import BottomTabBar from './components/BottomTabBar'
+import LazyImage from './components/LazyImage'
 
 const ProductView = lazy(() => import('./ProductView'))
 const ExplainSheet = lazy(() => import('./ExplainSheet'))
@@ -1553,7 +1554,7 @@ export default function ChinaShop() {
                     {b.type === 'product' ? (
                       <>
                         <div className="absolute left-3 top-1/2 -translate-y-1/2 w-[110px] h-[110px] bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center p-2">
-                          <img src={b.image} alt="" className="w-full h-full object-contain drop-shadow-lg" loading="lazy"
+                          <LazyImage src={b.image} alt="" className="w-full h-full object-contain drop-shadow-lg"
                             onError={e => { e.target.style.display = 'none' }} />
                         </div>
                         <div className="relative h-full flex flex-col justify-center pr-5 pl-[130px] py-4">
@@ -1682,8 +1683,8 @@ export default function ChinaShop() {
                       onClick={() => loadProductById(pp.product_id, pp.provider)}
                       className="flex-shrink-0 w-[160px] bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg active:scale-[0.97] transition-all cursor-pointer group">
                       <div className="relative aspect-square bg-gradient-to-b from-slate-50 to-white overflow-hidden">
-                        <img src={pp.image} alt={pp.title} className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform" loading="lazy"
-                          onError={e => { e.target.style.display = 'none' }} />
+                        <LazyImage src={pp.image} alt={pp.title} className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform"
+                          onError={e => { e.target.style.display = 'none' }} wrapperClassName="w-full h-full" />
                         {idx < 3 && (
                           <span className="absolute top-2 right-2 text-[9px] bg-[#232F3E] text-[#FF9900] px-2 py-0.5 rounded-md font-bold">
                             #{idx + 1} رائج
@@ -1709,8 +1710,8 @@ export default function ChinaShop() {
                         onClick={() => loadProductById(pp.product_id, pp.provider)}
                         className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg active:scale-[0.97] transition-all cursor-pointer group">
                         <div className="relative aspect-square bg-gradient-to-b from-slate-50 to-white overflow-hidden">
-                          <img src={pp.image} alt={pp.title} className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform" loading="lazy"
-                            onError={e => { e.target.style.display = 'none' }} />
+                          <LazyImage src={pp.image} alt={pp.title} className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform"
+                            onError={e => { e.target.style.display = 'none' }} wrapperClassName="w-full h-full" />
                         </div>
                         <div className="p-2.5">
                           <p className="text-[11px] text-slate-700 font-medium line-clamp-2 min-h-[30px] leading-snug">{pp.title}</p>
@@ -1798,8 +1799,8 @@ export default function ChinaShop() {
                   }}
                   className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer active:scale-[0.97]">
                   <div className="relative aspect-square bg-slate-50 overflow-hidden">
-                    <img src={item.image} alt={item.title} className="w-full h-full object-contain p-3" loading="lazy"
-                      onError={e => { e.target.style.display = 'none' }} />
+                    <LazyImage src={item.image} alt={item.title} className="w-full h-full object-contain p-3"
+                      onError={e => { e.target.style.display = 'none' }} wrapperClassName="w-full h-full" />
                     <span className={`absolute top-2 right-2 text-[9px] ${prov.color} backdrop-blur-sm text-white px-2 py-0.5 rounded-lg font-bold opacity-90`}>{prov.label}</span>
                   </div>
                   <div className="p-3">
@@ -1877,7 +1878,7 @@ export default function ChinaShop() {
                       {/* Image */}
                       <div className="relative aspect-square bg-gradient-to-b from-slate-50 to-white overflow-hidden">
                         {item.MainPictureUrl ? (
-                          <img src={item.MainPictureUrl} alt="" className="w-full h-full object-contain p-3" loading="lazy" />
+                          <LazyImage src={item.MainPictureUrl} alt="" className="w-full h-full object-contain p-3" wrapperClassName="w-full h-full" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <Package className="w-10 h-10 text-slate-200" />
