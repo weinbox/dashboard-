@@ -63,7 +63,10 @@ function getCategoryImage(query: string, label = ''): string {
 
 async function searchPlatform(query: string, platform: string, page = 1): Promise<Product[]> {
   const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL!;
-  const res = await fetch(`${baseUrl}/search?q=${encodeURIComponent(query)}&platforms=${platform}&page=${page}`);
+  const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+  const res = await fetch(`${baseUrl}/search?q=${encodeURIComponent(query)}&platforms=${platform}&page=${page}`, {
+    headers: { "Authorization": `Bearer ${anonKey}`, "apikey": anonKey },
+  });
   if (!res.ok) throw new Error('Search failed');
   const json = await res.json();
   return (json?.data?.results ?? []) as Product[];
@@ -1881,7 +1884,10 @@ export default function StoreScreen() {
         const host = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
         if (SHORT_URL_DOMAINS.some(d => host === d)) {
           const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL!;
-          const res = await fetch(`${baseUrl}/resolve-url?url=${encodeURIComponent(url)}`);
+          const aKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+          const res = await fetch(`${baseUrl}/resolve-url?url=${encodeURIComponent(url)}`, {
+            headers: { "Authorization": `Bearer ${aKey}`, "apikey": aKey },
+          });
           const json = await res.json() as { data?: { url?: string } };
           finalUrl = json?.data?.url || url;
         }
@@ -1940,9 +1946,10 @@ export default function StoreScreen() {
         .getPublicUrl(filename);
 
       const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL!;
+      const aKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
       const res = await fetch(
         `${backendUrl}/image-search?url=${encodeURIComponent(publicUrl)}&platforms=${currentPlatform}`,
-        { signal: AbortSignal.timeout(60000) }
+        { headers: { "Authorization": `Bearer ${aKey}`, "apikey": aKey }, signal: AbortSignal.timeout(60000) }
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json() as { data?: { results?: Product[]; detectedQuery?: string } };

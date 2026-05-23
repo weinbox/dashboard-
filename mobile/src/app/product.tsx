@@ -265,6 +265,7 @@ export default function ProductScreen() {
 
   const strippedId = product.id.replace(/^(amazon|walmart|ebay|taobao|1688|temu|iherb)-/, '');
   const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL!;
+  const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
   const supportsDetailApi = ['amazon', 'walmart', 'iherb', 'ebay'].includes(product.platform);
 
   const { data: detail, isLoading } = useQuery<ProductDetail>({
@@ -276,7 +277,9 @@ export default function ProductScreen() {
       } else {
         apiUrl = `${baseUrl}/product?platform=${product.platform}&id=${encodeURIComponent(strippedId)}`;
       }
-      const res = await fetch(apiUrl);
+      const res = await fetch(apiUrl, {
+        headers: { "Authorization": `Bearer ${anonKey}`, "apikey": anonKey },
+      });
       if (!res.ok) throw new Error('Failed to fetch product detail');
       const json = await res.json() as { data: { detail: ProductDetail } };
       return json.data.detail;
@@ -336,7 +339,7 @@ export default function ProductScreen() {
     try {
       const res = await fetch(`${baseUrl}/translate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${anonKey}`, "apikey": anonKey },
         body: JSON.stringify({
           title: detail.title,
           aboutItem: detail.aboutItem,

@@ -50,8 +50,11 @@ const PLATFORMS = ['ebay', 'amazon', 'walmart', 'taobao', '1688', 'temu', 'iherb
 
 async function searchProducts(query: string, platform: string, page = 1): Promise<Product[]> {
   const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL!;
+  const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
   const url = `${baseUrl}/search?q=${encodeURIComponent(query)}&platforms=${platform}&page=${page}`;
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    headers: { "Authorization": `Bearer ${anonKey}`, "apikey": anonKey },
+  });
   if (!res.ok) throw new Error('Search failed');
   const json = await res.json();
   return (json?.data?.results ?? []) as Product[];
@@ -165,7 +168,10 @@ export default function SearchScreen() {
       const host = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
       if (SHORT_DOMAINS.some(d => host === d)) {
         const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL!;
-        const res = await fetch(`${baseUrl}/resolve-url?url=${encodeURIComponent(url)}`);
+        const aKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+        const res = await fetch(`${baseUrl}/resolve-url?url=${encodeURIComponent(url)}`, {
+          headers: { "Authorization": `Bearer ${aKey}`, "apikey": aKey },
+        });
         const json = await res.json();
         return (json?.data?.url as string) || url;
       }
@@ -339,7 +345,10 @@ export default function SearchScreen() {
         .getPublicUrl(uploadData.path);
 
       const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL!;
-      const res = await fetch(`${baseUrl}/image-search?url=${encodeURIComponent(publicUrl)}`);
+      const aKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+      const res = await fetch(`${baseUrl}/image-search?url=${encodeURIComponent(publicUrl)}`, {
+        headers: { "Authorization": `Bearer ${aKey}`, "apikey": aKey },
+      });
       if (!res.ok) throw new Error('Image search failed');
       const json = await res.json();
       const imageResults = (json?.data?.results ?? []) as Product[];

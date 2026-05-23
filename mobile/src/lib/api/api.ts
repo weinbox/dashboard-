@@ -6,14 +6,22 @@ interface ApiResponse<T> {
 }
 
 const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL!;
+const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
 
 const request = async <T>(
   url: string,
   options: { method?: string; body?: string } = {}
 ): Promise<T> => {
+  const headers: Record<string, string> = {
+    "Authorization": `Bearer ${anonKey}`,
+    "apikey": anonKey,
+  };
+  if (options.body) {
+    headers["Content-Type"] = "application/json";
+  }
   const response = await fetch(`${baseUrl}${url}`, {
     ...options,
-    headers: options.body ? { "Content-Type": "application/json" } : undefined,
+    headers,
   });
 
   // 1. Handle 204 No Content
