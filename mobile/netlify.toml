@@ -1,6 +1,11 @@
 [build]
-  command = "bunx expo export --platform web"
+  command = "npx expo export --platform web"
   publish = "dist"
+
+[build.environment]
+  EXPO_PUBLIC_SUPABASE_URL = "https://wlzwtsvvvzlprlmzukks.supabase.co"
+  EXPO_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indsend0c3Z2dnpscHJsbXp1a2tzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNzc0MzYsImV4cCI6MjA5Mjg1MzQzNn0.1LlRBp6V2FY2kqtqJ-rFqQTtfnq8b2MeTd8KQRSALBQ"
+  EXPO_PUBLIC_BACKEND_URL = "https://wlzwtsvvvzlprlmzukks.supabase.co/functions/v1"
 
 [[redirects]]
   from = "/*"
