@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "BoxCargo",
+    "slug": "boxcargo",
+    "scheme": "boxcargo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.boxshipiq.boxcargo",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "للبحث عن المنتجات باستخدام الصور من مكتبتك"
+      }
+    },
+    "android": {
+      "edgeToEdgeEnabled": true,
+      "package": "com.boxshipiq.boxcargo",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "للبحث عن المنتجات باستخدام الصور من مكتبتك"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
