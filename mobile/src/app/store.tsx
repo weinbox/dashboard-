@@ -40,7 +40,7 @@ const CATEGORY_IMAGE_MAP: [string, string][] = [
   ['makeup', 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=200&fit=crop'],
   ['skincare', 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=200&fit=crop'],
   ['hair care', 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=200&fit=crop'],
-  ['perfume', 'https://images.unsplash.com/photo-1541643600914-78b084683702?w=200&fit=crop'],
+  ['perfume', 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=200&fit=crop'],
   ['beauty', 'https://images.unsplash.com/photo-1522338242992-e1a54906a8da?w=200&fit=crop'],
   ['fitness', 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=200&fit=crop'],
   ['sports', 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=200&fit=crop'],
@@ -58,7 +58,7 @@ function getCategoryImage(query: string, label = ''): string {
   for (const [keyword, url] of CATEGORY_IMAGE_MAP) {
     if (q.includes(keyword)) return url;
   }
-  return 'https://images.unsplash.com/photo-1481437156560-3205f6a55735?w=200&fit=crop';
+  return 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=200&fit=crop';
 }
 
 async function searchPlatform(query: string, platform: string, page = 1): Promise<Product[]> {
