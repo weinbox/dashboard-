@@ -154,7 +154,7 @@ export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistant
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
 
-      const sdpRes = await fetch('https://api.openai.com/v1/realtime/calls', {
+      const sdpRes = await fetch('https://api.openai.com/v1/realtime?model=gpt-4o-mini-realtime-preview', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${ephemeralKey}`,
