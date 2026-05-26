@@ -170,7 +170,7 @@ export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistant
       }
 
       const sessionData = await tokenRes.json();
-      const ephemeralKey = sessionData.client_secret?.value;
+      const ephemeralKey = sessionData.value || sessionData.client_secret?.value;
 
       if (!ephemeralKey) {
         throw new Error('لم يتم الحصول على مفتاح الجلسة');
