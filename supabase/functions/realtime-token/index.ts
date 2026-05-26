@@ -114,20 +114,21 @@ serve(async (req) => {
   ];
 
   try {
-    // Create ephemeral token via /v1/realtime/sessions for WebSocket approach
-    const response = await fetch("https://api.openai.com/v1/realtime/sessions", {
+    // Create ephemeral token via GA endpoint /v1/realtime/client_secrets
+    const response = await fetch("https://api.openai.com/v1/realtime/client_secrets", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini-realtime-preview",
-        voice: "alloy",
-        instructions,
-        tools,
-        input_audio_transcription: { model: "whisper-1" },
-        turn_detection: { type: "server_vad" },
+        session: {
+          type: "realtime",
+          model: "gpt-4o-mini-realtime-preview",
+          audio: { output: { voice: "alloy" } },
+          instructions,
+          tools,
+        },
       }),
     });
 
