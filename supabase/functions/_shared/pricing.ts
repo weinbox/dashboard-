@@ -42,14 +42,14 @@ export function formatIQD(usd: number | null, category: ProductCategory = "regul
   if (usd === null || isNaN(usd)) return "";
   const shipping = calcShipping(category, weightLbs);
   const iqd = Math.round(usd * USD_TO_IQD * IQD_MARKUP) + shipping;
-  return `${iqd.toLocaleString("en")} دينار`;
+  return `${iqd.toLocaleString("en", { maximumFractionDigits: 0 })} دينار`;
 }
 
 export function formatIQD_China(usd: number | null, weightKg = 1): string {
   if (usd === null || isNaN(usd)) return "";
   const shipping = Math.round(weightKg * CHINA_SHIPPING_PER_KG);
   const iqd = Math.round(usd * USD_TO_IQD_CHINA) + shipping;
-  return `${iqd.toLocaleString("en")} دينار`;
+  return `${iqd.toLocaleString("en", { maximumFractionDigits: 0 })} دينار`;
 }
 
 export function parseWeightKgFromTitle(title: string): number | null {
