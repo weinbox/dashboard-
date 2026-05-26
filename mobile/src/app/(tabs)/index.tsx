@@ -811,6 +811,9 @@ export default function SearchScreen() {
             setSubmittedQuery(params.query);
           }
         }}
+        onNavigateToStore={(platform, query) => {
+          router.push({ pathname: '/store', params: { platform, query } });
+        }}
       />
     </View>
   );

@@ -30,9 +30,10 @@ type VoiceAssistantProps = {
   context: PageContext;
   onNavigate?: (page: string, params?: Record<string, string>) => void;
   onSearch?: (query: string) => void;
+  onNavigateToStore?: (platform: string, query: string) => void;
 };
 
-export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistantProps) {
+export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStore }: VoiceAssistantProps) {
   const [isListening, setIsListening] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -127,6 +128,12 @@ export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistant
             onNavigate(args.page, args.searchQuery ? { query: args.searchQuery } : undefined);
           }
           sendFunctionResult(msg.call_id, { success: true, message: `تم التنقل إلى ${args.page}` });
+          break;
+        case 'navigate_to_store':
+          if (onNavigateToStore && args.platform && args.query) {
+            onNavigateToStore(args.platform, args.query);
+          }
+          sendFunctionResult(msg.call_id, { success: true, message: `تم الدخول على ${args.platform} والبحث عن: ${args.query}` });
           break;
         case 'calculate_price':
           const priceIQD = Math.round((args.priceUSD || 0) * 1350 * 1.2);

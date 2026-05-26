@@ -1786,13 +1786,13 @@ function IHerbStore({ onSearch }: { onSearch: (query: string) => void }) {
 export default function StoreScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { platform } = useLocalSearchParams<{ platform: string }>();
+  const { platform, query: initialQuery } = useLocalSearchParams<{ platform: string; query?: string }>();
   const currentPlatform = platform ?? 'amazon';
   const isAmazon = currentPlatform === 'amazon';
   const cfg = STORE_CONFIG[currentPlatform];
 
-  const [query, setQuery] = useState<string>('');
-  const [submittedQuery, setSubmittedQuery] = useState<string>('');
+  const [query, setQuery] = useState<string>(initialQuery || '');
+  const [submittedQuery, setSubmittedQuery] = useState<string>(initialQuery || '');
   const inputRef = useRef<TextInput>(null);
   const cardWidth = (width - 16) / 2;
   const [page, setPage] = useState<number>(1);
