@@ -185,11 +185,10 @@ export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistant
       wsRef.current = ws;
 
       ws.onopen = async () => {
-        // 3. Send session.update to configure turn detection and transcription
+        // 3. Send session.update to configure turn detection
         ws.send(JSON.stringify({
           type: 'session.update',
           session: {
-            input_audio_transcription: { model: 'whisper-1' },
             turn_detection: { type: 'server_vad' },
           },
         }));
@@ -229,7 +228,7 @@ export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistant
       ws.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data);
-          console.log('[Voice] Event:', msg.type, msg.type === 'error' ? msg : '');
+          console.log('[Voice] Event:', msg.type, JSON.stringify(msg).substring(0, 300));
           handleRealtimeEvent(msg);
         } catch {
           // ignore parse errors
