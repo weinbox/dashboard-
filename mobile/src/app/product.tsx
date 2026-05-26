@@ -29,6 +29,7 @@ import type { Product } from '@/components/ProductCard';
 import { useAuth } from '@/lib/auth-context';
 import { useFavorites } from '@/lib/favorites';
 import { useCartStore } from '@/lib/cart';
+import { VoiceAssistant } from '@/components/VoiceAssistant';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -1130,6 +1131,19 @@ export default function ProductScreen() {
           </Text>
         </Pressable>
       </View>
+
+      {/* Voice Assistant */}
+      <VoiceAssistant
+        context={{
+          currentPage: 'product',
+          productInfo: {
+            title: autoTranslatedTitle || product.title,
+            price: detail?.price || product.priceText,
+            platform: product.platform,
+            rating: detail?.rating ?? undefined,
+          },
+        }}
+      />
     </SafeAreaView>
   );
 }

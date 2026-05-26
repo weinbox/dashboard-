@@ -13,6 +13,7 @@ import {
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Camera, Link, Search, ShoppingCart, X } from 'lucide-react-native';
+import { VoiceAssistant } from '@/components/VoiceAssistant';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -793,6 +794,24 @@ export default function SearchScreen() {
           }
         />
       )}
+
+      {/* Voice Assistant */}
+      <VoiceAssistant
+        context={{
+          currentPage: hasSearched ? 'search' : 'home',
+          searchQuery: submittedQuery,
+        }}
+        onSearch={(query) => {
+          setInputValue(query);
+          setSubmittedQuery(query);
+        }}
+        onNavigate={(page, params) => {
+          if (page === 'search' && params?.query) {
+            setInputValue(params.query);
+            setSubmittedQuery(params.query);
+          }
+        }}
+      />
     </View>
   );
 }
