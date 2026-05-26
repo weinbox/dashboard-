@@ -66,7 +66,7 @@ async function fetchWalmartDetail(productId: string): Promise<ProductDetail> {
   const res = await fetch(url.toString());
   if (!res.ok) throw new Error(`Walmart error: ${res.status}`);
   const data = await res.json();
-  const p = data.product_results ?? {};
+  const p = data.product_result ?? data.product_results ?? {};
   const images: string[] = Array.isArray(p.images) ? p.images.filter((s: any) => typeof s === "string") : [];
   const specifications: { name: string; value: string }[] = [];
   if (Array.isArray(p.specifications)) { for (const spec of p.specifications) { if (spec?.name && spec?.value) specifications.push({ name: spec.name, value: spec.value }); } }
