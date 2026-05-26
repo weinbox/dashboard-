@@ -14,14 +14,16 @@ import * as WebBrowser from 'expo-web-browser';
 import { ArrowLeft, CheckCircle, ExternalLink, Heart, ShoppingCart, Star } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useQuery } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withRepeat,
   withSequence,
   withTiming,
+  withDelay,
   Easing,
+  interpolate,
 } from 'react-native-reanimated';
 import type { Product } from '@/components/ProductCard';
 import { useAuth } from '@/lib/auth-context';
@@ -29,6 +31,106 @@ import { useFavorites } from '@/lib/favorites';
 import { useCartStore } from '@/lib/cart';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// ─── Simulated progress hook ────────────────────────────────────────────────
+function useSimulatedProgress(isActive: boolean, isDone: boolean) {
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    if (isDone) {
+      progress.value = withTiming(100, { duration: 300, easing: Easing.out(Easing.ease) });
+    } else if (isActive) {
+      progress.value = 0;
+      // Fast to 30%, then slow to 70%, then very slow to 90%
+      progress.value = withSequence(
+        withTiming(30, { duration: 800, easing: Easing.out(Easing.ease) }),
+        withTiming(60, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(85, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(92, { duration: 6000, easing: Easing.inOut(Easing.ease) })
+      );
+    } else {
+      progress.value = 0;
+    }
+  }, [isActive, isDone]);
+
+  return progress;
+}
+
+// ─── Top progress bar ──────────────────────────────────────────────────────
+function TopProgressBar({ progress, color = '#E52222' }: { progress: Animated.SharedValue<number>; color?: string }) {
+  const barStyle = useAnimatedStyle(() => ({
+    width: `${progress.value}%`,
+    opacity: progress.value >= 100 ? withTiming(0, { duration: 500 }) : 1,
+  }));
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: progress.value >= 100 ? 0 : interpolate(progress.value, [0, 50, 100], [0.3, 0.8, 0.3]),
+  }));
+
+  return (
+    <View style={{ height: 3, backgroundColor: '#f0f0f0', overflow: 'hidden' }}>
+      <Animated.View style={[{ height: '100%', backgroundColor: color, borderRadius: 3 }, barStyle]}>
+        <Animated.View style={[{
+          position: 'absolute', right: 0, top: 0, bottom: 0, width: 40,
+          backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: 3,
+        }, glowStyle]} />
+      </Animated.View>
+    </View>
+  );
+}
+
+// ─── Loading overlay for translate ─────────────────────────────────────────
+function TranslateProgressOverlay({ isActive }: { isActive: boolean }) {
+  const rotation = useSharedValue(0);
+  const progress = useSimulatedProgress(isActive, false);
+
+  useEffect(() => {
+    if (isActive) {
+      rotation.value = withRepeat(
+        withTiming(360, { duration: 1000, easing: Easing.linear }),
+        -1, false
+      );
+    } else {
+      rotation.value = 0;
+    }
+  }, [isActive]);
+
+  const spinStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+
+  const progressText = useAnimatedStyle(() => ({
+    opacity: 1,
+  }));
+
+  if (!isActive) return null;
+
+  return (
+    <View style={{
+      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center',
+      zIndex: 999, borderRadius: 0,
+    }}>
+      <View style={{
+        backgroundColor: '#fff', borderRadius: 20, padding: 28,
+        alignItems: 'center', gap: 16, minWidth: 180,
+        shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15, shadowRadius: 12, elevation: 8,
+      }}>
+        <Animated.View style={spinStyle}>
+          <Text style={{ fontSize: 32 }}>{'🔄'}</Text>
+        </Animated.View>
+        <Text style={{ color: '#1a1a1a', fontSize: 15, fontWeight: '700' }}>جاري الترجمة...</Text>
+        <View style={{
+          width: 140, height: 6, backgroundColor: '#f0f0f0',
+          borderRadius: 3, overflow: 'hidden',
+        }}>
+          <TopProgressBar progress={progress} color="#E52222" />
+        </View>
+      </View>
+    </View>
+  );
+}
 
 interface VariantItem {
   asin: string;
@@ -103,9 +205,15 @@ function SkeletonBlock({ width, height, style }: { width?: number | string; heig
   );
 }
 
-function SkeletonContent() {
+function SkeletonContent({ progress }: { progress: Animated.SharedValue<number> }) {
   return (
-    <View style={{ paddingHorizontal: 16, paddingTop: 20, gap: 12 }}>
+    <View style={{ paddingHorizontal: 16, paddingTop: 0, gap: 12 }}>
+      {/* Progress bar */}
+      <TopProgressBar progress={progress} />
+      {/* Loading status */}
+      <View style={{ alignItems: 'center', paddingVertical: 8 }}>
+        <Text style={{ color: '#999', fontSize: 13, fontWeight: '600' }}>جاري تحميل تفاصيل المنتج...</Text>
+      </View>
       {/* badges row */}
       <View style={{ flexDirection: 'row', gap: 8 }}>
         <SkeletonBlock width={90} height={26} />
@@ -289,6 +397,9 @@ export default function ProductScreen() {
   });
 
   const isChinesePlatform = product.platform === '1688' || product.platform === 'taobao';
+  const detailLoading = isLoading && supportsDetailApi;
+  const detailDone = !!detail && !isLoading;
+  const loadingProgress = useSimulatedProgress(detailLoading, detailDone);
 
   const contentOpacity = useSharedValue(0);
 
@@ -388,6 +499,8 @@ export default function ProductScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} testID="product-detail-screen">
+      {/* Translate overlay */}
+      <TranslateProgressOverlay isActive={isTranslating} />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 200 }}
@@ -553,7 +666,7 @@ export default function ProductScreen() {
 
         {/* ── Content ── */}
         {isLoading && supportsDetailApi ? (
-          <SkeletonContent />
+          <SkeletonContent progress={loadingProgress} />
         ) : (
           <Animated.View style={[{ paddingHorizontal: 16, paddingTop: 20 }, contentStyle]}>
             {/* Badges */}

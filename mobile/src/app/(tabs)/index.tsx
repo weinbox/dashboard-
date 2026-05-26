@@ -403,6 +403,26 @@ export default function SearchScreen() {
         </Text>
       </View>
 
+      {/* URL resolving overlay */}
+      {isResolvingUrl ? (
+        <View style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center',
+          zIndex: 999,
+        }}>
+          <View style={{
+            backgroundColor: '#fff', borderRadius: 20, padding: 28,
+            alignItems: 'center', gap: 14, minWidth: 200,
+            shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.15, shadowRadius: 12, elevation: 8,
+          }}>
+            <ActivityIndicator size="large" color="#E52222" />
+            <Text style={{ color: '#1a1a1a', fontSize: 15, fontWeight: '700' }}>جاري فتح الرابط...</Text>
+            <Text style={{ color: '#999', fontSize: 12 }}>يرجى الانتظار</Text>
+          </View>
+        </View>
+      ) : null}
+
       {/* Search bar */}
       <View style={{ paddingHorizontal: 16, paddingBottom: 10 }}>
         <View style={{
