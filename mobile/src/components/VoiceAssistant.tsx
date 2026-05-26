@@ -151,7 +151,7 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
     } catch {
       // ignore
     }
-  }, [onSearch, onNavigate]);
+  }, [onSearch, onNavigate, onNavigateToStore]);
 
   const sendFunctionResult = useCallback((callId: string, result: any) => {
     const dc = dataChannelRef.current;
