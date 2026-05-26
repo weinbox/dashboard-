@@ -24,6 +24,7 @@ type PageContext = {
     rating?: number;
   };
   searchQuery?: string;
+  searchResults?: Array<{ title: string; price: string; platform: string }>;
 };
 
 type VoiceAssistantProps = {
@@ -132,8 +133,11 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
         case 'navigate_to_store':
           if (onNavigateToStore && args.platform && args.query) {
             onNavigateToStore(args.platform, args.query);
+            // Fetch search results and return them to AI
+            fetchSearchResults(args.query, args.platform, msg.call_id);
+          } else {
+            sendFunctionResult(msg.call_id, { success: true, message: `تم الدخول على ${args.platform}` });
           }
-          sendFunctionResult(msg.call_id, { success: true, message: `تم الدخول على ${args.platform} والبحث عن: ${args.query}` });
           break;
         case 'calculate_price':
           const priceIQD = Math.round((args.priceUSD || 0) * 1350 * 1.2);
@@ -152,6 +156,35 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
       // ignore
     }
   }, [onSearch, onNavigate, onNavigateToStore]);
+
+  const fetchSearchResults = useCallback(async (query: string, platform: string, callId: string) => {
+    try {
+      const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL || SUPABASE_URL;
+      const res = await fetch(`${baseUrl}/search?q=${encodeURIComponent(query)}&platforms=${platform}&page=1`, {
+        headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'apikey': SUPABASE_ANON_KEY },
+      });
+      if (!res.ok) {
+        sendFunctionResult(callId, { success: true, message: `تم الدخول على ${platform} والبحث عن: ${query}. النتائج تظهر على الشاشة.` });
+        return;
+      }
+      const json = await res.json();
+      const results = (json?.data?.results ?? []).slice(0, 5);
+      const summary = results.map((r: any, i: number) => ({
+        rank: i + 1,
+        title: r.title || 'بدون عنوان',
+        price: r.priceText || r.price || 'غير محدد',
+      }));
+      sendFunctionResult(callId, {
+        success: true,
+        platform,
+        query,
+        message: `تم البحث في ${platform}. هذه أول ${summary.length} نتائج:`,
+        results: summary,
+      });
+    } catch {
+      sendFunctionResult(callId, { success: true, message: `تم الدخول على ${platform} والبحث عن: ${query}` });
+    }
+  }, []);
 
   const sendFunctionResult = useCallback((callId: string, result: any) => {
     const dc = dataChannelRef.current;
