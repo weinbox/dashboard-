@@ -134,7 +134,7 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
           if (onNavigateToStore && args.platform && args.query) {
             onNavigateToStore(args.platform, args.query);
             // Fetch search results and return them to AI
-            fetchSearchResults(args.query, args.platform, msg.call_id);
+            fetchSearchResults(args.query, args.platform, msg.call_id, args.minPrice, args.maxPrice);
           } else {
             sendFunctionResult(msg.call_id, { success: true, message: `تم الدخول على ${args.platform}` });
           }
@@ -157,10 +157,13 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
     }
   }, [onSearch, onNavigate, onNavigateToStore]);
 
-  const fetchSearchResults = useCallback(async (query: string, platform: string, callId: string) => {
+  const fetchSearchResults = useCallback(async (query: string, platform: string, callId: string, minPrice?: number, maxPrice?: number) => {
     try {
       const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL || SUPABASE_URL;
-      const res = await fetch(`${baseUrl}/search?q=${encodeURIComponent(query)}&platforms=${platform}&page=1`, {
+      let url = `${baseUrl}/search?q=${encodeURIComponent(query)}&platforms=${platform}&page=1`;
+      if (minPrice) url += `&min_price=${minPrice}`;
+      if (maxPrice) url += `&max_price=${maxPrice}`;
+      const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'apikey': SUPABASE_ANON_KEY },
       });
       if (!res.ok) {
@@ -168,7 +171,7 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
         return;
       }
       const json = await res.json();
-      const results = (json?.data?.results ?? []).slice(0, 5);
+      const results = (json?.data?.results ?? []).slice(0, 8);
       const summary = results.map((r: any, i: number) => ({
         rank: i + 1,
         title: r.title || 'بدون عنوان',
@@ -178,7 +181,7 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
         success: true,
         platform,
         query,
-        message: `تم البحث في ${platform}. هذه أول ${summary.length} نتائج:`,
+        totalResults: summary.length,
         results: summary,
       });
     } catch {
