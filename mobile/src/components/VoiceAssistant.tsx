@@ -176,17 +176,25 @@ export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistant
         throw new Error('لم يتم الحصول على مفتاح الجلسة');
       }
 
-      // 2. Connect to OpenAI Realtime via WebSocket
+      // 2. Connect to OpenAI Realtime via WebSocket (GA API)
       const wsUrl = `wss://api.openai.com/v1/realtime?model=gpt-4o-mini-realtime-preview`;
       const ws = new WebSocket(wsUrl, [
         'realtime',
         `openai-insecure-api-key.${ephemeralKey}`,
-        'openai-beta.realtime-v1',
       ]);
       wsRef.current = ws;
 
       ws.onopen = async () => {
-        // 3. Get user microphone and start sending audio
+        // 3. Send session.update to configure turn detection and transcription
+        ws.send(JSON.stringify({
+          type: 'session.update',
+          session: {
+            input_audio_transcription: { model: 'whisper-1' },
+            turn_detection: { type: 'server_vad' },
+          },
+        }));
+
+        // 4. Get user microphone and start sending audio
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
           audioStreamRef.current = stream;
