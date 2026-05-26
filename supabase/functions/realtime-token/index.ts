@@ -113,23 +113,36 @@ serve(async (req) => {
     },
   ];
 
+  // Check if this is an SDP offer (unified interface for WebRTC)
+  const sdpOffer = context.sdp as string | undefined;
+
+  if (!sdpOffer) {
+    return new Response(
+      JSON.stringify({ error: "Missing SDP offer in request body" }),
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  const sessionConfig = JSON.stringify({
+    type: "realtime",
+    model: "gpt-4o-realtime-preview",
+    audio: { output: { voice: "alloy" } },
+    instructions,
+    tools,
+  });
+
   try {
-    // Create ephemeral token via GA endpoint /v1/realtime/client_secrets
-    const response = await fetch("https://api.openai.com/v1/realtime/client_secrets", {
+    // Unified interface: send SDP + session config as multipart form to /v1/realtime/calls
+    const formData = new FormData();
+    formData.set("sdp", sdpOffer);
+    formData.set("session", sessionConfig);
+
+    const response = await fetch("https://api.openai.com/v1/realtime/calls", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        session: {
-          type: "realtime",
-          model: "gpt-4o-mini-realtime-preview",
-          audio: { output: { voice: "alloy" } },
-          instructions,
-          tools,
-        },
-      }),
+      body: formData,
     });
 
     if (!response.ok) {
@@ -140,10 +153,11 @@ serve(async (req) => {
       );
     }
 
-    const data = await response.json();
+    // OpenAI returns SDP answer as text
+    const sdpAnswer = await response.text();
 
     return new Response(
-      JSON.stringify(data),
+      JSON.stringify({ sdp: sdpAnswer }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {

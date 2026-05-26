@@ -32,36 +32,6 @@ type VoiceAssistantProps = {
   onSearch?: (query: string) => void;
 };
 
-// Convert Float32Array to base64-encoded PCM16
-function float32ToPcm16Base64(float32: Float32Array): string {
-  const pcm16 = new Int16Array(float32.length);
-  for (let i = 0; i < float32.length; i++) {
-    const s = Math.max(-1, Math.min(1, float32[i]));
-    pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
-  }
-  const bytes = new Uint8Array(pcm16.buffer);
-  let binary = '';
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
-}
-
-// Convert base64-encoded PCM16 to Float32Array
-function pcm16Base64ToFloat32(base64: string): Float32Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  const pcm16 = new Int16Array(bytes.buffer);
-  const float32 = new Float32Array(pcm16.length);
-  for (let i = 0; i < pcm16.length; i++) {
-    float32[i] = pcm16[i] / 0x8000;
-  }
-  return float32;
-}
-
 export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistantProps) {
   const [isListening, setIsListening] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -69,13 +39,10 @@ export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistant
   const [aiResponse, setAiResponse] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const wsRef = useRef<WebSocket | null>(null);
+  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const audioStreamRef = useRef<MediaStream | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const processorRef = useRef<ScriptProcessorNode | null>(null);
-  const playbackCtxRef = useRef<AudioContext | null>(null);
-  const audioQueueRef = useRef<Float32Array[]>([]);
-  const isPlayingRef = useRef(false);
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
 
   // Animation values
   const pulseScale = useSharedValue(1);
@@ -117,168 +84,31 @@ export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistant
     transform: [{ scale: buttonScale.value }],
   }));
 
-  // Play queued audio chunks
-  const playNextChunk = useCallback(() => {
-    if (isPlayingRef.current || audioQueueRef.current.length === 0) return;
-    isPlayingRef.current = true;
-
-    if (!playbackCtxRef.current) {
-      playbackCtxRef.current = new AudioContext({ sampleRate: 24000 });
-    }
-    const ctx = playbackCtxRef.current;
-    const chunk = audioQueueRef.current.shift()!;
-    const buf = ctx.createBuffer(1, chunk.length, 24000);
-    buf.getChannelData(0).set(chunk);
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.connect(ctx.destination);
-    src.onended = () => {
-      isPlayingRef.current = false;
-      playNextChunk();
-    };
-    src.start();
-  }, []);
-
-  const startSession = useCallback(async () => {
-    if (Platform.OS !== 'web') {
-      setError('المساعد الصوتي متاح حالياً على المتصفح فقط');
-      setTimeout(() => setError(null), 3000);
-      return;
-    }
-
-    setIsConnecting(true);
-    setError(null);
-    setTranscript('');
-    setAiResponse('');
-    audioQueueRef.current = [];
-
+  const handleDataChannelMessage = useCallback((event: MessageEvent) => {
     try {
-      // 1. Get ephemeral token from backend
-      const tokenRes = await fetch(`${SUPABASE_URL}/functions/v1/realtime-token`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'apikey': SUPABASE_ANON_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(context),
-      });
+      const msg = JSON.parse(event.data);
+      console.log('[Voice] Event:', msg.type);
 
-      if (!tokenRes.ok) {
-        const errData = await tokenRes.json().catch(() => ({}));
-        throw new Error(errData.error || `Server error: ${tokenRes.status}`);
+      switch (msg.type) {
+        case 'conversation.item.input_audio_transcription.completed':
+          setTranscript(msg.transcript || '');
+          break;
+        case 'response.audio_transcript.delta':
+          setAiResponse((prev) => prev + (msg.delta || ''));
+          break;
+        case 'response.audio_transcript.done':
+          break;
+        case 'response.function_call_arguments.done':
+          handleFunctionCall(msg);
+          break;
+        case 'response.done':
+          setAiResponse('');
+          break;
       }
-
-      const sessionData = await tokenRes.json();
-      const ephemeralKey = sessionData.value || sessionData.client_secret?.value;
-
-      if (!ephemeralKey) {
-        throw new Error('لم يتم الحصول على مفتاح الجلسة');
-      }
-
-      // 2. Connect to OpenAI Realtime via WebSocket (GA API)
-      const wsUrl = `wss://api.openai.com/v1/realtime?model=gpt-4o-mini-realtime-preview`;
-      const ws = new WebSocket(wsUrl, [
-        'realtime',
-        `openai-insecure-api-key.${ephemeralKey}`,
-      ]);
-      wsRef.current = ws;
-
-      ws.onopen = async () => {
-        // 3. Send session.update to configure turn detection
-        ws.send(JSON.stringify({
-          type: 'session.update',
-          session: {
-            turn_detection: { type: 'server_vad' },
-          },
-        }));
-
-        // 4. Get user microphone and start sending audio
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          audioStreamRef.current = stream;
-
-          const audioCtx = new AudioContext({ sampleRate: 24000 });
-          audioContextRef.current = audioCtx;
-          const source = audioCtx.createMediaStreamSource(stream);
-          const processor = audioCtx.createScriptProcessor(4096, 1, 1);
-          processorRef.current = processor;
-
-          processor.onaudioprocess = (e) => {
-            if (wsRef.current?.readyState === WebSocket.OPEN) {
-              const inputData = e.inputBuffer.getChannelData(0);
-              const base64Audio = float32ToPcm16Base64(inputData);
-              wsRef.current.send(JSON.stringify({
-                type: 'input_audio_buffer.append',
-                audio: base64Audio,
-              }));
-            }
-          };
-
-          source.connect(processor);
-          processor.connect(audioCtx.destination);
-
-          setIsListening(true);
-          setIsConnecting(false);
-        } catch (micErr: any) {
-          throw new Error('فشل الوصول للميكروفون: ' + micErr.message);
-        }
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const msg = JSON.parse(event.data);
-          console.log('[Voice] Event:', msg.type, JSON.stringify(msg).substring(0, 300));
-          handleRealtimeEvent(msg);
-        } catch {
-          // ignore parse errors
-        }
-      };
-
-      ws.onerror = (e) => {
-        console.error('[Voice] WebSocket error:', e);
-        setError('خطأ في الاتصال بالمساعد الصوتي');
-        stopSession();
-      };
-
-      ws.onclose = () => {
-        setIsListening(false);
-        setIsConnecting(false);
-      };
-    } catch (err: any) {
-      setError(err.message || 'فشل الاتصال بالمساعد الصوتي');
-      setIsConnecting(false);
-      stopSession();
+    } catch {
+      // ignore
     }
-  }, [context]);
-
-  const handleRealtimeEvent = useCallback((msg: any) => {
-    switch (msg.type) {
-      case 'conversation.item.input_audio_transcription.completed':
-        setTranscript(msg.transcript || '');
-        break;
-      case 'response.audio_transcript.delta':
-        setAiResponse((prev) => prev + (msg.delta || ''));
-        break;
-      case 'response.audio.delta':
-        // Decode and queue audio for playback
-        if (msg.delta) {
-          const float32 = pcm16Base64ToFloat32(msg.delta);
-          audioQueueRef.current.push(float32);
-          playNextChunk();
-        }
-        break;
-      case 'response.audio_transcript.done':
-        // Full response received
-        break;
-      case 'response.function_call_arguments.done':
-        handleFunctionCall(msg);
-        break;
-      case 'response.done':
-        setAiResponse('');
-        break;
-    }
-  }, [playNextChunk]);
+  }, []);
 
   const handleFunctionCall = useCallback((msg: any) => {
     try {
@@ -317,8 +147,9 @@ export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistant
   }, [onSearch, onNavigate]);
 
   const sendFunctionResult = useCallback((callId: string, result: any) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
+    const dc = dataChannelRef.current;
+    if (dc && dc.readyState === 'open') {
+      dc.send(JSON.stringify({
         type: 'conversation.item.create',
         item: {
           type: 'function_call_output',
@@ -326,33 +157,126 @@ export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistant
           output: JSON.stringify(result),
         },
       }));
-      wsRef.current.send(JSON.stringify({ type: 'response.create' }));
+      dc.send(JSON.stringify({ type: 'response.create' }));
     }
   }, []);
 
-  const stopSession = useCallback(() => {
-    if (processorRef.current) {
-      processorRef.current.disconnect();
-      processorRef.current = null;
+  const startSession = useCallback(async () => {
+    if (Platform.OS !== 'web') {
+      setError('المساعد الصوتي متاح حالياً على المتصفح فقط');
+      setTimeout(() => setError(null), 3000);
+      return;
     }
-    if (audioContextRef.current) {
-      audioContextRef.current.close().catch(() => {});
-      audioContextRef.current = null;
+
+    setIsConnecting(true);
+    setError(null);
+    setTranscript('');
+    setAiResponse('');
+
+    try {
+      // 1. Get microphone access
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioStreamRef.current = stream;
+
+      // 2. Create RTCPeerConnection
+      const pc = new RTCPeerConnection();
+      peerConnectionRef.current = pc;
+
+      // Add audio track to peer connection
+      stream.getAudioTracks().forEach((track) => {
+        pc.addTrack(track, stream);
+      });
+
+      // Handle remote audio (AI response)
+      const audioEl = document.createElement('audio');
+      audioEl.autoplay = true;
+      audioElRef.current = audioEl;
+      pc.ontrack = (e) => {
+        audioEl.srcObject = e.streams[0];
+      };
+
+      // Create data channel for events
+      const dc = pc.createDataChannel('oai-events');
+      dataChannelRef.current = dc;
+
+      dc.onopen = () => {
+        setIsListening(true);
+        setIsConnecting(false);
+      };
+
+      dc.onmessage = handleDataChannelMessage;
+
+      // 3. Create SDP offer
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      // Wait for ICE gathering to complete
+      await new Promise<void>((resolve) => {
+        if (pc.iceGatheringState === 'complete') {
+          resolve();
+        } else {
+          const checkState = () => {
+            if (pc.iceGatheringState === 'complete') {
+              pc.removeEventListener('icegatheringstatechange', checkState);
+              resolve();
+            }
+          };
+          pc.addEventListener('icegatheringstatechange', checkState);
+        }
+      });
+
+      const sdpOffer = pc.localDescription!.sdp;
+
+      // 4. Send SDP to backend (unified interface)
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/realtime-token`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...context, sdp: sdpOffer }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Server error: ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if (!data.sdp) {
+        throw new Error('لم يتم الحصول على SDP من السيرفر');
+      }
+
+      // 5. Set remote description (SDP answer)
+      await pc.setRemoteDescription({ type: 'answer', sdp: data.sdp });
+
+    } catch (err: any) {
+      console.error('[Voice] Error:', err);
+      setError(err.message || 'فشل الاتصال بالمساعد الصوتي');
+      setIsConnecting(false);
+      stopSession();
+    }
+  }, [context, handleDataChannelMessage]);
+
+  const stopSession = useCallback(() => {
+    if (dataChannelRef.current) {
+      dataChannelRef.current.close();
+      dataChannelRef.current = null;
+    }
+    if (peerConnectionRef.current) {
+      peerConnectionRef.current.close();
+      peerConnectionRef.current = null;
     }
     if (audioStreamRef.current) {
       audioStreamRef.current.getTracks().forEach((track) => track.stop());
       audioStreamRef.current = null;
     }
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
+    if (audioElRef.current) {
+      audioElRef.current.srcObject = null;
+      audioElRef.current = null;
     }
-    if (playbackCtxRef.current) {
-      playbackCtxRef.current.close().catch(() => {});
-      playbackCtxRef.current = null;
-    }
-    audioQueueRef.current = [];
-    isPlayingRef.current = false;
     setIsListening(false);
     setIsConnecting(false);
     setTranscript('');
