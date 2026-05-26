@@ -125,7 +125,7 @@ serve(async (req) => {
 
   const sessionConfig = JSON.stringify({
     type: "realtime",
-    model: "gpt-4o-realtime-preview",
+    model: "gpt-realtime-2",
     audio: { output: { voice: "alloy" } },
     instructions,
     tools,
