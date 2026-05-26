@@ -97,47 +97,23 @@ export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistant
     setAiResponse('');
 
     try {
-      // 1. Get ephemeral token from our backend
-      const tokenRes = await fetch(`${SUPABASE_URL}/functions/v1/realtime-token`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'apikey': SUPABASE_ANON_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(context),
-      });
-
-      if (!tokenRes.ok) {
-        const errData = await tokenRes.json().catch(() => ({}));
-        throw new Error(errData.error || `Server error: ${tokenRes.status}`);
-      }
-
-      const tokenJson = await tokenRes.json();
-      const sessionData = tokenJson.data;
-      const ephemeralKey = sessionData?.value || sessionData?.client_secret?.value;
-
-      if (!ephemeralKey) {
-        throw new Error('لم يتم الحصول على مفتاح الجلسة');
-      }
-
-      // 2. Create WebRTC peer connection
+      // 1. Create WebRTC peer connection
       const pc = new RTCPeerConnection();
       peerConnectionRef.current = pc;
 
-      // 3. Set up audio playback
+      // 2. Set up audio playback
       const audioEl = document.createElement('audio');
       audioEl.autoplay = true;
       pc.ontrack = (e) => {
         audioEl.srcObject = e.streams[0];
       };
 
-      // 4. Get user microphone
+      // 3. Get user microphone
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioStreamRef.current = stream;
-      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+      pc.addTrack(stream.getTracks()[0]);
 
-      // 5. Set up data channel for events
+      // 4. Set up data channel for events
       const dc = pc.createDataChannel('oai-events');
       dataChannelRef.current = dc;
 
@@ -150,24 +126,27 @@ export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistant
         }
       };
 
-      // 6. Create offer and connect to OpenAI Realtime
+      // 5. Create SDP offer
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
 
-      const sdpRes = await fetch('https://api.openai.com/v1/realtime?model=gpt-realtime-2', {
+      // 6. Send SDP to our backend which forwards to OpenAI /v1/realtime/calls
+      const sdpRes = await fetch(`${SUPABASE_URL}/functions/v1/realtime-token`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${ephemeralKey}`,
-          'Content-Type': 'application/sdp',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
         },
-        body: offer.sdp,
+        body: JSON.stringify({ ...context, sdp: offer.sdp }),
       });
 
       if (!sdpRes.ok) {
-        throw new Error(`WebRTC connection failed: ${sdpRes.status}`);
+        const errData = await sdpRes.json().catch(() => ({}));
+        throw new Error(errData.error || `WebRTC connection failed: ${sdpRes.status}`);
       }
 
-      const answerSdp = await sdpRes.text();
+      const { sdp: answerSdp } = await sdpRes.json();
       await pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
 
       setIsListening(true);
