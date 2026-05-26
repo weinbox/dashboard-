@@ -229,13 +229,15 @@ export function VoiceAssistant({ context, onNavigate, onSearch }: VoiceAssistant
       ws.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data);
+          console.log('[Voice] Event:', msg.type, msg.type === 'error' ? msg : '');
           handleRealtimeEvent(msg);
         } catch {
           // ignore parse errors
         }
       };
 
-      ws.onerror = () => {
+      ws.onerror = (e) => {
+        console.error('[Voice] WebSocket error:', e);
         setError('خطأ في الاتصال بالمساعد الصوتي');
         stopSession();
       };
