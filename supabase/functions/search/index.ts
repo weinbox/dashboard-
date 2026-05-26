@@ -236,7 +236,7 @@ serve(async (req) => {
             const weightLbs = Math.max(0.5, weightKg * KG_TO_LBS);
             const shipping = calcShipping(category, weightLbs);
             const iqd = Math.round(r.price * USD_TO_IQD * IQD_MARKUP) + shipping;
-            r.priceText = `${iqd.toLocaleString("en")} دينار`;
+            r.priceText = `${iqd.toLocaleString("en", { maximumFractionDigits: 0 })} دينار`;
           }
         }
       });
