@@ -124,7 +124,7 @@ serve(async (req) => {
       body: JSON.stringify({
         session: {
           type: "realtime",
-          model: "gpt-4o-realtime-preview",
+          model: "gpt-realtime-2",
           audio: {
             output: { voice: "alloy" },
           },
