@@ -10,7 +10,7 @@ export interface Product {
   price: number | null;
   priceText: string;
   image: string | null;
-  platform: 'ebay' | 'amazon' | 'walmart' | 'taobao' | '1688' | 'temu' | 'iherb';
+  platform: 'ebay' | 'amazon' | 'walmart' | 'taobao' | '1688' | 'iherb';
   url: string;
   rating?: number;
   reviewCount?: number;

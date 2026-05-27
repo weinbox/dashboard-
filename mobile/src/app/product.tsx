@@ -169,7 +169,6 @@ const PLATFORM_CONFIG: Record<
   walmart: { label: 'Walmart', color: '#ffffff', bg: '#0071DC', ctaLabel: 'اعرض على Walmart' },
   taobao: { label: 'Taobao', color: '#ffffff', bg: '#FF4400', ctaLabel: 'اعرض على Taobao' },
   '1688': { label: '1688', color: '#ffffff', bg: '#E02020', ctaLabel: 'اعرض على 1688' },
-  temu: { label: 'Temu', color: '#ffffff', bg: '#FF6600', ctaLabel: 'اعرض على Temu' },
   iherb: { label: 'iHerb', color: '#ffffff', bg: '#0F7D3B', ctaLabel: 'عرض على iHerb' },
 };
 

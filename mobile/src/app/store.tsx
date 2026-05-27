@@ -719,46 +719,6 @@ const STORE_CONFIG: Record<string, {
       { label: 'منتجات رائجة', query: '热门商品' },
     ],
   },
-  temu: {
-    label: 'Temu', bg: '#FF6600', headerText: '#fff', accentColor: '#FF6600',
-    categories: [
-      { icon: '👗', label: 'ملابس', query: 'clothing temu', subcategories: [
-        { icon: '👔', label: 'رجالي', query: 'mens clothing temu', count: 289, bgColor: '#C8E8FF' },
-        { icon: '👗', label: 'نسائي', query: 'womens clothing temu', count: 345, bgColor: '#FFB8D4' },
-        { icon: '👶', label: 'أطفال', query: 'kids clothing temu', count: 178, bgColor: '#FFE566' },
-        { icon: '👟', label: 'أحذية', query: 'shoes temu', count: 234, bgColor: '#C8FFE0' },
-      ]},
-      { icon: '📱', label: 'إلكترونيات', query: 'electronics temu', subcategories: [
-        { icon: '🎧', label: 'سماعات', query: 'headphones temu', count: 145, bgColor: '#C8E8FF' },
-        { icon: '🔌', label: 'إكسسوار', query: 'phone accessories temu', count: 267, bgColor: '#E8D5B8' },
-        { icon: '⌚', label: 'ساعات', query: 'smartwatches temu', count: 89, bgColor: '#B8FFCC' },
-        { icon: '💡', label: 'إضاءة', query: 'lighting temu', count: 145, bgColor: '#FFE0C8' },
-      ]},
-      { icon: '🏠', label: 'المنزل', query: 'home decor temu', subcategories: [
-        { icon: '🖼', label: 'ديكور', query: 'home decor temu', count: 312, bgColor: '#FFB8D4' },
-        { icon: '🍳', label: 'مطبخ', query: 'kitchen temu', count: 198, bgColor: '#FFE566' },
-        { icon: '🛋', label: 'أثاث', query: 'furniture temu', count: 134, bgColor: '#C8E8FF' },
-        { icon: '🌱', label: 'حديقة', query: 'garden temu', count: 89, bgColor: '#C8FFE0' },
-      ]},
-      { icon: '💄', label: 'جمال', query: 'beauty temu', subcategories: [
-        { icon: '💋', label: 'مكياج', query: 'makeup temu', count: 234, bgColor: '#FFB8D4' },
-        { icon: '🧴', label: 'عناية', query: 'skincare temu', count: 189, bgColor: '#C8E8FF' },
-        { icon: '💆', label: 'شعر', query: 'hair care temu', count: 123, bgColor: '#FFE566' },
-        { icon: '🎒', label: 'حقائب', query: 'bags temu', count: 145, bgColor: '#D4CAFF' },
-      ]},
-      { icon: '⚽', label: 'رياضة', query: 'sports temu', subcategories: [
-        { icon: '🏋', label: 'لياقة', query: 'fitness temu', count: 156, bgColor: '#C8FFE0' },
-        { icon: '🧘', label: 'يوغا', query: 'yoga temu', count: 89, bgColor: '#D4CAFF' },
-        { icon: '🚴', label: 'دراجات', query: 'cycling temu', count: 67, bgColor: '#FFE0C8' },
-        { icon: '🧸', label: 'ألعاب', query: 'toys temu', count: 198, bgColor: '#FFE566' },
-      ]},
-    ],
-    featured: [
-      { label: 'أرخص الأسعار', query: 'cheap deals temu' },
-      { label: 'الأكثر شعبية', query: 'popular temu' },
-      { label: 'وصل حديثاً', query: 'new arrivals temu' },
-    ],
-  },
   iherb: {
     label: 'iHerb', bg: '#0F7D3B', headerText: '#fff', accentColor: '#0F7D3B',
     categories: [
@@ -1556,154 +1516,6 @@ function Store1688({ onSearch }: { onSearch: (query: string) => void }) {
                 <Text style={{ color: '#FF9800', fontSize: 9, fontWeight: '700' }}>{sup.rating} نجمة</Text>
               </View>
             </Pressable>
-          ))}
-        </ScrollView>
-      </View>
-    </ScrollView>
-  );
-}
-
-// ─── Temu Store ───────────────────────────────────────────────────────────────
-
-const TEMU_DEALS = [
-  { id: '1', label: 'حقيبة يد عصرية', disc: '-85%', price: '$2.99', img: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=200&fit=crop' },
-  { id: '2', label: 'سماعة لاسلكية', disc: '-78%', price: '$4.99', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&fit=crop' },
-  { id: '3', label: 'إكسسوار شعر', disc: '-92%', price: '$0.99', img: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=200&fit=crop' },
-  { id: '4', label: 'ديكور منزلي', disc: '-80%', price: '$1.99', img: 'https://images.unsplash.com/photo-1493770348161-369560ae357d?w=200&fit=crop' },
-  { id: '5', label: 'ملابس رياضية', disc: '-76%', price: '$3.49', img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=200&fit=crop' },
-  { id: '6', label: 'إكسسوار هاتف', disc: '-88%', price: '$1.49', img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=200&fit=crop' },
-];
-
-const TEMU_PRICE_CATS = [
-  { label: 'ملابس', price: 'من $1.99', query: 'clothing temu', color: '#FF6600' },
-  { label: 'إكسسوار', price: 'من $0.99', query: 'accessories temu', color: '#E91E8C' },
-  { label: 'منزل', price: 'من $2.49', query: 'home temu', color: '#0095DA' },
-  { label: 'جمال', price: 'من $1.49', query: 'beauty temu', color: '#9C27B0' },
-  { label: 'رياضة', price: 'من $2.99', query: 'sports temu', color: '#4CAF50' },
-  { label: 'إلكترونيات', price: 'من $4.99', query: 'electronics temu', color: '#FF9800' },
-];
-
-function TemuStore({ onSearch }: { onSearch: (query: string) => void }) {
-  const { width } = useWindowDimensions();
-  const dealW = (width - 12 * 2 - 8) / 2;
-
-  return (
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 30 }}
-      style={{ backgroundColor: '#1A1A1A' }}
-    >
-      {/* Flash sale hero */}
-      <View style={{ backgroundColor: '#1A1A1A', paddingVertical: 20, paddingHorizontal: 16 }}>
-        <Text style={{ color: '#FF6600', fontSize: 22, fontWeight: '900', marginBottom: 4 }}>عروض البرق</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 13 }}>ينتهي خلال:</Text>
-          {['04', '22', '15'].map((seg, i) => (
-            <View key={i} style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{ backgroundColor: '#FF6600', borderRadius: 4, paddingHorizontal: 7, paddingVertical: 3 }}>
-                <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '800' }}>{seg}</Text>
-              </View>
-              {i < 2 ? <Text style={{ color: '#FF6600', fontWeight: '800', marginHorizontal: 2 }}>:</Text> : null}
-            </View>
-          ))}
-        </View>
-        <View style={{ backgroundColor: '#FF6600', borderRadius: 6, paddingHorizontal: 12, paddingVertical: 4, alignSelf: 'flex-start' }}>
-          <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '700' }}>وفّر حتى 90%</Text>
-        </View>
-      </View>
-
-      {/* Deals 2x3 grid */}
-      <View style={{ backgroundColor: '#F8F8F8', paddingTop: 12, paddingHorizontal: 12 }}>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {TEMU_DEALS.map((deal) => (
-            <Pressable
-              key={deal.id}
-              testID={`temu-deal-${deal.id}`}
-              onPress={() => onSearch(deal.label)}
-              style={({ pressed }) => ({
-                width: dealW, backgroundColor: '#FFFFFF', borderRadius: 10,
-                overflow: 'hidden', opacity: pressed ? 0.85 : 1,
-                borderWidth: 1, borderColor: '#EEEEEE',
-              })}
-            >
-              <View style={{ position: 'relative' }}>
-                <Image source={{ uri: deal.img }} style={{ width: dealW, height: 130 }} resizeMode="cover" />
-                <View style={{ position: 'absolute', top: 6, left: 6, backgroundColor: '#FF6600', borderRadius: 5, paddingHorizontal: 7, paddingVertical: 3 }}>
-                  <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '900' }}>{deal.disc}</Text>
-                </View>
-              </View>
-              <View style={{ padding: 8 }}>
-                <Text style={{ color: '#222', fontSize: 11 }} numberOfLines={1}>{deal.label}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-                  <Text style={{ color: '#FF6600', fontSize: 15, fontWeight: '900' }}>{deal.price}</Text>
-                  <View style={{ backgroundColor: '#E8F5E9', borderRadius: 3, paddingHorizontal: 4, paddingVertical: 1 }}>
-                    <Text style={{ color: '#2E7D32', fontSize: 8, fontWeight: '700' }}>شحن مجاني</Text>
-                  </View>
-                </View>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-
-      {/* Category price pills */}
-      <View style={{ backgroundColor: '#FFFFFF', marginTop: 8, paddingVertical: 14, paddingHorizontal: 14 }}>
-        <Text style={{ color: '#191919', fontSize: 16, fontWeight: '700', marginBottom: 10 }}>فئات بأسعار لا تصدق</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={{ gap: 8 }}>
-          {TEMU_PRICE_CATS.map((cat) => (
-            <Pressable
-              key={cat.query}
-              testID={`temu-cat-${cat.query}`}
-              onPress={() => onSearch(cat.query)}
-              style={({ pressed }) => ({
-                borderRadius: 20, overflow: 'hidden', opacity: pressed ? 0.85 : 1,
-              })}
-            >
-              <LinearGradient
-                colors={[cat.color, cat.color + 'CC']}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                style={{ paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center' }}
-              >
-                <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '700' }}>{cat.label}</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 10, marginTop: 2 }}>{cat.price}</Text>
-              </LinearGradient>
-            </Pressable>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Trending */}
-      <View style={{ backgroundColor: '#FFFFFF', marginTop: 8, paddingVertical: 14, paddingHorizontal: 14 }}>
-        <Text style={{ color: '#191919', fontSize: 16, fontWeight: '700', marginBottom: 10 }}>الأكثر شعبية الآن</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {['حقائب نسائية', 'مجوهرات', 'ساعات رجالي', 'عناية بشرة', 'ألعاب أطفال', 'أحذية رياضية', 'إكسسوار هاتف', 'ملابس صيف'].map((chip) => (
-            <Pressable
-              key={chip}
-              onPress={() => onSearch(chip + ' temu')}
-              style={({ pressed }) => ({
-                paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16,
-                backgroundColor: pressed ? '#FF6600' : '#FFF3EC',
-                borderWidth: 1, borderColor: '#FF6600',
-              })}
-            >
-              <Text style={{ color: '#FF6600', fontSize: 12, fontWeight: '600' }}>{chip}</Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-
-      {/* Trust badges */}
-      <View style={{ backgroundColor: '#FFFFFF', marginTop: 8, paddingVertical: 14, paddingHorizontal: 14 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={{ gap: 16, alignItems: 'center' }}>
-          {[
-            { icon: 'تقييمات عالية', badge: '⭐ 4.8' },
-            { icon: 'دفع آمن', badge: '🔒 آمن' },
-            { icon: 'إرجاع مجاني', badge: '↩ مجاني' },
-          ].map((b) => (
-            <View key={b.badge} style={{ alignItems: 'center', gap: 2 }}>
-              <Text style={{ color: '#FF6600', fontSize: 13, fontWeight: '800' }}>{b.badge}</Text>
-              <Text style={{ color: '#777', fontSize: 10 }}>{b.icon}</Text>
-            </View>
           ))}
         </ScrollView>
       </View>
@@ -2562,15 +2374,12 @@ export default function StoreScreen() {
       case 'walmart': return <WalmartStore onSearch={handleCategoryPress} />;
       case 'taobao': return <TaobaoStore onSearch={handleCategoryPress} />;
       case '1688': return <Store1688 onSearch={handleCategoryPress} />;
-      case 'temu': return <TemuStore onSearch={handleCategoryPress} />;
       case 'iherb': return <IHerbStore onSearch={handleCategoryPress} />;
       default: return cfg ? <GenericStore cfg={cfg} platform={currentPlatform} onSearch={handleCategoryPress} /> : null;
     }
   };
 
-  const bgColor = currentPlatform === 'amazon' ? '#EAEDED'
-    : currentPlatform === 'temu' ? '#1A1A1A'
-    : '#F5F5F5';
+  const bgColor = currentPlatform === 'amazon' ? '#EAEDED' : '#F5F5F5';
 
   const displayResults = imageSearchResults ?? accumulatedResults;
   const isImageSearchMode = imageSearchResults !== null;

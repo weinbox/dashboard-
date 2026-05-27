@@ -1,7 +1,7 @@
 import React from 'react';
 import Svg, { Text as SvgText, G, Path } from 'react-native-svg';
 
-export type StoreKey = 'ebay' | 'amazon' | 'walmart' | 'taobao' | '1688' | 'temu' | 'iherb';
+export type StoreKey = 'ebay' | 'amazon' | 'walmart' | 'taobao' | '1688' | 'iherb';
 
 function EbayIcon({ size }: { size: number }) {
   return (
@@ -58,16 +58,6 @@ function Icon1688({ size }: { size: number }) {
   );
 }
 
-function TemuIcon({ size }: { size: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 72 72">
-      <SvgText x="36" y="44" fontFamily="Arial" fontSize="24" fontWeight="bold" fill="white" textAnchor="middle">
-        temu
-      </SvgText>
-    </Svg>
-  );
-}
-
 function IherbIcon({ size }: { size: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 72 72">
@@ -85,7 +75,6 @@ const ICONS: Record<StoreKey, (props: { size: number }) => React.JSX.Element> = 
   walmart: WalmartIcon,
   taobao: TaobaoIcon,
   '1688': Icon1688,
-  temu: TemuIcon,
   iherb: IherbIcon,
 };
 

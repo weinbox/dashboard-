@@ -43,11 +43,10 @@ const PLATFORM_CONFIG: Record<string, { label: string; bg: string; textColor: st
   walmart: { label: 'Walmart', bg: '#0071DC', textColor: '#fff', shadowColor: '#0071DC' },
   taobao:  { label: 'Taobao',  bg: '#FF4400', textColor: '#fff', shadowColor: '#FF4400' },
   '1688':  { label: '1688',    bg: '#E02020', textColor: '#fff', shadowColor: '#E02020' },
-  temu:    { label: 'Temu',    bg: '#FF6600', textColor: '#fff', shadowColor: '#FF6600' },
   iherb:   { label: 'iHerb',   bg: '#0F7D3B', textColor: '#fff', shadowColor: '#0F7D3B' },
 };
 
-const PLATFORMS = ['ebay', 'amazon', 'walmart', 'taobao', '1688', 'temu', 'iherb'] as const;
+const PLATFORMS = ['ebay', 'amazon', 'walmart', 'taobao', '1688', 'iherb'] as const;
 
 async function searchProducts(query: string, platform: string, page = 1): Promise<Product[]> {
   const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL!;
@@ -114,7 +113,7 @@ export default function SearchScreen() {
 
   const { data: pageResults, isLoading, isFetching, isError, error } = useQuery({
     queryKey: ['search', submittedQuery, page],
-    queryFn: () => searchProducts(submittedQuery, 'ebay,amazon,walmart,taobao,1688,temu,iherb', page),
+    queryFn: () => searchProducts(submittedQuery, 'ebay,amazon,walmart,taobao,1688,iherb', page),
     enabled: submittedQuery.length > 0,
     staleTime: 1000 * 60 * 5,
   });

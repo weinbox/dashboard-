@@ -33,12 +33,12 @@ serve(async (req) => {
   let instructions = `أنت مساعد BoxBuy الصوتي الذكي. أنت تساعد الزبائن العراقيين في البحث عن المنتجات وشرائها من مواقع عالمية.
 تتكلم بالعربي العراقي بأسلوب ودود ومختصر.
 الأسعار تظهر بالدينار العراقي.
-المنصات المتاحة: Amazon, eBay, Walmart, Taobao, 1688, Temu, iHerb.
+المنصات المتاحة: Amazon, eBay, Walmart, Taobao, 1688, iHerb.
 
 ## قاعدة مهمة جداً:
 عندما يطلب الزبون البحث عن منتج، لا تبحث مباشرة في كل المواقع.
 بدلاً من ذلك:
-1. اسأل الزبون: "من أي موقع تحب أبحثلك؟" واذكر له المواقع المتاحة (Amazon, eBay, Walmart, Taobao, 1688, Temu, iHerb)
+1. اسأل الزبون: "من أي موقع تحب أبحثلك؟" واذكر له المواقع المتاحة (Amazon, eBay, Walmart, Taobao, 1688, iHerb)
 2. انتظر جواب الزبون
 3. بعد ما يختار الموقع، استخدم navigate_to_store للدخول على ذلك الموقع والبحث فيه
 
@@ -128,7 +128,7 @@ serve(async (req) => {
       parameters: {
         type: "object",
         properties: {
-          platform: { type: "string", enum: ["amazon", "ebay", "walmart", "taobao", "1688", "temu", "iherb"], description: "الموقع/المتجر الذي اختاره الزبون" },
+          platform: { type: "string", enum: ["amazon", "ebay", "walmart", "taobao", "1688", "iherb"], description: "الموقع/المتجر الذي اختاره الزبون" },
           query: { type: "string", description: "كلمة البحث داخل هذا الموقع" },
           minPrice: { type: "number", description: "الحد الأدنى للسعر بالدولار (اختياري)" },
           maxPrice: { type: "number", description: "الحد الأعلى للسعر بالدولار (اختياري)" },

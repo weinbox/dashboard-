@@ -18,7 +18,7 @@ export interface Product {
   price: number | null;
   priceText: string;
   image: string | null;
-  platform: 'ebay' | 'amazon' | 'walmart' | 'taobao' | '1688' | 'temu' | 'iherb';
+  platform: 'ebay' | 'amazon' | 'walmart' | 'taobao' | '1688' | 'iherb';
   url: string;
   rating?: number;
   reviewCount?: number;
@@ -34,7 +34,6 @@ const PLATFORM_CONFIG: Record<Product['platform'], { label: string; color: strin
   walmart: { label: 'Walmart', color: '#ffffff', bg: '#0071DC' },
   taobao:  { label: 'Taobao',  color: '#ffffff', bg: '#FF4400' },
   '1688':  { label: '1688',    color: '#ffffff', bg: '#E02020' },
-  temu:    { label: 'Temu',    color: '#ffffff', bg: '#FF6600' },
   iherb:   { label: 'iHerb',   color: '#ffffff', bg: '#0F7D3B' },
 };
 

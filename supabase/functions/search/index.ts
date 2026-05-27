@@ -135,25 +135,6 @@ async function search1688(query: string, page = 1): Promise<Product[]> {
   return items.map((item: any, i: number) => mapChinaItem(item, "1688", i));
 }
 
-async function searchTemu(query: string, page = 1): Promise<Product[]> {
-  const url = new URL(SERPAPI_BASE);
-  url.searchParams.set("engine", "google_shopping"); url.searchParams.set("q", `${query} temu`);
-  url.searchParams.set("api_key", getEnv("SERPAPI_KEY")); url.searchParams.set("gl", "us");
-  url.searchParams.set("hl", "en"); url.searchParams.set("start", String((page - 1) * 20));
-  try {
-    const res = await fetch(url.toString());
-    if (!res.ok) return [];
-    const data = await res.json();
-    return (data.shopping_results ?? []).filter((r: any) => (r.source ?? '').toLowerCase().includes('temu')).map((item: any, i: number): Product => {
-      const price = item.extracted_price ?? null;
-      const title = item.title ?? '';
-      const weightKg = parseWeightKgFromTitle(title) ?? defaultWeightKg(detectCategory(title));
-      const priceText = price !== null ? formatIQD_China(price, weightKg) : (item.price ?? '');
-      return { id: `temu-${item.position ?? i}`, title, price, priceText, image: proxyImage(item.thumbnail ?? null), platform: 'temu', url: `https://www.temu.com/search_result.html?search_key=${encodeURIComponent(title)}`, rating: item.rating, reviewCount: item.reviews };
-    });
-  } catch { return []; }
-}
-
 async function searchIherb(query: string, page = 1): Promise<Product[]> {
   const url = new URL(SERPAPI_BASE);
   url.searchParams.set("engine", "google_shopping"); url.searchParams.set("q", `${query} iherb`);
@@ -173,7 +154,7 @@ async function searchIherb(query: string, page = 1): Promise<Product[]> {
 
 const platformSearchers: Record<string, (q: string, p: number) => Promise<Product[]>> = {
   ebay: searchEbay, amazon: searchAmazon, walmart: searchWalmart,
-  taobao: searchTaobao, "1688": search1688, temu: searchTemu, iherb: searchIherb,
+  taobao: searchTaobao, "1688": search1688, iherb: searchIherb,
 };
 
 serve(async (req) => {
@@ -186,7 +167,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: { message: "Query parameter 'q' is required" } }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  const platformsParam = url.searchParams.get("platforms") ?? "ebay,amazon,walmart,taobao,1688,temu,iherb";
+  const platformsParam = url.searchParams.get("platforms") ?? "ebay,amazon,walmart,taobao,1688,iherb";
   const requestedPlatforms = platformsParam.split(",").map(p => p.trim().toLowerCase()).filter(p => p in platformSearchers);
   if (requestedPlatforms.length === 0) {
     return new Response(JSON.stringify({ error: { message: "No valid platforms" } }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -226,7 +207,7 @@ serve(async (req) => {
     try {
       const titles = results.map(r => r.title);
       const classified = await batchClassify(titles, openaiKey);
-      const chineseSet = new Set(['taobao', '1688', 'temu']);
+      const chineseSet = new Set(['taobao', '1688']);
       results.forEach((r, i) => {
         const { category, weightKg } = classified[i] ?? { category: "regular" as const, weightKg: 0.5 };
         if (r.price !== null && r.price !== undefined) {
@@ -244,7 +225,7 @@ serve(async (req) => {
   }
 
   // Sort
-  const platformOrder: Record<string, number> = { ebay: 0, amazon: 1, walmart: 2, taobao: 3, "1688": 4, temu: 5, iherb: 6 };
+  const platformOrder: Record<string, number> = { ebay: 0, amazon: 1, walmart: 2, taobao: 3, "1688": 4, iherb: 5 };
   results.sort((a, b) => (platformOrder[a.platform] ?? 99) - (platformOrder[b.platform] ?? 99));
 
   // Cache store

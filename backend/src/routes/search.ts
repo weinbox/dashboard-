@@ -382,58 +382,6 @@ async function search1688(query: string, page = 1): Promise<Product[]> {
   return items.map((item, index) => mapV5Item(item, index));
 }
 
-interface GoogleShoppingTemuResult {
-  position?: number;
-  title?: string;
-  price?: string;
-  extracted_price?: number;
-  product_link?: string;
-  thumbnail?: string;
-  source?: string;
-  rating?: number;
-  reviews?: number;
-}
-
-async function searchTemu(query: string, page = 1): Promise<Product[]> {
-  const url = new URL(SERPAPI_BASE);
-  url.searchParams.set("engine", "google_shopping");
-  url.searchParams.set("q", `${query} temu`);
-  url.searchParams.set("api_key", env.SERPAPI_KEY);
-  url.searchParams.set("gl", "us");
-  url.searchParams.set("hl", "en");
-  url.searchParams.set("start", String((page - 1) * 20));
-
-  try {
-    const res = await fetch(url.toString());
-    if (!res.ok) return [];
-
-    const data = await res.json() as { shopping_results?: GoogleShoppingTemuResult[] };
-    const results = (data.shopping_results ?? [])
-      .filter(r => (r.source ?? '').toLowerCase().includes('temu'));
-
-    return results.map((item, index): Product => {
-      const price = item.extracted_price ?? null;
-      const temuTitle = item.title ?? '';
-      const temuCategory = detectCategory(temuTitle);
-      const temuWeightKg = parseWeightKgFromTitle(temuTitle) ?? defaultWeightKg(temuCategory);
-      const priceText = price !== null ? formatIQD_China(price, temuWeightKg) : (item.price ?? '');
-      return {
-        id: `temu-${item.position ?? index}`,
-        title: item.title ?? '',
-        price,
-        priceText,
-        image: proxyImage(item.thumbnail ?? null),
-        platform: 'temu',
-        url: `https://www.temu.com/search_result.html?search_key=${encodeURIComponent(item.title ?? query)}`,
-        rating: item.rating,
-        reviewCount: item.reviews,
-      };
-    });
-  } catch {
-    return [];
-  }
-}
-
 interface IherbProduct {
   productId?: string | number;
   displayName?: string;
@@ -509,7 +457,6 @@ const platformSearchers: Record<string, (query: string, page: number) => Promise
   walmart: searchWalmart,
   taobao: searchTaobao,
   "1688": search1688,
-  temu: searchTemu,
   iherb: searchIherb,
 };
 
@@ -519,7 +466,7 @@ searchRouter.get("/", async (c) => {
     return c.json({ error: { message: "Query parameter 'q' is required", code: "MISSING_QUERY" } }, 400);
   }
 
-  const platformsParam = c.req.query("platforms") ?? "ebay,amazon,walmart,taobao,1688,temu,iherb";
+  const platformsParam = c.req.query("platforms") ?? "ebay,amazon,walmart,taobao,1688,iherb";
   const requestedPlatforms = platformsParam
     .split(",")
     .map((p) => p.trim().toLowerCase())
@@ -584,7 +531,7 @@ searchRouter.get("/", async (c) => {
     try {
       const titles = results.map(r => r.title);
       const classified = await batchClassify(titles, env.OPENAI_API_KEY);
-      const chinesePlatformSet = new Set(['taobao', '1688', 'temu']);
+      const chinesePlatformSet = new Set(['taobao', '1688']);
       results.forEach((r, i) => {
         const raw = classified[i] ?? { category: "regular" as const, weightKg: 0.5 };
         const { category } = raw;
@@ -606,7 +553,7 @@ searchRouter.get("/", async (c) => {
   }
 
   // Sort by platform order
-  const platformOrder: Record<string, number> = { ebay: 0, amazon: 1, walmart: 2, taobao: 3, "1688": 4, temu: 5, iherb: 6 };
+  const platformOrder: Record<string, number> = { ebay: 0, amazon: 1, walmart: 2, taobao: 3, "1688": 4, iherb: 5 };
   results.sort((a, b) => (platformOrder[a.platform] ?? 99) - (platformOrder[b.platform] ?? 99));
 
   // Track trending search if we got results
@@ -633,4 +580,4 @@ searchRouter.get("/", async (c) => {
   return c.json({ data: { results } });
 });
 
-export { searchRouter, searchAmazon, searchEbay, searchWalmart, searchTaobao, search1688, searchTemu, searchIherb };
+export { searchRouter, searchAmazon, searchEbay, searchWalmart, searchTaobao, search1688, searchIherb };
