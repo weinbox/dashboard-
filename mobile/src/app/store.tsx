@@ -10,8 +10,105 @@ import { ArrowLeft, Search, X, ShoppingCart, MapPin, ChevronRight, Zap, Star, Ca
 import { ProductCard, Product } from '@/components/ProductCard';
 import { SkeletonGrid } from '@/components/SkeletonCard';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withTiming,
+  withRepeat,
+  Easing,
+  interpolate,
+} from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/lib/supabase';
+
+// ─── Search loading animation ────────────────────────────────────────────────
+
+function useSimulatedProgress(isActive: boolean, isDone: boolean) {
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    if (isDone) {
+      progress.value = withTiming(100, { duration: 300, easing: Easing.out(Easing.ease) });
+    } else if (isActive) {
+      progress.value = 0;
+      progress.value = withSequence(
+        withTiming(30, { duration: 800, easing: Easing.out(Easing.ease) }),
+        withTiming(60, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(85, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(92, { duration: 6000, easing: Easing.inOut(Easing.ease) })
+      );
+    } else {
+      progress.value = 0;
+    }
+  }, [isActive, isDone]);
+
+  return progress;
+}
+
+function StoreProgressBar({ progress, color = '#E52222' }: { progress: Animated.SharedValue<number>; color?: string }) {
+  const barStyle = useAnimatedStyle(() => ({
+    width: `${progress.value}%`,
+    opacity: progress.value >= 100 ? withTiming(0, { duration: 500 }) : 1,
+  }));
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: progress.value >= 100 ? 0 : interpolate(progress.value, [0, 50, 100], [0.3, 0.8, 0.3]),
+  }));
+
+  return (
+    <View style={{ height: 3, backgroundColor: '#f0f0f0', overflow: 'hidden' }}>
+      <Animated.View style={[{ height: '100%', backgroundColor: color, borderRadius: 3 }, barStyle]}>
+        <Animated.View style={[{
+          position: 'absolute', right: 0, top: 0, bottom: 0, width: 40,
+          backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: 3,
+        }, glowStyle]} />
+      </Animated.View>
+    </View>
+  );
+}
+
+function StoreSearchLoading({ progress, accentColor }: { progress: Animated.SharedValue<number>; accentColor: string }) {
+  const shimmer = useSharedValue(0);
+
+  useEffect(() => {
+    shimmer.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 700, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.3, { duration: 700, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      false
+    );
+  }, []);
+
+  const shimmerStyle = useAnimatedStyle(() => ({ opacity: shimmer.value }));
+
+  return (
+    <View style={{ flex: 1, paddingHorizontal: 12, paddingTop: 8 }}>
+      <StoreProgressBar progress={progress} color={accentColor} />
+      <View style={{ alignItems: 'center', paddingVertical: 14 }}>
+        <Text style={{ color: '#999', fontSize: 13, fontWeight: '600' }}>جاري تحميل المنتجات...</Text>
+      </View>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <View key={i} style={{ width: '50%', padding: 4 }}>
+            <Animated.View style={[{
+              backgroundColor: '#f0f0f0', borderRadius: 12, overflow: 'hidden',
+            }, shimmerStyle]}>
+              <View style={{ height: 150, backgroundColor: '#e8e8e8' }} />
+              <View style={{ padding: 10, gap: 6 }}>
+                <View style={{ height: 12, width: '90%', backgroundColor: '#e0e0e0', borderRadius: 4 }} />
+                <View style={{ height: 12, width: '60%', backgroundColor: '#e0e0e0', borderRadius: 4 }} />
+                <View style={{ height: 16, width: '40%', backgroundColor: '#ddd', borderRadius: 4, marginTop: 2 }} />
+              </View>
+            </Animated.View>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
 
 // ─── Shared helpers ──────────────────────────────────────────────────────────
 
@@ -1809,6 +1906,10 @@ export default function StoreScreen() {
     staleTime: 1000 * 60 * 5,
   });
 
+  const searchLoading = isLoading && submittedQuery.length > 0;
+  const searchDone = !!pageResults && !isLoading;
+  const searchProgress = useSimulatedProgress(searchLoading, searchDone);
+
   useEffect(() => {
     if (!pageResults) return;
     if (page === 1) {
@@ -2481,7 +2582,7 @@ export default function StoreScreen() {
       {submittedQuery.length === 0 && !isImageSearchMode ? (
         renderStoreBrowse()
       ) : isLoading && !isImageSearchMode ? (
-        <SkeletonGrid />
+        <StoreSearchLoading progress={searchProgress} accentColor={cfg?.accentColor ?? '#E52222'} />
       ) : (
         <FlatList
           testID="store-results"
