@@ -11,9 +11,12 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated';
 import { Mic, MicOff, X } from 'lucide-react-native';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+const DAILY_LIMIT_SECONDS = 5 * 60; // 5 minutes
 
 type PageContext = {
   currentPage: string;
@@ -36,16 +39,73 @@ type VoiceAssistantProps = {
 };
 
 export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStore, variant = 'fab' }: VoiceAssistantProps) {
+  const { user } = useAuth();
   const [isListening, setIsListening] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [remainingSeconds, setRemainingSeconds] = useState<number>(DAILY_LIMIT_SECONDS);
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const audioStreamRef = useRef<MediaStream | null>(null);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
+  const sessionStartRef = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Fetch today's usage on mount / user change
+  useEffect(() => {
+    if (!user) return;
+    const today = new Date().toISOString().slice(0, 10);
+    supabase
+      .from('voice_usage')
+      .select('used_seconds')
+      .eq('user_id', user.id)
+      .eq('usage_date', today)
+      .maybeSingle()
+      .then(({ data }) => {
+        const used = data?.used_seconds ?? 0;
+        setRemainingSeconds(Math.max(0, DAILY_LIMIT_SECONDS - used));
+      });
+  }, [user]);
+
+  // Countdown timer while listening
+  useEffect(() => {
+    if (isListening) {
+      sessionStartRef.current = Date.now();
+      timerRef.current = setInterval(() => {
+        setRemainingSeconds((prev) => {
+          if (prev <= 1) {
+            stopSession();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      // Save usage when session ends
+      if (sessionStartRef.current && user) {
+        const elapsed = Math.round((Date.now() - sessionStartRef.current) / 1000);
+        sessionStartRef.current = null;
+        if (elapsed > 0) {
+          const today = new Date().toISOString().slice(0, 10);
+          supabase.rpc('increment_voice_usage', {
+            p_user_id: user.id,
+            p_date: today,
+            p_seconds: elapsed,
+          }).then(() => {});
+        }
+      }
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [isListening]);
 
   // Animation values
   const pulseScale = useSharedValue(1);
@@ -212,6 +272,19 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
       return;
     }
 
+    // Check daily limit
+    if (remainingSeconds <= 0) {
+      setError('انتهى وقتك اليومي (5 دقائق). حاول مرة أخرى غداً');
+      setTimeout(() => setError(null), 4000);
+      return;
+    }
+
+    if (!user) {
+      setError('سجّل دخولك لاستخدام المساعد الصوتي');
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
     setIsConnecting(true);
     setError(null);
     setTranscript('');
@@ -371,18 +444,27 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
           </View>
           <Text style={{
             flex: 1, fontSize: 15, fontWeight: '500',
-            color: isListening ? '#fff' : '#aaaaaa',
-          }}>
+            color: isListening ? '#fff' : remainingSeconds <= 0 ? '#cc0000' : '#aaaaaa',
+          }} numberOfLines={1}>
             {isConnecting ? 'جاري الاتصال...'
               : isListening ? (transcript || aiResponse || 'أتكلم... اضغط للإيقاف')
+              : remainingSeconds <= 0 ? 'انتهى وقتك اليومي، حاول غداً'
               : 'اضغط للتحدث مع المساعد الصوتي...'}
           </Text>
-          {isListening && (
+          {isListening ? (
             <View style={{
-              width: 8, height: 8, borderRadius: 4,
-              backgroundColor: '#E52222',
-            }} />
-          )}
+              backgroundColor: 'rgba(229,34,34,0.2)', borderRadius: 8,
+              paddingHorizontal: 8, paddingVertical: 3,
+            }}>
+              <Text style={{ color: '#E52222', fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] }}>
+                {`${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, '0')}`}
+              </Text>
+            </View>
+          ) : remainingSeconds < DAILY_LIMIT_SECONDS ? (
+            <Text style={{ color: '#999', fontSize: 11, fontWeight: '600' }}>
+              {`${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, '0')}`}
+            </Text>
+          ) : null}
         </Pressable>
 
         {/* Error message for bar variant */}
