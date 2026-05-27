@@ -32,9 +32,10 @@ type VoiceAssistantProps = {
   onNavigate?: (page: string, params?: Record<string, string>) => void;
   onSearch?: (query: string) => void;
   onNavigateToStore?: (platform: string, query: string) => void;
+  variant?: 'fab' | 'bar';
 };
 
-export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStore }: VoiceAssistantProps) {
+export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStore, variant = 'fab' }: VoiceAssistantProps) {
   const [isListening, setIsListening] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -338,6 +339,61 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
       startSession();
     }
   }, [isListening, startSession, stopSession]);
+
+  if (variant === 'bar') {
+    return (
+      <View>
+        {/* Bar-style voice assistant */}
+        <Pressable
+          onPress={toggleSession}
+          disabled={isConnecting}
+          style={({ pressed }) => ({
+            flexDirection: 'row', alignItems: 'center',
+            backgroundColor: isListening ? '#1a1a1a' : '#f5f5f5',
+            borderRadius: 16, borderWidth: 1,
+            borderColor: isListening ? '#E52222' : '#e5e5e5',
+            paddingHorizontal: 16, height: 52, gap: 12,
+            opacity: pressed ? 0.85 : 1,
+          })}
+        >
+          <View style={{
+            width: 36, height: 36, borderRadius: 18,
+            backgroundColor: isListening ? '#E52222' : '#E52222',
+            alignItems: 'center', justifyContent: 'center',
+          }}>
+            {isConnecting ? (
+              <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>...</Text>
+            ) : isListening ? (
+              <MicOff size={18} color="#fff" />
+            ) : (
+              <Mic size={18} color="#fff" />
+            )}
+          </View>
+          <Text style={{
+            flex: 1, fontSize: 15, fontWeight: '500',
+            color: isListening ? '#fff' : '#aaaaaa',
+          }}>
+            {isConnecting ? 'جاري الاتصال...'
+              : isListening ? (transcript || aiResponse || 'أتكلم... اضغط للإيقاف')
+              : 'اضغط للتحدث مع المساعد الصوتي...'}
+          </Text>
+          {isListening && (
+            <View style={{
+              width: 8, height: 8, borderRadius: 4,
+              backgroundColor: '#E52222',
+            }} />
+          )}
+        </Pressable>
+
+        {/* Error message for bar variant */}
+        {error && (
+          <View style={{ backgroundColor: '#FEE2E2', borderRadius: 8, padding: 10, marginTop: 6 }}>
+            <Text style={{ fontSize: 11, color: '#DC2626', textAlign: 'right' }}>{error}</Text>
+          </View>
+        )}
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

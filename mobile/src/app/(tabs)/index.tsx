@@ -399,7 +399,7 @@ export default function SearchScreen() {
           </Text>
         </View>
         <Text style={{ color: '#999999', fontSize: 12, fontWeight: '500', letterSpacing: 1.2, marginLeft: 44 }}>
-          eBay · Amazon · Walmart · Taobao · 1688 · Temu · iHerb
+          eBay · Amazon · Walmart · Taobao · 1688 · iHerb
         </Text>
       </View>
 
@@ -423,65 +423,28 @@ export default function SearchScreen() {
         </View>
       ) : null}
 
-      {/* Search bar */}
+      {/* Voice Assistant Bar */}
       <View style={{ paddingHorizontal: 16, paddingBottom: 10 }}>
-        <View style={{
-          flexDirection: 'row', alignItems: 'center',
-          backgroundColor: '#f5f5f5', borderRadius: 16,
-          borderWidth: 1, borderColor: '#e5e5e5',
-          paddingHorizontal: 14, height: 52, gap: 10,
-        }}>
-          {isBusy ? <ActivityIndicator size="small" color="#E52222" /> : barIcon}
-          <TextInput
-            ref={inputRef}
-            testID="search-input"
-            value={inputValue}
-            onChangeText={(t) => { setInputValue(t); if (searchMode !== 'url') setSearchMode(null); }}
-            onSubmitEditing={handleSubmit}
-            placeholder={placeholder}
-            placeholderTextColor="#aaaaaa"
-            returnKeyType="search"
-            editable={searchMode !== 'image'}
-            style={{ flex: 1, color: '#1a1a1a', fontSize: 15, paddingVertical: 0 }}
-            selectionColor="#E52222"
-          />
-          {inputValue.length > 0 ? (
-            <Pressable onPress={handleClear} hitSlop={8}>
-              <View style={{
-                width: 20, height: 20, borderRadius: 10,
-                backgroundColor: '#e0e0e0', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <X size={12} color="#666666" strokeWidth={2.5} />
-              </View>
-            </Pressable>
-          ) : null}
-          {Platform.OS === 'web' && searchMode === 'url' && inputValue.length === 0 ? (
-            <Pressable
-              onPress={handleWebPaste}
-              style={({ pressed }) => ({
-                paddingHorizontal: 10, paddingVertical: 5,
-                backgroundColor: '#f0f0f0', borderRadius: 8,
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <Text style={{ color: '#555', fontSize: 12, fontWeight: '600' }}>لصق</Text>
-            </Pressable>
-          ) : null}
-          <Pressable
-            testID="search-button"
-            onPress={handleSubmit}
-            disabled={isBusy}
-            style={({ pressed }) => ({
-              backgroundColor: '#E52222', borderRadius: 10,
-              paddingHorizontal: 16, paddingVertical: 8,
-              opacity: pressed || isBusy ? 0.6 : 1,
-            })}
-          >
-            <Text style={{ color: '#ffffff', fontSize: 13, fontWeight: '700' }}>
-              {submitLabel}
-            </Text>
-          </Pressable>
-        </View>
+        <VoiceAssistant
+          variant="bar"
+          context={{
+            currentPage: hasSearched ? 'search' : 'home',
+            searchQuery: submittedQuery,
+          }}
+          onSearch={(query) => {
+            setInputValue(query);
+            setSubmittedQuery(query);
+          }}
+          onNavigate={(page, params) => {
+            if (page === 'search' && params?.query) {
+              setInputValue(params.query);
+              setSubmittedQuery(params.query);
+            }
+          }}
+          onNavigateToStore={(platform, query) => {
+            router.push({ pathname: '/store', params: { platform, query } });
+          }}
+        />
       </View>
 
       {/* Search mode tabs — image & url only */}
@@ -794,26 +757,6 @@ export default function SearchScreen() {
         />
       )}
 
-      {/* Voice Assistant */}
-      <VoiceAssistant
-        context={{
-          currentPage: hasSearched ? 'search' : 'home',
-          searchQuery: submittedQuery,
-        }}
-        onSearch={(query) => {
-          setInputValue(query);
-          setSubmittedQuery(query);
-        }}
-        onNavigate={(page, params) => {
-          if (page === 'search' && params?.query) {
-            setInputValue(params.query);
-            setSubmittedQuery(params.query);
-          }
-        }}
-        onNavigateToStore={(platform, query) => {
-          router.push({ pathname: '/store', params: { platform, query } });
-        }}
-      />
     </View>
   );
 }
