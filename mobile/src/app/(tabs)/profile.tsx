@@ -1,11 +1,11 @@
 import { Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LogOut, User, Mail } from 'lucide-react-native';
+import { User, Mail } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth-context';
 
 export default function ProfileScreen() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
 
   return (
@@ -59,30 +59,6 @@ export default function ProfileScreen() {
             <Text style={{ color: '#555555', fontSize: 14, flex: 1 }}>{user.email}</Text>
           </View>
 
-          {/* Sign out */}
-          <Pressable
-            testID="sign-out-button"
-            onPress={async () => {
-              await signOut();
-            }}
-            style={({ pressed }) => ({
-              backgroundColor: '#fff5f5',
-              borderRadius: 12,
-              padding: 16,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 12,
-              borderWidth: 1,
-              borderColor: '#fde8e8',
-              opacity: pressed ? 0.7 : 1,
-              marginTop: 8,
-            })}
-          >
-            <LogOut size={18} color="#f87171" />
-            <Text style={{ color: '#f87171', fontSize: 14, fontWeight: '600' }}>
-              تسجيل الخروج
-            </Text>
-          </Pressable>
         </View>
       ) : (
         <View
