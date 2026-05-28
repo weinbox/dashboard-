@@ -63,12 +63,13 @@ type VoiceAssistantProps = {
   onNavigate?: (page: string, params?: Record<string, string>) => void;
   onSearch?: (query: string) => void;
   onNavigateToStore?: (platform: string, query: string) => void;
+  onNavigateToProduct?: (product: any) => void;
   onAddToCart?: (product: any) => void;
   onHandoff?: (reason: string) => void;
   variant?: 'fab' | 'bar';
 };
 
-export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStore, onAddToCart, onHandoff, variant = 'fab' }: VoiceAssistantProps) {
+export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStore, onNavigateToProduct, onAddToCart, onHandoff, variant = 'fab' }: VoiceAssistantProps) {
   const { user } = useAuth();
   const cartItems = useCartStore((s) => s.items);
   const addToCart = useCartStore((s) => s.addToCart);
@@ -269,6 +270,20 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
           }
           break;
         }
+        case 'navigate_to_product': {
+          const idx = (args.productIndex || 1) - 1;
+          const results = searchResultsRef.current;
+          if (results.length > 0 && results[idx]) {
+            const product = results[idx];
+            if (onNavigateToProduct) {
+              onNavigateToProduct(product);
+            }
+            sendFunctionResult(msg.call_id, { success: true, message: `جاري فتح صفحة "${product.title || 'المنتج'}"` });
+          } else {
+            sendFunctionResult(msg.call_id, { success: false, message: 'لا توجد نتائج بحث. ابحث أولاً ثم اطلب فتح منتج.' });
+          }
+          break;
+        }
         case 'get_product_details': {
           fetchProductDetails(args.productUrl, args.platform, msg.call_id);
           break;
@@ -329,7 +344,7 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
     } catch {
       // ignore
     }
-  }, [onSearch, onNavigate, onNavigateToStore, onAddToCart, onHandoff, context, addToCart, user]);
+  }, [onSearch, onNavigate, onNavigateToStore, onNavigateToProduct, onAddToCart, onHandoff, context, addToCart, user]);
 
   const fetchSearchResults = useCallback(async (query: string, platform: string, callId: string, minPrice?: number, maxPrice?: number) => {
     try {

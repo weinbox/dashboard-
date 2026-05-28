@@ -207,6 +207,18 @@ serve(async (req) => {
     },
     {
       type: "function",
+      name: "navigate_to_product",
+      description: "فتح صفحة منتج معين من نتائج البحث. استخدمها عندما يطلب الزبون فتح أو عرض منتج معين.",
+      parameters: {
+        type: "object",
+        properties: {
+          productIndex: { type: "number", description: "رقم المنتج من نتائج البحث (1 = الأول، 2 = الثاني...)" },
+        },
+        required: ["productIndex"],
+      },
+    },
+    {
+      type: "function",
       name: "compare_products",
       description: "مقارنة منتجين أو أكثر من نتائج البحث",
       parameters: {

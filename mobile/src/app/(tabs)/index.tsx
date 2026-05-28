@@ -452,6 +452,9 @@ export default function SearchScreen() {
           onNavigateToStore={(platform, query) => {
             router.push({ pathname: '/store', params: { platform, query } });
           }}
+          onNavigateToProduct={(product) => {
+            router.push({ pathname: '/product', params: { data: JSON.stringify(product) } });
+          }}
         />
       </View>
 
