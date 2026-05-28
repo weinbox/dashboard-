@@ -451,12 +451,6 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
       return;
     }
 
-    if (!user) {
-      setError('سجّل دخولك لاستخدام المساعد الصوتي');
-      setTimeout(() => setError(null), 3000);
-      return;
-    }
-
     setIsConnecting(true);
     setError(null);
     setTranscript('');
