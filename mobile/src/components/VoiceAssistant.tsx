@@ -317,6 +317,36 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
       dataChannelRef.current = dc;
 
       dc.onopen = () => {
+        // Send session.update with tools via data channel (cheaper than embedding in SDP)
+        dc.send(JSON.stringify({
+          type: 'session.update',
+          session: {
+            tools: [
+              {
+                type: 'function', name: 'search_products',
+                description: 'البحث عن منتجات',
+                parameters: { type: 'object', properties: { query: { type: 'string' }, platform: { type: 'string', enum: ['amazon','ebay','walmart','taobao','1688','iherb'] } }, required: ['query'] },
+              },
+              {
+                type: 'function', name: 'navigate_to_store',
+                description: 'الدخول على متجر والبحث فيه',
+                parameters: { type: 'object', properties: { platform: { type: 'string', enum: ['amazon','ebay','walmart','taobao','1688','iherb'] }, query: { type: 'string' } }, required: ['platform','query'] },
+              },
+              {
+                type: 'function', name: 'navigate_to',
+                description: 'التنقل إلى صفحة',
+                parameters: { type: 'object', properties: { page: { type: 'string', enum: ['home','search','cart','orders'] }, searchQuery: { type: 'string' } }, required: ['page'] },
+              },
+              {
+                type: 'function', name: 'calculate_price',
+                description: 'حساب السعر بالدينار العراقي',
+                parameters: { type: 'object', properties: { priceUSD: { type: 'number' }, weightKg: { type: 'number' } }, required: ['priceUSD'] },
+              },
+            ],
+            tool_choice: 'auto',
+          },
+        }));
+
         setIsListening(true);
         setIsConnecting(false);
       };
