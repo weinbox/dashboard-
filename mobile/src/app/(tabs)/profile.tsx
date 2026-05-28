@@ -1,7 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { User, Mail } from 'lucide-react-native';
+import { User, Phone } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth-context';
 
 export default function ProfileScreen() {
@@ -38,11 +38,13 @@ export default function ProfileScreen() {
             >
               <User size={36} color="#E52222" strokeWidth={1.5} />
             </View>
-            <Text style={{ color: '#1a1a1a', fontSize: 16, fontWeight: '700' }}>{user.email}</Text>
+            <Text style={{ color: '#1a1a1a', fontSize: 16, fontWeight: '700' }}>
+              {user.user_metadata?.phone || user.email?.replace(/@phone\.boxglobal\.app$/, '').replace(/^964/, '+964 ')}
+            </Text>
             <Text style={{ color: '#999999', fontSize: 12, marginTop: 4 }}>عضو في Box Global</Text>
           </View>
 
-          {/* Email row */}
+          {/* Phone row */}
           <View
             style={{
               backgroundColor: '#f5f5f5',
@@ -55,8 +57,10 @@ export default function ProfileScreen() {
               borderColor: '#e5e5e5',
             }}
           >
-            <Mail size={18} color="#999999" />
-            <Text style={{ color: '#555555', fontSize: 14, flex: 1 }}>{user.email}</Text>
+            <Phone size={18} color="#999999" />
+            <Text style={{ color: '#555555', fontSize: 14, flex: 1 }}>
+              {user.user_metadata?.phone || user.email?.replace(/@phone\.boxglobal\.app$/, '').replace(/^964/, '+964 ')}
+            </Text>
           </View>
 
         </View>
