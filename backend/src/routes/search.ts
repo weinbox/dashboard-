@@ -475,7 +475,7 @@ searchRouter.get("/", async (c) => {
 
   const normalizedQuery = englishQuery.toLowerCase();
   const sortedPlatforms = [...requestedPlatforms].sort();
-  const cacheKey = `${normalizedQuery}:${sortedPlatforms.join(",")}:p${page}`;
+  const cacheKey = `v2:${normalizedQuery}:${sortedPlatforms.join(",")}:p${page}`;
 
   // Check Supabase cache first
   try {
