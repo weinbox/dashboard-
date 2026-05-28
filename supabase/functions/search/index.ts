@@ -1,11 +1,7 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { corsHeaders, handleCors } from "../_shared/cors.ts";
 import { getSupabaseClient } from "../_shared/supabase.ts";
-import {
-  formatIQD, formatIQD_China, detectCategory, batchClassify, calcShipping,
-  USD_TO_IQD, IQD_MARKUP, CNY_TO_USD, KG_TO_LBS,
-  parseWeightKgFromTitle, defaultWeightKg,
-} from "../_shared/pricing.ts";
+import { CNY_TO_USD } from "../_shared/pricing.ts";
 import type { Product, ProductVariant } from "../_shared/types.ts";
 
 const SERPAPI_BASE = "https://serpapi.com/search";
@@ -20,14 +16,11 @@ function proxyImage(url: string | null): string | null {
   return `${fnUrl}/functions/v1/image-proxy?url=${encodeURIComponent(url)}`;
 }
 
-function parsePrice(raw: string | undefined | null, title = ""): { price: number | null; priceText: string } {
+function parsePrice(raw: string | undefined | null, _title = ""): { price: number | null; priceText: string } {
   if (!raw) return { price: null, priceText: "" };
   const numeric = parseFloat(String(raw).replace(/[^0-9.]/g, ""));
   const price = isNaN(numeric) ? null : numeric;
-  const category = detectCategory(title);
-  const weightKg = parseWeightKgFromTitle(title) ?? defaultWeightKg(category);
-  const weightLbs = weightKg * KG_TO_LBS;
-  return { price, priceText: formatIQD(price, category, weightLbs) };
+  return { price, priceText: price !== null ? `$${price.toFixed(2)}` : "" };
 }
 
 function isEnglishQuery(q: string): boolean { return /^[a-zA-Z0-9\s\-_.,!?'"()&]+$/.test(q.trim()); }
@@ -99,9 +92,7 @@ function mapChinaItem(item: any, platform: "taobao" | "1688", index: number): Pr
   const cnyPrice = typeof rawPrice === "number" ? rawPrice : parseFloat(String(rawPrice ?? ""));
   const usdPrice = isNaN(cnyPrice) ? null : cnyPrice / CNY_TO_USD;
   const title = item.title ?? item.subject ?? "";
-  const category = detectCategory(title);
-  const weightKg = parseWeightKgFromTitle(title) ?? defaultWeightKg(category);
-  const priceText = usdPrice !== null ? formatIQD_China(usdPrice, weightKg) : '';
+  const priceText = !isNaN(cnyPrice) ? `¥${cnyPrice.toFixed(0)}` : '';
   const id = String(item.num_iid ?? item.id ?? item.offerId ?? index);
   const defaultUrl = platform === "taobao" ? `https://item.taobao.com/item.htm?id=${id}` : `https://detail.1688.com/offer/${id}.html`;
   const rawImage = item.image ?? item.pic_url ?? item.imageUrl ?? null;
@@ -146,7 +137,7 @@ async function searchIherb(query: string, page = 1): Promise<Product[]> {
     const data = await res.json();
     return (data.shopping_results ?? []).filter((r: any) => (r.source ?? '').toLowerCase().includes('iherb')).map((item: any, i: number): Product => {
       const price = item.extracted_price ?? null;
-      const priceText = formatIQD(price, detectCategory(item.title ?? "")) || (item.price ?? '');
+      const priceText = price !== null ? `$${price.toFixed(2)}` : (item.price ?? '');
       return { id: `iherb-${item.position ?? i}`, title: item.title ?? '', price, priceText, image: proxyImage(item.thumbnail ?? null), platform: 'iherb', url: `https://www.iherb.com/search?kw=${encodeURIComponent(item.title ?? query)}`, rating: item.rating, reviewCount: item.reviews };
     });
   } catch { return []; }
@@ -180,7 +171,7 @@ serve(async (req) => {
 
   // Cache check
   const normalizedQuery = englishQuery.toLowerCase();
-  const cacheKey = `${normalizedQuery}:${[...requestedPlatforms].sort().join(",")}:p${page}`;
+  const cacheKey = `v2:${normalizedQuery}:${[...requestedPlatforms].sort().join(",")}:p${page}`;
   const supabase = getSupabaseClient();
 
   try {
@@ -201,28 +192,8 @@ serve(async (req) => {
   const results: Product[] = [];
   settled.forEach((outcome) => { if (outcome.status === "fulfilled") results.push(...outcome.value); });
 
-  // AI classify
-  const openaiKey = getEnv("OPENAI_API_KEY");
-  if (openaiKey && results.length > 0) {
-    try {
-      const titles = results.map(r => r.title);
-      const classified = await batchClassify(titles, openaiKey);
-      const chineseSet = new Set(['taobao', '1688']);
-      results.forEach((r, i) => {
-        const { category, weightKg } = classified[i] ?? { category: "regular" as const, weightKg: 0.5 };
-        if (r.price !== null && r.price !== undefined) {
-          if (chineseSet.has(r.platform)) {
-            r.priceText = formatIQD_China(r.price, Math.max(0.5, weightKg));
-          } else {
-            const weightLbs = Math.max(0.5, weightKg * KG_TO_LBS);
-            const shipping = calcShipping(category, weightLbs);
-            const iqd = Math.round(r.price * USD_TO_IQD * IQD_MARKUP) + shipping;
-            r.priceText = `${iqd.toLocaleString("en", { maximumFractionDigits: 0 })} دينار`;
-          }
-        }
-      });
-    } catch {}
-  }
+  // Search results now show original currency prices ($USD / ¥CNY)
+  // IQD conversion happens only on product detail page
 
   // Sort
   const platformOrder: Record<string, number> = { ebay: 0, amazon: 1, walmart: 2, taobao: 3, "1688": 4, iherb: 5 };
