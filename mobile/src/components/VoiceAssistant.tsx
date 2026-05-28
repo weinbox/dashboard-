@@ -13,6 +13,8 @@ import Animated, {
 import { Mic, MicOff, X } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { useCartStore } from '@/lib/cart';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
@@ -25,21 +27,53 @@ type PageContext = {
     price?: string;
     platform?: string;
     rating?: number;
+    url?: string;
+    id?: string;
+    image?: string;
   };
   searchQuery?: string;
-  searchResults?: Array<{ title: string; price: string; platform: string }>;
+  searchResults?: Array<{ title: string; price: string; platform: string; url?: string; id?: string; image?: string }>;
 };
+
+type VoiceMemory = {
+  name?: string;
+  preferences?: string;
+  favorite_platform?: string;
+  note?: string;
+};
+
+const MEMORY_KEY = 'voice_assistant_memory';
+
+async function loadMemory(): Promise<VoiceMemory> {
+  try {
+    const raw = await AsyncStorage.getItem(MEMORY_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+async function saveMemoryItem(key: string, value: string): Promise<VoiceMemory> {
+  const mem = await loadMemory();
+  (mem as any)[key] = value;
+  await AsyncStorage.setItem(MEMORY_KEY, JSON.stringify(mem));
+  return mem;
+}
 
 type VoiceAssistantProps = {
   context: PageContext;
   onNavigate?: (page: string, params?: Record<string, string>) => void;
   onSearch?: (query: string) => void;
   onNavigateToStore?: (platform: string, query: string) => void;
+  onAddToCart?: (product: any) => void;
+  onHandoff?: (reason: string) => void;
   variant?: 'fab' | 'bar';
 };
 
-export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStore, variant = 'fab' }: VoiceAssistantProps) {
+export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStore, onAddToCart, onHandoff, variant = 'fab' }: VoiceAssistantProps) {
   const { user } = useAuth();
+  const cartItems = useCartStore((s) => s.items);
+  const addToCart = useCartStore((s) => s.addToCart);
+  const [voiceMemory, setVoiceMemory] = useState<VoiceMemory>({});
+  const searchResultsRef = useRef<Array<any>>([]);
   const [isListening, setIsListening] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -53,6 +87,11 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   const sessionStartRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Load voice memory on mount
+  useEffect(() => {
+    loadMemory().then(setVoiceMemory);
+  }, []);
 
   // Fetch today's usage on mount / user change
   useEffect(() => {
@@ -194,13 +233,12 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
         case 'navigate_to_store':
           if (onNavigateToStore && args.platform && args.query) {
             onNavigateToStore(args.platform, args.query);
-            // Fetch search results and return them to AI
             fetchSearchResults(args.query, args.platform, msg.call_id, args.minPrice, args.maxPrice);
           } else {
             sendFunctionResult(msg.call_id, { success: true, message: `تم الدخول على ${args.platform}` });
           }
           break;
-        case 'calculate_price':
+        case 'calculate_price': {
           const priceIQD = Math.round((args.priceUSD || 0) * 1350 * 1.2);
           const shipping = Math.round((args.weightKg || 0.5) * 2.2 * 8900);
           const total = priceIQD + shipping;
@@ -210,13 +248,88 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
             breakdown: { productPrice: priceIQD, shipping },
           });
           break;
+        }
+        case 'add_to_cart': {
+          const product = context.productInfo;
+          if (product && product.title) {
+            const cartProduct = {
+              id: product.id || `voice-${Date.now()}`,
+              title: product.title,
+              price: product.price ? parseFloat(String(product.price).replace(/[^0-9.]/g, '')) : null,
+              priceText: product.price || '',
+              image: product.image || null,
+              platform: (product.platform || 'amazon') as any,
+              url: product.url || '',
+            };
+            addToCart(cartProduct);
+            if (onAddToCart) onAddToCart(cartProduct);
+            sendFunctionResult(msg.call_id, { success: true, message: `تمت إضافة "${product.title}" للسلة` });
+          } else {
+            sendFunctionResult(msg.call_id, { success: false, message: 'لا يوجد منتج حالي لإضافته. افتح صفحة منتج أولاً.' });
+          }
+          break;
+        }
+        case 'get_product_details': {
+          fetchProductDetails(args.productUrl, args.platform, msg.call_id);
+          break;
+        }
+        case 'compare_products': {
+          const indices = args.productIndices || [];
+          const results = searchResultsRef.current;
+          if (results.length === 0) {
+            sendFunctionResult(msg.call_id, { success: false, message: 'لا توجد نتائج بحث للمقارنة. ابحث أولاً.' });
+          } else {
+            const selected = indices.map((i: number) => results[i - 1]).filter(Boolean);
+            if (selected.length < 2) {
+              sendFunctionResult(msg.call_id, { success: false, message: 'اختر منتجين على الأقل للمقارنة.' });
+            } else {
+              const comparison = selected.map((p: any, idx: number) => ({
+                rank: indices[idx],
+                title: p.title || 'بدون عنوان',
+                price: p.priceText || p.price || 'غير محدد',
+                platform: p.platform,
+                rating: p.rating || 'غير متوفر',
+              }));
+              sendFunctionResult(msg.call_id, { success: true, products: comparison });
+            }
+          }
+          break;
+        }
+        case 'get_recommendations': {
+          fetchRecommendations(args.category, args.budget, msg.call_id);
+          break;
+        }
+        case 'save_memory': {
+          saveMemoryItem(args.key, args.value).then((mem) => {
+            setVoiceMemory(mem);
+            sendFunctionResult(msg.call_id, { success: true, message: `تم حفظ ${args.key}: ${args.value}` });
+          });
+          break;
+        }
+        case 'handoff_to_human': {
+          if (onHandoff) onHandoff(args.reason);
+          sendFunctionResult(msg.call_id, {
+            success: true,
+            message: 'تم تسجيل طلبك. فريق الدعم سيتواصل معك عبر الواتساب خلال دقائق.',
+            whatsapp: 'https://wa.me/9647800000000',
+          });
+          // Log handoff request
+          if (user) {
+            supabase.from('handoff_requests').insert({
+              user_id: user.id,
+              reason: args.reason,
+              context: JSON.stringify({ page: context.currentPage, product: context.productInfo }),
+            }).then(() => {});
+          }
+          break;
+        }
         default:
           sendFunctionResult(msg.call_id, { error: 'Unknown function' });
       }
     } catch {
       // ignore
     }
-  }, [onSearch, onNavigate, onNavigateToStore]);
+  }, [onSearch, onNavigate, onNavigateToStore, onAddToCart, onHandoff, context, addToCart, user]);
 
   const fetchSearchResults = useCallback(async (query: string, platform: string, callId: string, minPrice?: number, maxPrice?: number) => {
     try {
@@ -233,6 +346,7 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
       }
       const json = await res.json();
       const results = (json?.data?.results ?? []).slice(0, 8);
+      searchResultsRef.current = results;
       const summary = results.map((r: any, i: number) => ({
         rank: i + 1,
         title: r.title || 'بدون عنوان',
@@ -247,6 +361,64 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
       });
     } catch {
       sendFunctionResult(callId, { success: true, message: `تم الدخول على ${platform} والبحث عن: ${query}` });
+    }
+  }, []);
+
+  const fetchProductDetails = useCallback(async (productUrl: string, platform: string, callId: string) => {
+    try {
+      const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL || SUPABASE_URL;
+      const res = await fetch(`${baseUrl}/product?url=${encodeURIComponent(productUrl)}&platform=${platform}`, {
+        headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'apikey': SUPABASE_ANON_KEY },
+      });
+      if (!res.ok) {
+        sendFunctionResult(callId, { success: false, message: 'لم نتمكن من جلب تفاصيل المنتج.' });
+        return;
+      }
+      const json = await res.json();
+      const p = json?.data;
+      sendFunctionResult(callId, {
+        success: true,
+        title: p?.title || '',
+        priceIQD: p?.priceText || p?.price || 'غير محدد',
+        shippingIQD: p?.shippingText || '',
+        totalIQD: p?.totalText || '',
+        rating: p?.rating || null,
+        platform,
+      });
+    } catch {
+      sendFunctionResult(callId, { success: false, message: 'فشل جلب تفاصيل المنتج.' });
+    }
+  }, []);
+
+  const fetchRecommendations = useCallback(async (category: string, budget: string | undefined, callId: string) => {
+    try {
+      const baseUrl = process.env.EXPO_PUBLIC_BACKEND_URL || SUPABASE_URL;
+      const platforms = ['amazon', 'ebay'];
+      const res = await fetch(`${baseUrl}/search?q=${encodeURIComponent(category + ' best seller')}&platforms=${platforms.join(',')}&page=1`, {
+        headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'apikey': SUPABASE_ANON_KEY },
+      });
+      if (!res.ok) {
+        sendFunctionResult(callId, { success: false, message: 'لم نتمكن من جلب التوصيات.' });
+        return;
+      }
+      const json = await res.json();
+      const results = (json?.data?.results ?? []).slice(0, 5);
+      searchResultsRef.current = results;
+      const recs = results.map((r: any, i: number) => ({
+        rank: i + 1,
+        title: r.title || '',
+        price: r.priceText || r.price || 'غير محدد',
+        platform: r.platform,
+        rating: r.rating || null,
+      }));
+      sendFunctionResult(callId, {
+        success: true,
+        category,
+        budget: budget || 'غير محدد',
+        recommendations: recs,
+      });
+    } catch {
+      sendFunctionResult(callId, { success: false, message: 'فشل جلب التوصيات.' });
     }
   }, []);
 
@@ -360,7 +532,14 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
 
       const sdpOffer = pc.localDescription!.sdp;
 
-      // 4. Send SDP to backend (unified interface)
+      // 4. Send SDP to backend (unified interface) with enriched context
+      const enrichedContext = {
+        ...context,
+        sdp: sdpOffer,
+        cartItems: cartItems.map(c => ({ title: c.title, price: c.priceText, platform: c.platform })),
+        cartTotal: cartItems.length > 0 ? `${cartItems.length} منتج` : '',
+        memory: voiceMemory,
+      };
       const res = await fetch(`${SUPABASE_URL}/functions/v1/realtime-token`, {
         method: 'POST',
         headers: {
@@ -368,7 +547,7 @@ export function VoiceAssistant({ context, onNavigate, onSearch, onNavigateToStor
           'apikey': SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...context, sdp: sdpOffer }),
+        body: JSON.stringify(enrichedContext),
       });
 
       if (!res.ok) {
