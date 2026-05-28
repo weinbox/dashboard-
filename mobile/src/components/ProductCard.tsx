@@ -237,7 +237,6 @@ export function ProductCard({ product, style }: ProductCardProps) {
         <View style={{ marginTop: 6, flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
           {product.priceText ? (
             <>
-              <Text style={{ color: '#565959', fontSize: 10 }}>السعر:</Text>
               <Text style={{ color: '#B12704', fontSize: 16, fontWeight: '700' }}>
                 {product.priceText}
               </Text>
