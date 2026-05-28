@@ -78,31 +78,37 @@ export async function batchClassify(titles: string[], openaiApiKey: string): Pro
 
   if (uncachedIdx.length === 0) return results;
 
-  const prompt = `For each product title below, classify its shipping category and estimate its shipping weight in kg.
+  const prompt = `For each product title below, classify its shipping category and estimate its TOTAL shipping weight in kg (product + packaging).
+IMPORTANT: Always estimate weight on the HIGHER side to avoid undercharging. Include packaging weight (~0.2-0.5 kg extra).
 
 Categories:
-- "mobile" — smartphones, iPhones, any mobile phone (~0.2 kg)
-- "laptop" — laptops, notebooks, MacBooks, Chromebooks (~2 kg)
-- "perfume" — perfumes, colognes, fragrances (~0.3 kg)
+- "mobile" — smartphones, iPhones, any mobile phone (~0.3 kg with box)
+- "laptop" — laptops, notebooks, MacBooks, Chromebooks (~2.5 kg with box)
+- "perfume" — perfumes, colognes, fragrances (~0.5 kg with box)
 - "supplement" — protein powder, vitamins, creatine, BCAA, fish oil, pre-workout (~varies)
-- "hazardous" — lithium batteries, lipo batteries, flammables (~0.5 kg)
+- "hazardous" — lithium batteries, lipo batteries, flammables (~0.7 kg)
 - "regular" — everything else
 
-Weight rules:
-- If the title explicitly mentions weight/size (e.g. "5 lbs", "2kg", "500g"), use that exact weight
-- For clothing: shirt/t-shirt=0.3, jeans=0.6, shoes=0.9, jacket=0.8, underwear pack=0.4
-- For bags/backpacks: small=0.5, medium=0.9, large=1.3 (use volume clues like "34L")
-- For supplements: look for weight in title (e.g. "5 lbs" = 2.27, "1 lb" = 0.45, default=0.9)
-- For books: paperback=0.3, hardcover=0.6
-- For toys/games: small=0.3, medium=0.6, large=1.2
-- For tools: small=0.5, medium=1.5, large=3.0
+Weight rules (INCLUDE packaging, estimate HIGH):
+- If the title mentions weight (e.g. "5 lbs", "2kg", "500g"), use that + 0.3 kg for packaging
+- Clothing: shirt=0.4, jeans=0.8, shoes=1.2, jacket=1.1, underwear pack=0.5, dress=0.6
+- Bags/backpacks: small=0.8, medium=1.3, large=1.8, suitcase=3.5
+- Supplements: use weight from title + 0.3, default=1.2
+- Electronics: headphones=0.5, speaker=1.5, tablet=0.8, monitor=5.0, keyboard=1.0, mouse=0.3
+- Kitchen: small appliance=2.0, cookware=2.5, utensils=0.8
+- Books: paperback=0.4, hardcover=0.8, textbook=1.2
+- Toys/games: small=0.5, medium=1.0, large=1.8, board game=1.2
+- Tools: hand tool=0.8, power tool=2.5, drill=2.0
+- Beauty/skincare: cream=0.4, set=0.8, device=0.6
+- Home/furniture: pillow=1.0, blanket=1.5, small decor=0.8, lamp=1.5
+- Sports: small gear=0.6, medium=1.5, large=3.0
 - Minimum weight: 0.5 kg
 
 Products:
 ${uncachedIdx.map((i, n) => `${n + 1}. ${titles[i]}`).join("\n")}
 
 Reply with ONLY a JSON array of objects, same count as products.
-Example: [{"cat":"regular","kg":0.5},{"cat":"mobile","kg":0.18},{"cat":"supplement","kg":2.27}]`;
+Example: [{"cat":"regular","kg":0.7},{"cat":"mobile","kg":0.3},{"cat":"supplement","kg":2.57}]`;
 
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -112,7 +118,7 @@ Example: [{"cat":"regular","kg":0.5},{"cat":"mobile","kg":0.18},{"cat":"suppleme
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
         temperature: 0,
-        max_tokens: 600,
+        max_tokens: 1200,
       }),
     });
 

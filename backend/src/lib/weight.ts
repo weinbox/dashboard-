@@ -47,12 +47,12 @@ export function parseWeightKgFromTitle(title: string): number | null {
 // Layer 4: Category-based default weights (fallback when no other info available)
 export function defaultWeightKg(category: ProductCategory): number {
   switch (category) {
-    case "mobile":     return 0.2;   // ~200g for smartphone
-    case "laptop":     return 2.0;   // ~2kg for laptop
-    case "perfume":    return 0.3;   // ~300g for perfume bottle
-    case "supplement": return 1.0;   // ~1kg default for supplements
-    case "hazardous":  return 0.5;   // ~500g
-    case "regular":    return 0.5;   // ~500g generic
+    case "mobile":     return 0.3;   // ~300g with box
+    case "laptop":     return 2.5;   // ~2.5kg with box
+    case "perfume":    return 0.5;   // ~500g with box
+    case "supplement": return 1.2;   // ~1.2kg with packaging
+    case "hazardous":  return 0.7;   // ~700g
+    case "regular":    return 0.7;   // ~700g with packaging
   }
 }
 

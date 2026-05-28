@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { env } from "../env";
 import type { Product } from "../types";
-import { searchAmazon, searchEbay, searchWalmart, searchTaobao, search1688, searchTemu, searchIherb } from "./search";
+import { searchAmazon, searchEbay, searchWalmart, searchTaobao, search1688, searchIherb } from "./search";
 
 const imageSearchRouter = new Hono();
 
@@ -154,7 +154,6 @@ imageSearchRouter.get("/", async (c) => {
       walmart: () => searchWalmart(query),
       taobao: () => searchTaobao(query),
       "1688": () => search1688(query),
-      temu: () => searchTemu(query),
       iherb: () => searchIherb(first5Words(query)),
     });
 

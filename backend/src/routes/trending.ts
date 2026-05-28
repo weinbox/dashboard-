@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { getTopTrending, updateTrendingCache } from "../lib/db";
-import { searchAmazon, searchEbay, searchWalmart, searchTaobao, search1688, searchTemu } from "./search";
+import { searchAmazon, searchEbay, searchWalmart, searchTaobao, search1688 } from "./search";
 import type { Product } from "../types";
 
 const trendingRouter = new Hono();
@@ -11,7 +11,6 @@ const platformSearchers: Record<string, (query: string) => Promise<Product[]>> =
   walmart: searchWalmart,
   taobao: searchTaobao,
   "1688": search1688,
-  temu: searchTemu,
 };
 
 async function fetchFreshProducts(query: string, platforms: string[]): Promise<Product[]> {

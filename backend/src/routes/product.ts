@@ -171,10 +171,14 @@ async function fetchAmazonDetail(asin: string): Promise<ProductDetail> {
   const rawPriceNum = parseFloat(String(p.price ?? "").replace(/[^0-9.]/g, ""));
   const amazonTitle = p.title ?? "";
   const amazonCategory = detectCategory(amazonTitle);
-  const amazonWeightKg =
+  const PACKAGING_KG = 0.3;
+  const rawAmazonWeightKg =
     parseWeightKgFromSpecs(specifications) ??
     parseWeightKgFromTitle(amazonTitle) ??
-    defaultWeightKg(amazonCategory);
+    null;
+  const amazonWeightKg = rawAmazonWeightKg !== null
+    ? rawAmazonWeightKg + PACKAGING_KG
+    : defaultWeightKg(amazonCategory);
   const amazonWeightLbs = Math.max(0.5, amazonWeightKg * KG_TO_LBS);
   const priceText = formatIQD(isNaN(rawPriceNum) ? null : rawPriceNum, amazonCategory, amazonWeightLbs);
 
@@ -242,10 +246,14 @@ async function fetchWalmartDetail(productId: string): Promise<ProductDetail> {
   const currentPrice = p.price_map?.price ?? null;
   const walmartTitle = p.title ?? "";
   const walmartCategory = detectCategory(walmartTitle);
-  const walmartWeightKg =
+  const PACKAGING_KG_W = 0.3;
+  const rawWalmartWeightKg =
     parseWeightKgFromSpecs(specifications) ??
     parseWeightKgFromTitle(walmartTitle) ??
-    defaultWeightKg(walmartCategory);
+    null;
+  const walmartWeightKg = rawWalmartWeightKg !== null
+    ? rawWalmartWeightKg + PACKAGING_KG_W
+    : defaultWeightKg(walmartCategory);
   const walmartWeightLbs = Math.max(0.5, walmartWeightKg * KG_TO_LBS);
   const priceText = formatIQD(currentPrice, walmartCategory, walmartWeightLbs);
 
