@@ -28,6 +28,7 @@ serve(async (req) => {
   const currentPage = (context.currentPage as string) || "home";
   const productInfo = context.productInfo as Record<string, unknown> | undefined;
   const searchQuery = (context.searchQuery as string) || "";
+  const searchResults = (context.searchResults as Array<Record<string, unknown>>) || [];
   const cartItems = (context.cartItems as Array<Record<string, unknown>>) || [];
   const cartTotal = (context.cartTotal as string) || "";
   const memory = (context.memory as Record<string, unknown>) || {};
@@ -39,11 +40,11 @@ serve(async (req) => {
 المواقع المتاحة: Amazon, eBay, Walmart, Taobao, 1688, iHerb.
 
 ## قواعد إلزامية:
+- تكلّم عن الصفحة الحالية اللي الزبون فيها. لا تتجاهل السياق.
 - عندما يطلب الزبون بحث عن منتج: اسأله "من أي موقع تحب؟" ثم نفّذ navigate_to_store فوراً.
 - إذا ذكر الموقع مباشرة: نفّذ navigate_to_store بدون سؤال.
-- لا تشرح كيف يبحث. لا تقترح. نفّذ الأداة مباشرة.
-- أجب بجملة أو اثنتين فقط. لا ثرثرة.
-- يجب أن تستخدم الأدوات (tools) لتنفيذ الطلبات. لا ترد بالكلام فقط.
+- نفّذ الأداة مباشرة. لا تشرح كيف يبحث.
+- يجب أن تستخدم الأدوات (tools) لتنفيذ الطلبات.
 - إذا طلب الزبون إضافة منتج للسلة: استخدم add_to_cart.
 - إذا سأل عن تفاصيل منتج أو سعره بالدينار: استخدم get_product_details.
 - إذا أراد مقارنة منتجات: استخدم compare_products.
@@ -67,11 +68,61 @@ serve(async (req) => {
   }
 
   if (currentPage === "product" && productInfo) {
-    instructions += `\nالزبون يشوف منتج: ${productInfo.title || ""} - ${productInfo.price || ""} (${productInfo.platform || ""}). اسأله إذا يبي يضيفه للسلة أو يعرف سعره بالدينار.`;
-  } else if (currentPage === "search" && searchQuery) {
-    instructions += `\nالزبون بحث عن: "${searchQuery}". اسأله من أي موقع يريد ونفّذ navigate_to_store.`;
+    // Product page — rich context
+    instructions += `\n\n## الزبون حالياً في صفحة منتج:`;
+    instructions += `\nالعنوان: ${productInfo.title || "غير معروف"}`;
+    instructions += `\nالسعر: ${productInfo.price || "غير محدد"}`;
+    instructions += `\nالمنصة: ${productInfo.platform || ""}`;
+    if (productInfo.brand) instructions += `\nالماركة: ${productInfo.brand}`;
+    if (productInfo.rating) instructions += `\nالتقييم: ${productInfo.rating}/5${productInfo.reviewCount ? ` (${productInfo.reviewCount} تقييم)` : ''}`;
+    if (productInfo.availability) instructions += `\nالتوفر: ${productInfo.availability}`;
+    if (productInfo.aboutItem) {
+      const aboutItems = productInfo.aboutItem as string[];
+      if (aboutItems.length > 0) {
+        instructions += `\nعن المنتج: ${aboutItems.slice(0, 4).join(' | ')}`;
+      }
+    }
+    if (productInfo.specifications) {
+      const specs = productInfo.specifications as Array<{name: string; value: string}>;
+      if (specs.length > 0) {
+        instructions += `\nالمواصفات: ${specs.slice(0, 5).map(s => `${s.name}: ${s.value}`).join(', ')}`;
+      }
+    }
+    if (productInfo.description) {
+      const desc = String(productInfo.description).slice(0, 200);
+      instructions += `\nالوصف: ${desc}`;
+    }
+    instructions += `\n\n## تصرّفك في صفحة المنتج:
+- رحّب واشرح للزبون عن المنتج بشكل مختصر وجذاب (اسمه، ماركته، سعره، ميزاته الرئيسية).
+- اسأله إذا يبي يضيفه للسلة أو يعرف سعره بالدينار العراقي.
+- إذا سأل عن المنتج أجبه من المعلومات الموجودة عندك.
+- إذا طلب مقارنة: اقترح عليه البحث عن بدائل واستخدم compare_products.
+- كن متحمس وأبدع بوصف المنتج!`;
+
+  } else if (currentPage === "search" && (searchQuery || searchResults.length > 0)) {
+    // Search results page
+    instructions += `\n\n## الزبون حالياً في صفحة نتائج البحث:`;
+    if (searchQuery) instructions += `\nبحث عن: "${searchQuery}"`;
+    if (searchResults.length > 0) {
+      instructions += `\nعدد النتائج: ${searchResults.length} منتج`;
+      instructions += `\nالنتائج:`;
+      searchResults.slice(0, 6).forEach((r: any, i: number) => {
+        instructions += `\n${i + 1}. ${r.title || "بدون عنوان"} - ${r.price || "غير محدد"} (${r.platform || ""})`;
+      });
+    }
+    instructions += `\n\n## تصرّفك في صفحة البحث:
+- أخبر الزبون بملخص سريع عن النتائج (مثلاً "لكيتلك ${searchResults.length} نتيجة").
+- اذكر أفضل المنتجات بالاسم والسعر.
+- اسأله إذا يبي تفاصيل عن منتج معين أو يبي يقارن بين اثنين.
+- إذا طلب منتج بعينه: وجّهه لفتحه.
+- إذا مو راضي عن النتائج: اسأله يبي يبحث بموقع ثاني.`;
+
   } else {
-    instructions += `\nرحّب بجملة قصيرة${userName ? ` وسمّه ${userName}` : ''} واسأله شنو يبحث.`;
+    // Home page
+    instructions += `\n\n## الزبون في الصفحة الرئيسية:
+- رحّب بجملة قصيرة${userName ? ` وسمّه ${userName}` : ''}.
+- اسأله شنو يدوّر أو شنو يحتاج اليوم.
+- اقترح عليه يبحث عن شي أو يتصفح المتاجر.`;
   }
 
   // Tools that the voice agent can call

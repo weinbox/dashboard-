@@ -1140,8 +1140,18 @@ export default function ProductScreen() {
             price: detail?.price || product.priceText,
             platform: product.platform,
             rating: detail?.rating ?? undefined,
-          },
+            url: product.url,
+            id: product.id,
+            image: product.image || undefined,
+            description: detail?.description || undefined,
+            aboutItem: detail?.aboutItem || undefined,
+            specifications: detail?.specifications || undefined,
+            brand: detail?.brand || undefined,
+            availability: detail?.availability || undefined,
+            reviewCount: detail?.reviewCount ?? undefined,
+          } as any,
         }}
+        onAddToCart={() => {}}
       />
     </SafeAreaView>
   );

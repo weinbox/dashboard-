@@ -430,6 +430,14 @@ export default function SearchScreen() {
           context={{
             currentPage: hasSearched ? 'search' : 'home',
             searchQuery: submittedQuery,
+            searchResults: hasSearched ? baseResults.slice(0, 6).map(r => ({
+              title: r.title,
+              price: r.priceText || '',
+              platform: r.platform,
+              url: r.url,
+              id: r.id,
+              image: r.image || undefined,
+            })) : undefined,
           }}
           onSearch={(query) => {
             setInputValue(query);
