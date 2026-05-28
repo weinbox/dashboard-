@@ -29,19 +29,80 @@ serve(async (req) => {
   const productInfo = context.productInfo as Record<string, unknown> | undefined;
   const searchQuery = (context.searchQuery as string) || "";
 
-  // Build concise system instructions to minimize token cost
-  let instructions = `أنت مساعد BoxBuy. تتكلم عراقي مختصر.
-المواقع: Amazon, eBay, Walmart, Taobao, 1688, iHerb.
-عند طلب بحث: اسأل "من أي موقع؟" ثم استخدم navigate_to_store. إذا ذكر الموقع، ادخل مباشرة.
-استخدم الأدوات بدل الشرح المطوّل.`;
+  // Build instructions optimized for mini model — explicit tool usage commands
+  let instructions = `أنت مساعد BoxBuy الصوتي. تتكلم عراقي مختصر وودود.
+المواقع المتاحة: Amazon, eBay, Walmart, Taobao, 1688, iHerb.
+
+## قواعد إلزامية:
+- عندما يطلب الزبون بحث عن منتج: اسأله "من أي موقع تحب؟" ثم نفّذ navigate_to_store فوراً.
+- إذا ذكر الموقع مباشرة: نفّذ navigate_to_store بدون سؤال.
+- لا تشرح كيف يبحث. لا تقترح. نفّذ الأداة مباشرة.
+- أجب بجملة أو اثنتين فقط. لا ثرثرة.
+- يجب أن تستخدم الأدوات (tools) لتنفيذ الطلبات. لا ترد بالكلام فقط.`;
 
   if (currentPage === "product" && productInfo) {
-    instructions += `\nالزبون يشوف: ${productInfo.title || ""} - ${productInfo.price || ""} (${productInfo.platform || ""}). اسأله شلون تساعده.`;
+    instructions += `\nالزبون يشوف منتج: ${productInfo.title || ""} - ${productInfo.price || ""} (${productInfo.platform || ""}). اسأله شلون تساعده.`;
   } else if (currentPage === "search" && searchQuery) {
-    instructions += `\nالزبون بحث عن: "${searchQuery}". اسأله من أي موقع يريد.`;
+    instructions += `\nالزبون بحث عن: "${searchQuery}". اسأله من أي موقع يريد ونفّذ navigate_to_store.`;
   } else {
     instructions += `\nرحّب بجملة قصيرة واسأله شنو يبحث.`;
   }
+
+  // Tools that the voice agent can call
+  const tools = [
+    {
+      type: "function",
+      name: "navigate_to_store",
+      description: "الدخول على موقع/متجر معين والبحث فيه. استخدم هذه الأداة دائماً عندما يطلب الزبون البحث عن منتج.",
+      parameters: {
+        type: "object",
+        properties: {
+          platform: { type: "string", enum: ["amazon", "ebay", "walmart", "taobao", "1688", "iherb"], description: "الموقع" },
+          query: { type: "string", description: "كلمة البحث" },
+        },
+        required: ["platform", "query"],
+      },
+    },
+    {
+      type: "function",
+      name: "search_products",
+      description: "البحث عن منتجات عامة",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "كلمة البحث" },
+          platform: { type: "string", enum: ["amazon", "ebay", "walmart", "taobao", "1688", "iherb"] },
+        },
+        required: ["query"],
+      },
+    },
+    {
+      type: "function",
+      name: "navigate_to",
+      description: "التنقل إلى صفحة",
+      parameters: {
+        type: "object",
+        properties: {
+          page: { type: "string", enum: ["home", "search", "cart", "orders"] },
+          searchQuery: { type: "string" },
+        },
+        required: ["page"],
+      },
+    },
+    {
+      type: "function",
+      name: "calculate_price",
+      description: "حساب السعر بالدينار العراقي",
+      parameters: {
+        type: "object",
+        properties: {
+          priceUSD: { type: "number" },
+          weightKg: { type: "number" },
+        },
+        required: ["priceUSD"],
+      },
+    },
+  ];
 
   // Check if this is an SDP offer (unified interface for WebRTC)
   const sdpOffer = context.sdp as string | undefined;
@@ -58,6 +119,8 @@ serve(async (req) => {
     model: "gpt-realtime-mini",
     audio: { output: { voice: "alloy" } },
     instructions,
+    tools,
+    tool_choice: "auto",
   });
 
   try {
