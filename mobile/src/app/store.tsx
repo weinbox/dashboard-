@@ -563,80 +563,80 @@ const STORE_CONFIG: Record<string, {
     label: 'eBay', bg: '#E53238', headerText: '#fff', accentColor: '#E53238',
     categories: [
       { icon: '📱', label: 'إلكترونيات', query: 'electronics', subcategories: [
-        { icon: '💻', label: 'لابتوب', query: 'laptops ebay', count: 74, bgColor: '#D4CAFF' },
-        { icon: '📱', label: 'جوالات', query: 'smartphones ebay', count: 132, bgColor: '#FFB8C8' },
-        { icon: '🎧', label: 'سماعات', query: 'headphones ebay', count: 58, bgColor: '#C8E8FF' },
-        { icon: '🎮', label: 'ألعاب', query: 'gaming ebay', count: 89, bgColor: '#C8FFE0' },
+        { icon: '💻', label: 'لابتوب', query: 'laptops', count: 74, bgColor: '#D4CAFF' },
+        { icon: '📱', label: 'جوالات', query: 'smartphones', count: 132, bgColor: '#FFB8C8' },
+        { icon: '🎧', label: 'سماعات', query: 'headphones', count: 58, bgColor: '#C8E8FF' },
+        { icon: '🎮', label: 'ألعاب', query: 'gaming', count: 89, bgColor: '#C8FFE0' },
       ]},
       { icon: '👗', label: 'أزياء', query: 'fashion clothing', subcategories: [
-        { icon: '👔', label: 'رجالي', query: 'mens clothing ebay', count: 210, bgColor: '#C8E8FF' },
-        { icon: '👗', label: 'نسائي', query: 'womens clothing ebay', count: 175, bgColor: '#FFB8D4' },
-        { icon: '👟', label: 'أحذية', query: 'shoes ebay', count: 130, bgColor: '#FFE566' },
-        { icon: '👜', label: 'حقائب', query: 'bags ebay', count: 88, bgColor: '#D4CAFF' },
+        { icon: '👔', label: 'رجالي', query: 'mens clothing', count: 210, bgColor: '#C8E8FF' },
+        { icon: '👗', label: 'نسائي', query: 'womens clothing', count: 175, bgColor: '#FFB8D4' },
+        { icon: '👟', label: 'أحذية', query: 'shoes', count: 130, bgColor: '#FFE566' },
+        { icon: '👜', label: 'حقائب', query: 'bags', count: 88, bgColor: '#D4CAFF' },
       ]},
       { icon: '🏠', label: 'المنزل', query: 'home garden', subcategories: [
-        { icon: '🛋', label: 'أثاث', query: 'furniture ebay', count: 95, bgColor: '#C8E8FF' },
-        { icon: '🌱', label: 'حديقة', query: 'garden ebay', count: 67, bgColor: '#C8FFE0' },
-        { icon: '💡', label: 'إضاءة', query: 'lighting ebay', count: 44, bgColor: '#FFE0C8' },
-        { icon: '🧹', label: 'تنظيف', query: 'cleaning ebay', count: 52, bgColor: '#B8FFCC' },
+        { icon: '🛋', label: 'أثاث', query: 'furniture', count: 95, bgColor: '#C8E8FF' },
+        { icon: '🌱', label: 'حديقة', query: 'garden', count: 67, bgColor: '#C8FFE0' },
+        { icon: '💡', label: 'إضاءة', query: 'lighting', count: 44, bgColor: '#FFE0C8' },
+        { icon: '🧹', label: 'تنظيف', query: 'cleaning', count: 52, bgColor: '#B8FFCC' },
       ]},
       { icon: '🚗', label: 'السيارات', query: 'automotive', subcategories: [
-        { icon: '🔧', label: 'قطع غيار', query: 'car parts ebay', count: 234, bgColor: '#E8D5B8' },
-        { icon: '🚘', label: 'إكسسوار', query: 'car accessories ebay', count: 145, bgColor: '#FFE0C8' },
-        { icon: '🛞', label: 'إطارات', query: 'tires ebay', count: 78, bgColor: '#D4CAFF' },
-        { icon: '⚽', label: 'رياضة', query: 'sports ebay', count: 65, bgColor: '#C8FFE0' },
+        { icon: '🔧', label: 'قطع غيار', query: 'car parts', count: 234, bgColor: '#E8D5B8' },
+        { icon: '🚘', label: 'إكسسوار', query: 'car accessories', count: 145, bgColor: '#FFE0C8' },
+        { icon: '🛞', label: 'إطارات', query: 'tires', count: 78, bgColor: '#D4CAFF' },
+        { icon: '⚽', label: 'رياضة', query: 'sports', count: 65, bgColor: '#C8FFE0' },
       ]},
       { icon: '💎', label: 'مقتنيات', query: 'collectibles', subcategories: [
-        { icon: '🪙', label: 'عملات', query: 'coins ebay', count: 312, bgColor: '#FFE566' },
-        { icon: '🖼', label: 'فن', query: 'art collectibles ebay', count: 98, bgColor: '#FFB8D4' },
-        { icon: '📦', label: 'نادر', query: 'rare items ebay', count: 56, bgColor: '#E8D5B8' },
-        { icon: '🧸', label: 'ألعاب', query: 'toys ebay', count: 145, bgColor: '#FFE566' },
+        { icon: '🪙', label: 'عملات', query: 'coins', count: 312, bgColor: '#FFE566' },
+        { icon: '🖼', label: 'فن', query: 'art collectibles', count: 98, bgColor: '#FFB8D4' },
+        { icon: '📦', label: 'نادر', query: 'rare items', count: 56, bgColor: '#E8D5B8' },
+        { icon: '🧸', label: 'ألعاب', query: 'toys', count: 145, bgColor: '#FFE566' },
       ]},
     ],
     featured: [
-      { label: 'الأكثر مبيعاً', query: 'best sellers ebay' },
-      { label: 'عروض اليوم', query: 'deals today ebay' },
-      { label: 'منتجات جديدة', query: 'brand new ebay' },
+      { label: 'الأكثر مبيعاً', query: 'best sellers' },
+      { label: 'عروض اليوم', query: 'deals today' },
+      { label: 'منتجات جديدة', query: 'brand new' },
     ],
   },
   walmart: {
     label: 'Walmart', bg: '#0071DC', headerText: '#fff', accentColor: '#0071DC',
     categories: [
       { icon: '🛒', label: 'بقالة', query: 'grocery food', subcategories: [
-        { icon: '🥩', label: 'لحوم', query: 'meat walmart', count: 145, bgColor: '#FFE566' },
-        { icon: '🥦', label: 'خضروات', query: 'vegetables walmart', count: 98, bgColor: '#C8FFE0' },
-        { icon: '🥛', label: 'ألبان', query: 'dairy walmart', count: 67, bgColor: '#C8E8FF' },
-        { icon: '🍞', label: 'مخبوزات', query: 'bakery walmart', count: 54, bgColor: '#FFE0C8' },
+        { icon: '🥩', label: 'لحوم', query: 'meat', count: 145, bgColor: '#FFE566' },
+        { icon: '🥦', label: 'خضروات', query: 'vegetables', count: 98, bgColor: '#C8FFE0' },
+        { icon: '🥛', label: 'ألبان', query: 'dairy', count: 67, bgColor: '#C8E8FF' },
+        { icon: '🍞', label: 'مخبوزات', query: 'bakery', count: 54, bgColor: '#FFE0C8' },
       ]},
       { icon: '📱', label: 'إلكترونيات', query: 'electronics', subcategories: [
-        { icon: '📺', label: 'تلفزيونات', query: 'televisions walmart', count: 88, bgColor: '#FFE566' },
-        { icon: '💻', label: 'لابتوب', query: 'laptops walmart', count: 65, bgColor: '#D4CAFF' },
-        { icon: '📱', label: 'جوالات', query: 'smartphones walmart', count: 120, bgColor: '#FFB8C8' },
-        { icon: '🎧', label: 'سماعات', query: 'headphones walmart', count: 55, bgColor: '#C8E8FF' },
+        { icon: '📺', label: 'تلفزيونات', query: 'televisions', count: 88, bgColor: '#FFE566' },
+        { icon: '💻', label: 'لابتوب', query: 'laptops', count: 65, bgColor: '#D4CAFF' },
+        { icon: '📱', label: 'جوالات', query: 'smartphones', count: 120, bgColor: '#FFB8C8' },
+        { icon: '🎧', label: 'سماعات', query: 'headphones', count: 55, bgColor: '#C8E8FF' },
       ]},
       { icon: '🏠', label: 'المنزل', query: 'home furniture', subcategories: [
-        { icon: '🛋', label: 'أثاث', query: 'furniture walmart', count: 112, bgColor: '#C8E8FF' },
-        { icon: '🍳', label: 'مطبخ', query: 'kitchen walmart', count: 87, bgColor: '#FFE566' },
-        { icon: '🛏', label: 'غرف نوم', query: 'bedroom walmart', count: 76, bgColor: '#FFB8D4' },
-        { icon: '🧹', label: 'تنظيف', query: 'cleaning walmart', count: 63, bgColor: '#C8FFE0' },
+        { icon: '🛋', label: 'أثاث', query: 'furniture', count: 112, bgColor: '#C8E8FF' },
+        { icon: '🍳', label: 'مطبخ', query: 'kitchen', count: 87, bgColor: '#FFE566' },
+        { icon: '🛏', label: 'غرف نوم', query: 'bedroom', count: 76, bgColor: '#FFB8D4' },
+        { icon: '🧹', label: 'تنظيف', query: 'cleaning', count: 63, bgColor: '#C8FFE0' },
       ]},
       { icon: '👗', label: 'ملابس', query: 'clothing', subcategories: [
-        { icon: '👔', label: 'رجالي', query: 'mens walmart', count: 198, bgColor: '#C8E8FF' },
-        { icon: '👗', label: 'نسائي', query: 'womens walmart', count: 167, bgColor: '#FFB8D4' },
-        { icon: '👦', label: 'أطفال', query: 'kids clothing walmart', count: 143, bgColor: '#FFE566' },
-        { icon: '🧸', label: 'ألعاب', query: 'toys walmart', count: 134, bgColor: '#FFE0C8' },
+        { icon: '👔', label: 'رجالي', query: 'mens', count: 198, bgColor: '#C8E8FF' },
+        { icon: '👗', label: 'نسائي', query: 'womens', count: 167, bgColor: '#FFB8D4' },
+        { icon: '👦', label: 'أطفال', query: 'kids clothing', count: 143, bgColor: '#FFE566' },
+        { icon: '🧸', label: 'ألعاب', query: 'toys', count: 134, bgColor: '#FFE0C8' },
       ]},
       { icon: '🚗', label: 'السيارات', query: 'automotive', subcategories: [
-        { icon: '🔧', label: 'قطع غيار', query: 'auto parts walmart', count: 187, bgColor: '#E8D5B8' },
-        { icon: '🛞', label: 'إطارات', query: 'tires walmart', count: 65, bgColor: '#FFE0C8' },
-        { icon: '🚘', label: 'إكسسوار', query: 'car accessories walmart', count: 112, bgColor: '#D4CAFF' },
-        { icon: '💊', label: 'صحة', query: 'vitamins walmart', count: 145, bgColor: '#C8FFE0' },
+        { icon: '🔧', label: 'قطع غيار', query: 'auto parts', count: 187, bgColor: '#E8D5B8' },
+        { icon: '🛞', label: 'إطارات', query: 'tires', count: 65, bgColor: '#FFE0C8' },
+        { icon: '🚘', label: 'إكسسوار', query: 'car accessories', count: 112, bgColor: '#D4CAFF' },
+        { icon: '💊', label: 'صحة', query: 'vitamins', count: 145, bgColor: '#C8FFE0' },
       ]},
     ],
     featured: [
-      { label: 'تخفيضات اليوم', query: 'rollback walmart' },
-      { label: 'الأكثر شعبية', query: 'popular walmart' },
-      { label: 'منتجات مميزة', query: 'featured walmart' },
+      { label: 'تخفيضات اليوم', query: 'rollback' },
+      { label: 'الأكثر شعبية', query: 'popular' },
+      { label: 'منتجات مميزة', query: 'featured' },
     ],
   },
   taobao: {
@@ -722,41 +722,41 @@ const STORE_CONFIG: Record<string, {
   iherb: {
     label: 'iHerb', bg: '#0F7D3B', headerText: '#fff', accentColor: '#0F7D3B',
     categories: [
-      { icon: '💊', label: 'فيتامينات', query: 'vitamins supplements iherb', subcategories: [
-        { icon: '☀️', label: 'فيتامين D', query: 'vitamin d iherb', count: 134, bgColor: '#FFE566' },
-        { icon: '🍊', label: 'فيتامين C', query: 'vitamin c iherb', count: 178, bgColor: '#FFE0C8' },
-        { icon: '🅱️', label: 'فيتامين B', query: 'vitamin b iherb', count: 145, bgColor: '#C8E8FF' },
-        { icon: '🌿', label: 'مكملات', query: 'multivitamins iherb', count: 234, bgColor: '#C8FFE0' },
+      { icon: '💊', label: 'فيتامينات', query: 'vitamins supplements', subcategories: [
+        { icon: '☀️', label: 'فيتامين D', query: 'vitamin d', count: 134, bgColor: '#FFE566' },
+        { icon: '🍊', label: 'فيتامين C', query: 'vitamin c', count: 178, bgColor: '#FFE0C8' },
+        { icon: '🅱️', label: 'فيتامين B', query: 'vitamin b', count: 145, bgColor: '#C8E8FF' },
+        { icon: '🌿', label: 'مكملات', query: 'multivitamins', count: 234, bgColor: '#C8FFE0' },
       ]},
-      { icon: '🥛', label: 'بروتين', query: 'protein powder iherb', subcategories: [
-        { icon: '🥛', label: 'واي', query: 'whey protein iherb', count: 167, bgColor: '#C8E8FF' },
-        { icon: '🌱', label: 'نباتي', query: 'plant protein iherb', count: 98, bgColor: '#C8FFE0' },
-        { icon: '🏋', label: 'كرياتين', query: 'creatine iherb', count: 78, bgColor: '#FFE566' },
-        { icon: '🌿', label: 'أعشاب', query: 'herbal iherb', count: 234, bgColor: '#C8FFE0' },
+      { icon: '🥛', label: 'بروتين', query: 'protein powder', subcategories: [
+        { icon: '🥛', label: 'واي', query: 'whey protein', count: 167, bgColor: '#C8E8FF' },
+        { icon: '🌱', label: 'نباتي', query: 'plant protein', count: 98, bgColor: '#C8FFE0' },
+        { icon: '🏋', label: 'كرياتين', query: 'creatine', count: 78, bgColor: '#FFE566' },
+        { icon: '🌿', label: 'أعشاب', query: 'herbal', count: 234, bgColor: '#C8FFE0' },
       ]},
-      { icon: '💄', label: 'جمال طبيعي', query: 'natural beauty iherb', subcategories: [
-        { icon: '🧴', label: 'عناية', query: 'natural skincare iherb', count: 178, bgColor: '#FFB8D4' },
-        { icon: '💆', label: 'شعر', query: 'natural hair care iherb', count: 123, bgColor: '#C8E8FF' },
-        { icon: '🪥', label: 'فم', query: 'oral care iherb', count: 67, bgColor: '#C8FFE0' },
-        { icon: '🌸', label: 'عطور', query: 'natural fragrance iherb', count: 56, bgColor: '#D4CAFF' },
+      { icon: '💄', label: 'جمال طبيعي', query: 'natural beauty', subcategories: [
+        { icon: '🧴', label: 'عناية', query: 'natural skincare', count: 178, bgColor: '#FFB8D4' },
+        { icon: '💆', label: 'شعر', query: 'natural hair care', count: 123, bgColor: '#C8E8FF' },
+        { icon: '🪥', label: 'فم', query: 'oral care', count: 67, bgColor: '#C8FFE0' },
+        { icon: '🌸', label: 'عطور', query: 'natural fragrance', count: 56, bgColor: '#D4CAFF' },
       ]},
-      { icon: '🥗', label: 'أغذية صحية', query: 'healthy food iherb', subcategories: [
-        { icon: '🥜', label: 'مكسرات', query: 'nuts seeds iherb', count: 145, bgColor: '#E8D5B8' },
-        { icon: '🫐', label: 'سوبرفود', query: 'superfood iherb', count: 98, bgColor: '#D4CAFF' },
-        { icon: '🍫', label: 'خالي سكر', query: 'sugar free iherb', count: 78, bgColor: '#FFE566' },
-        { icon: '😴', label: 'نوم', query: 'sleep iherb', count: 134, bgColor: '#D4CAFF' },
+      { icon: '🥗', label: 'أغذية صحية', query: 'healthy food', subcategories: [
+        { icon: '🥜', label: 'مكسرات', query: 'nuts seeds', count: 145, bgColor: '#E8D5B8' },
+        { icon: '🫐', label: 'سوبرفود', query: 'superfood', count: 98, bgColor: '#D4CAFF' },
+        { icon: '🍫', label: 'خالي سكر', query: 'sugar free', count: 78, bgColor: '#FFE566' },
+        { icon: '😴', label: 'نوم', query: 'sleep', count: 134, bgColor: '#D4CAFF' },
       ]},
-      { icon: '🧘', label: 'صحة عامة', query: 'health wellness iherb', subcategories: [
-        { icon: '🧠', label: 'دماغ', query: 'brain health iherb', count: 98, bgColor: '#C8E8FF' },
-        { icon: '❤️', label: 'قلب', query: 'heart health iherb', count: 112, bgColor: '#FFB8D4' },
-        { icon: '🦴', label: 'عظام', query: 'bone health iherb', count: 89, bgColor: '#FFE566' },
-        { icon: '💊', label: 'أطفال', query: 'kids vitamins iherb', count: 89, bgColor: '#FFE566' },
+      { icon: '🧘', label: 'صحة عامة', query: 'health wellness', subcategories: [
+        { icon: '🧠', label: 'دماغ', query: 'brain health', count: 98, bgColor: '#C8E8FF' },
+        { icon: '❤️', label: 'قلب', query: 'heart health', count: 112, bgColor: '#FFB8D4' },
+        { icon: '🦴', label: 'عظام', query: 'bone health', count: 89, bgColor: '#FFE566' },
+        { icon: '💊', label: 'أطفال', query: 'kids vitamins', count: 89, bgColor: '#FFE566' },
       ]},
     ],
     featured: [
-      { label: 'الأكثر مبيعاً', query: 'best sellers iherb' },
-      { label: 'منتجات عضوية', query: 'organic iherb' },
-      { label: 'عروض اليوم', query: 'sale iherb' },
+      { label: 'الأكثر مبيعاً', query: 'best sellers' },
+      { label: 'منتجات عضوية', query: 'organic' },
+      { label: 'عروض اليوم', query: 'sale' },
     ],
   },
 };
@@ -894,14 +894,14 @@ const EBAY_DEALS = [
 ];
 
 const EBAY_CATEGORIES = [
-  { label: 'إلكترونيات', color: '#0064D2', query: 'electronics ebay' },
-  { label: 'أزياء', color: '#E53238', query: 'fashion ebay' },
-  { label: 'منزل وحديقة', color: '#86B817', query: 'home garden ebay' },
-  { label: 'سيارات', color: '#555555', query: 'automotive ebay' },
-  { label: 'رياضة', color: '#FF6600', query: 'sports ebay' },
-  { label: 'مقتنيات', color: '#F5AF02', query: 'collectibles ebay' },
-  { label: 'كتب', color: '#8B44AC', query: 'books ebay' },
-  { label: 'ألعاب', color: '#CC0000', query: 'toys ebay' },
+  { label: 'إلكترونيات', color: '#0064D2', query: 'electronics' },
+  { label: 'أزياء', color: '#E53238', query: 'fashion' },
+  { label: 'منزل وحديقة', color: '#86B817', query: 'home garden' },
+  { label: 'سيارات', color: '#555555', query: 'automotive' },
+  { label: 'رياضة', color: '#FF6600', query: 'sports' },
+  { label: 'مقتنيات', color: '#F5AF02', query: 'collectibles' },
+  { label: 'كتب', color: '#8B44AC', query: 'books' },
+  { label: 'ألعاب', color: '#CC0000', query: 'toys' },
 ];
 
 function EbayStore({ onSearch }: { onSearch: (query: string) => void }) {
@@ -980,7 +980,7 @@ function EbayStore({ onSearch }: { onSearch: (query: string) => void }) {
           {['إلكترونيات', 'فينتاج', 'أحذية رياضية', 'أجهزة ألعاب', 'ملابس فاخرة', 'ساعات'].map((chip) => (
             <Pressable
               key={chip}
-              onPress={() => onSearch(chip + ' ebay')}
+              onPress={() => onSearch(chip + '')}
               style={({ pressed }) => ({
                 paddingHorizontal: 14, paddingVertical: 8,
                 borderRadius: 20, borderWidth: 1.5, borderColor: '#0064D2',
@@ -1000,7 +1000,7 @@ function EbayStore({ onSearch }: { onSearch: (query: string) => void }) {
           {['electronics', 'vintage watches', 'sneakers', 'gaming consoles', 'luxury bags', 'rare coins', 'trading cards', 'cameras'].map((chip) => (
             <Pressable
               key={chip}
-              onPress={() => onSearch(chip + ' ebay')}
+              onPress={() => onSearch(chip + '')}
               style={({ pressed }) => ({
                 paddingHorizontal: 12, paddingVertical: 7,
                 borderRadius: 16, backgroundColor: pressed ? '#E8E8E8' : '#F3F3F3',
@@ -1020,52 +1020,52 @@ function EbayStore({ onSearch }: { onSearch: (query: string) => void }) {
 
 const WALMART_DEPARTMENTS = [
   { id: 'grocery', label: 'بقالة', query: 'grocery food', subcategories: [
-    { label: 'طازج', query: 'fresh produce walmart' },
-    { label: 'مشروبات', query: 'beverages walmart' },
-    { label: 'مجمد', query: 'frozen food walmart' },
-    { label: 'وجبات خفيفة', query: 'snacks walmart' },
+    { label: 'طازج', query: 'fresh produce' },
+    { label: 'مشروبات', query: 'beverages' },
+    { label: 'مجمد', query: 'frozen food' },
+    { label: 'وجبات خفيفة', query: 'snacks' },
   ]},
   { id: 'electronics', label: 'إلكترونيات', query: 'electronics', subcategories: [
-    { label: 'تلفزيونات', query: 'televisions walmart' },
-    { label: 'لابتوب', query: 'laptops walmart' },
-    { label: 'جوالات', query: 'smartphones walmart' },
-    { label: 'ألعاب فيديو', query: 'video games walmart' },
+    { label: 'تلفزيونات', query: 'televisions' },
+    { label: 'لابتوب', query: 'laptops' },
+    { label: 'جوالات', query: 'smartphones' },
+    { label: 'ألعاب فيديو', query: 'video games' },
   ]},
   { id: 'clothing', label: 'ملابس', query: 'clothing', subcategories: [
-    { label: 'رجالي', query: 'mens walmart' },
-    { label: 'نسائي', query: 'womens walmart' },
-    { label: 'أطفال', query: 'kids clothing walmart' },
-    { label: 'رياضي', query: 'activewear walmart' },
+    { label: 'رجالي', query: 'mens' },
+    { label: 'نسائي', query: 'womens' },
+    { label: 'أطفال', query: 'kids clothing' },
+    { label: 'رياضي', query: 'activewear' },
   ]},
   { id: 'home', label: 'المنزل', query: 'home furniture', subcategories: [
-    { label: 'أثاث', query: 'furniture walmart' },
-    { label: 'مطبخ', query: 'kitchen walmart' },
-    { label: 'غرف نوم', query: 'bedroom walmart' },
-    { label: 'حمام', query: 'bathroom walmart' },
+    { label: 'أثاث', query: 'furniture' },
+    { label: 'مطبخ', query: 'kitchen' },
+    { label: 'غرف نوم', query: 'bedroom' },
+    { label: 'حمام', query: 'bathroom' },
   ]},
   { id: 'kids', label: 'الأطفال والألعاب', query: 'toys kids', subcategories: [
-    { label: 'ألعاب', query: 'toys walmart' },
-    { label: 'رضع', query: 'baby walmart' },
-    { label: 'مدرسية', query: 'school supplies walmart' },
-    { label: 'ملابس أطفال', query: 'kids clothes walmart' },
+    { label: 'ألعاب', query: 'toys' },
+    { label: 'رضع', query: 'baby' },
+    { label: 'مدرسية', query: 'school supplies' },
+    { label: 'ملابس أطفال', query: 'kids clothes' },
   ]},
   { id: 'auto', label: 'السيارات', query: 'automotive', subcategories: [
-    { label: 'قطع غيار', query: 'auto parts walmart' },
-    { label: 'إطارات', query: 'tires walmart' },
-    { label: 'إكسسوار', query: 'car accessories walmart' },
-    { label: 'زيوت', query: 'motor oil walmart' },
+    { label: 'قطع غيار', query: 'auto parts' },
+    { label: 'إطارات', query: 'tires' },
+    { label: 'إكسسوار', query: 'car accessories' },
+    { label: 'زيوت', query: 'motor oil' },
   ]},
   { id: 'health', label: 'الصحة والجمال', query: 'health beauty', subcategories: [
-    { label: 'فيتامينات', query: 'vitamins walmart' },
-    { label: 'عناية بشرة', query: 'skincare walmart' },
-    { label: 'شعر', query: 'hair care walmart' },
-    { label: 'أدوية', query: 'pharmacy walmart' },
+    { label: 'فيتامينات', query: 'vitamins' },
+    { label: 'عناية بشرة', query: 'skincare' },
+    { label: 'شعر', query: 'hair care' },
+    { label: 'أدوية', query: 'pharmacy' },
   ]},
   { id: 'garden', label: 'الحديقة', query: 'garden outdoor', subcategories: [
-    { label: 'نباتات', query: 'plants walmart' },
-    { label: 'أثاث خارجي', query: 'patio furniture walmart' },
-    { label: 'شواء', query: 'grills walmart' },
-    { label: 'أدوات', query: 'garden tools walmart' },
+    { label: 'نباتات', query: 'plants' },
+    { label: 'أثاث خارجي', query: 'patio furniture' },
+    { label: 'شواء', query: 'grills' },
+    { label: 'أدوات', query: 'garden tools' },
   ]},
 ];
 
@@ -1100,7 +1100,7 @@ function WalmartStore({ onSearch }: { onSearch: (query: string) => void }) {
             <Text style={{ color: '#0071DC', fontSize: 18, fontWeight: '800' }}>تخفيضات الأسعار</Text>
             <Text style={{ color: '#0071DC', fontSize: 12, marginTop: 2 }}>Rollback - وفّر الآن</Text>
           </View>
-          <Pressable onPress={() => onSearch('rollback walmart')} style={{ backgroundColor: '#0071DC', borderRadius: 6, paddingHorizontal: 12, paddingVertical: 6 }}>
+          <Pressable onPress={() => onSearch('rollback')} style={{ backgroundColor: '#0071DC', borderRadius: 6, paddingHorizontal: 12, paddingVertical: 6 }}>
             <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700' }}>عرض الكل</Text>
           </Pressable>
         </View>
@@ -1170,7 +1170,7 @@ function WalmartStore({ onSearch }: { onSearch: (query: string) => void }) {
           {['grocery delivery', 'TV deals', 'school supplies', 'baby items', 'vitamins', 'tires', 'outdoor furniture', 'gaming'].map((chip) => (
             <Pressable
               key={chip}
-              onPress={() => onSearch(chip + ' walmart')}
+              onPress={() => onSearch(chip + '')}
               style={({ pressed }) => ({
                 paddingHorizontal: 12, paddingVertical: 7,
                 borderRadius: 16, backgroundColor: pressed ? '#E8EEF7' : '#F3F3F3',
@@ -1526,23 +1526,23 @@ function Store1688({ onSearch }: { onSearch: (query: string) => void }) {
 // ─── iHerb Store ──────────────────────────────────────────────────────────────
 
 const IHERB_HEALTH_GOALS = [
-  { icon: 'بناء العضلات', query: 'muscle building iherb', color: '#1565C0' },
-  { icon: 'تحسين النوم', query: 'sleep iherb', color: '#4527A0' },
-  { icon: 'تقوية الدماغ', query: 'brain health iherb', color: '#00695C' },
-  { icon: 'صحة القلب', query: 'heart health iherb', color: '#B71C1C' },
-  { icon: 'صحة العظام', query: 'bone health iherb', color: '#4E342E' },
-  { icon: 'طاقة ونشاط', query: 'energy iherb', color: '#E65100' },
-  { icon: 'اللياقة البدنية', query: 'fitness iherb', color: '#2E7D32' },
-  { icon: 'صحة الأطفال', query: 'kids vitamins iherb', color: '#F57F17' },
+  { icon: 'بناء العضلات', query: 'muscle building', color: '#1565C0' },
+  { icon: 'تحسين النوم', query: 'sleep', color: '#4527A0' },
+  { icon: 'تقوية الدماغ', query: 'brain health', color: '#00695C' },
+  { icon: 'صحة القلب', query: 'heart health', color: '#B71C1C' },
+  { icon: 'صحة العظام', query: 'bone health', color: '#4E342E' },
+  { icon: 'طاقة ونشاط', query: 'energy', color: '#E65100' },
+  { icon: 'اللياقة البدنية', query: 'fitness', color: '#2E7D32' },
+  { icon: 'صحة الأطفال', query: 'kids vitamins', color: '#F57F17' },
 ];
 
 const IHERB_BRANDS = [
-  { name: 'NOW Foods', query: 'now foods iherb' },
-  { name: "Nature's Way", query: 'natures way iherb' },
-  { name: 'Garden of Life', query: 'garden of life iherb' },
-  { name: 'Solgar', query: 'solgar iherb' },
-  { name: 'Nordic Naturals', query: 'nordic naturals iherb' },
-  { name: 'Jarrow Formulas', query: 'jarrow formulas iherb' },
+  { name: 'NOW Foods', query: 'now foods' },
+  { name: "Nature's Way", query: 'natures way' },
+  { name: 'Garden of Life', query: 'garden of life' },
+  { name: 'Solgar', query: 'solgar' },
+  { name: 'Nordic Naturals', query: 'nordic naturals' },
+  { name: 'Jarrow Formulas', query: 'jarrow formulas' },
 ];
 
 const IHERB_SUPPLEMENT_DEALS = [
@@ -1647,12 +1647,12 @@ function IHerbStore({ onSearch }: { onSearch: (query: string) => void }) {
         <Text style={{ color: '#191919', fontSize: 16, fontWeight: '700', marginBottom: 10 }}>المكملات الأكثر مبيعاً</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {[
-            { label: 'فيتامينات', query: 'vitamins iherb' },
-            { label: 'بروتين', query: 'protein iherb' },
-            { label: 'أعشاب', query: 'herbal iherb' },
-            { label: 'جمال طبيعي', query: 'natural beauty iherb' },
-            { label: 'أغذية صحية', query: 'healthy food iherb' },
-            { label: 'مكملات رياضية', query: 'sports supplements iherb' },
+            { label: 'فيتامينات', query: 'vitamins' },
+            { label: 'بروتين', query: 'protein' },
+            { label: 'أعشاب', query: 'herbal' },
+            { label: 'جمال طبيعي', query: 'natural beauty' },
+            { label: 'أغذية صحية', query: 'healthy food' },
+            { label: 'مكملات رياضية', query: 'sports supplements' },
           ].map((pill) => (
             <Pressable
               key={pill.query}
