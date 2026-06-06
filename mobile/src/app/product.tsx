@@ -471,6 +471,7 @@ export default function ProductScreen() {
   };
 
   const handleAddToCart = () => {
+    if (detailLoading) return;
     const selectedVariant = detail?.variantGroups?.[0]?.items?.find((i) => i.selected);
     addToCart({
       id: product.id,
@@ -1065,8 +1066,9 @@ export default function ProductScreen() {
         <Pressable
           testID="detail-add-to-cart-button"
           onPress={handleAddToCart}
+          disabled={detailLoading}
           style={({ pressed }) => ({
-            backgroundColor: cartAdded || inCart ? '#E8F5E9' : '#1A8C4E',
+            backgroundColor: detailLoading ? '#BDBDBD' : cartAdded || inCart ? '#E8F5E9' : '#1A8C4E',
             borderRadius: 14,
             paddingVertical: 14,
             flexDirection: 'row',
@@ -1074,12 +1076,14 @@ export default function ProductScreen() {
             justifyContent: 'center',
             gap: 8,
             borderWidth: 1,
-            borderColor: cartAdded || inCart ? '#66BB6A' : '#146B3C',
+            borderColor: detailLoading ? '#9E9E9E' : cartAdded || inCart ? '#66BB6A' : '#146B3C',
             opacity: pressed ? 0.85 : 1,
             transform: [{ scale: pressed ? 0.98 : 1 }],
           })}
         >
-          {cartAdded ? (
+          {detailLoading ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : cartAdded ? (
             <CheckCircle size={18} color="#2E7D32" strokeWidth={2.5} />
           ) : (
             <ShoppingCart
@@ -1091,13 +1095,13 @@ export default function ProductScreen() {
           )}
           <Text
             style={{
-              color: cartAdded || inCart ? '#2E7D32' : '#FFFFFF',
+              color: detailLoading ? '#FFFFFF' : cartAdded || inCart ? '#2E7D32' : '#FFFFFF',
               fontSize: 15,
               fontWeight: '700',
               letterSpacing: 0.2,
             }}
           >
-            {cartAdded ? 'تمت الإضافة!' : inCart ? 'في السلة' : 'أضف للسلة'}
+            {detailLoading ? 'جاري تحميل السعر...' : cartAdded ? 'تمت الإضافة!' : inCart ? 'في السلة' : 'أضف للسلة'}
           </Text>
         </Pressable>
 
