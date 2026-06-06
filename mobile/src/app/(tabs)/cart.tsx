@@ -1,8 +1,25 @@
-import { FlatList, Image, Pressable, Text, View } from 'react-native';
+import { FlatList, Image, Linking, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ShoppingCart, Trash2, Plus, Minus, ExternalLink } from 'lucide-react-native';
+import { ShoppingCart, Trash2, Plus, Minus, ExternalLink, MessageCircle } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { useCartStore, CartItem } from '@/lib/cart';
+
+const ORDER_WHATSAPP_NUMBER = '9647800800173';
+
+function buildOrderMessage(items: CartItem[], totalItems: number): string {
+  let msg = '🛍 طلب جديد من Box Global\n\n';
+  items.forEach((item, i) => {
+    msg += `${i + 1}. ${item.title}\n`;
+    if (item.variantTitle) msg += `   المواصفات: ${item.variantTitle}\n`;
+    msg += `   السعر: ${item.priceText || 'غير محدد'}\n`;
+    msg += `   الكمية: ${item.quantity}\n`;
+    if (item.url) msg += `   الرابط: ${item.url}\n`;
+    msg += '\n';
+  });
+  msg += `──────────\n`;
+  msg += `إجمالي عدد القطع: ${totalItems}`;
+  return msg;
+}
 
 const PLATFORM_CONFIG: Record<CartItem['platform'], { label: string; color: string; bg: string }> = {
   ebay:    { label: 'eBay',    color: '#ffffff', bg: '#E53238' },
@@ -208,6 +225,17 @@ export default function CartScreen() {
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
 
+  const handleCheckout = async () => {
+    if (items.length === 0) return;
+    const message = buildOrderMessage(items, totalItems);
+    const url = `https://wa.me/${ORDER_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    try {
+      await Linking.openURL(url);
+    } catch {
+      // ignore
+    }
+  };
+
   if (items.length === 0) {
     return (
       <View testID="cart-screen" style={{ flex: 1, backgroundColor: '#EAEDED' }}>
@@ -337,6 +365,28 @@ export default function CartScreen() {
               <Text style={{ color: '#999', fontSize: 11, marginTop: 8, lineHeight: 16 }}>
                 الأسعار والتوافر يتحدد عند الشراء من الموقع الأصلي
               </Text>
+
+              {/* Checkout via WhatsApp */}
+              <Pressable
+                testID="checkout-button"
+                onPress={handleCheckout}
+                style={({ pressed }) => ({
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  backgroundColor: '#25D366',
+                  borderRadius: 10,
+                  paddingVertical: 14,
+                  marginTop: 14,
+                  opacity: pressed ? 0.85 : 1,
+                })}
+              >
+                <MessageCircle size={18} color="#FFFFFF" strokeWidth={2.5} />
+                <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>
+                  اطلب الآن عبر واتساب
+                </Text>
+              </Pressable>
             </View>
           ) : null
         }
