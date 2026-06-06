@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
-import { Heart, ShoppingCart, Star, Zap } from 'lucide-react-native';
+import { Heart, Star, Zap } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth-context';
 import { useFavorites } from '@/lib/favorites';
 import { useCartStore } from '@/lib/cart';
@@ -78,7 +78,6 @@ export function ProductCard({ product, style }: ProductCardProps) {
   const overflowCount = hasVariants ? Math.max(0, product.variants!.length - MAX_CHIPS) : 0;
 
   const favored = isFavorite(product.id);
-  const addToCart = useCartStore((s) => s.addToCart);
   const cartItems = useCartStore((s) => s.items);
   const inCart = cartItems.some((i) => i.id === product.id);
 
@@ -107,18 +106,6 @@ export function ProductCard({ product, style }: ProductCardProps) {
     if (!user) { router.push('/auth'); return; }
     if (favored) { removeFav.mutate(product.id); }
     else { addFav.mutate(product); }
-  };
-
-  const handleAddToCart = () => {
-    addToCart({
-      id: product.id,
-      title: product.title,
-      price: product.price,
-      priceText: product.priceText,
-      image: product.image,
-      platform: product.platform,
-      url: product.url,
-    });
   };
 
   return (
@@ -306,40 +293,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
           })}
         >
           <Text style={{ color: '#0F1111', fontSize: 12, fontWeight: '600' }}>
-            عرض المنتج
-          </Text>
-        </Pressable>
-
-        {/* Add to cart button */}
-        <Pressable
-          testID="add-to-cart-button"
-          onPress={handleAddToCart}
-          style={({ pressed }) => ({
-            marginTop: 6,
-            backgroundColor: inCart ? '#E8F5E9' : '#1A8C4E',
-            borderRadius: 4,
-            paddingVertical: 7,
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'row',
-            gap: 5,
-            borderWidth: 1,
-            borderColor: inCart ? '#66BB6A' : '#146B3C',
-            opacity: pressed ? 0.8 : 1,
-          })}
-        >
-          <ShoppingCart
-            size={13}
-            color={inCart ? '#2E7D32' : '#FFFFFF'}
-            fill={inCart ? '#2E7D32' : 'transparent'}
-            strokeWidth={2}
-          />
-          <Text style={{
-            color: inCart ? '#2E7D32' : '#FFFFFF',
-            fontSize: 12,
-            fontWeight: '600',
-          }}>
-            {inCart ? 'في السلة' : 'أضف للسلة'}
+            {inCart ? 'في السلة · عرض المنتج' : 'عرض المنتج'}
           </Text>
         </Pressable>
       </View>
