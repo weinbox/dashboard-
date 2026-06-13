@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { env } from "../env";
 import { supabase } from "../lib/supabase";
 import { upsertTrendingSearch } from "../lib/db";
-import { CNY_TO_USD } from "../lib/pricing";
+import { getCnyToUsd } from "../lib/pricing";
 import type { Product, ProductVariant } from "../types";
 
 const searchRouter = new Hono();
@@ -280,7 +280,7 @@ async function translateToChineseIfNeeded(query: string): Promise<string> {
 function mapTaobao1688Item(item: Taobao1688Item, platform: "taobao" | "1688", index: number): Product {
   const rawPrice = item.promotion_price ?? item.price;
   const cnyPrice = typeof rawPrice === "number" ? rawPrice : parseFloat(String(rawPrice ?? ""));
-  const usdPrice = isNaN(cnyPrice) ? null : cnyPrice / CNY_TO_USD;
+  const usdPrice = isNaN(cnyPrice) ? null : cnyPrice / getCnyToUsd();
   const priceText = !isNaN(cnyPrice) ? `¥${cnyPrice.toFixed(0)}` : '';
   const id = String(item.num_iid ?? item.id ?? index);
   const defaultUrl = platform === "taobao"
@@ -336,7 +336,7 @@ interface V5Response {
 function mapV5Item(item: V5Item, index: number): Product {
   const rawPrice = item.priceInfo?.promotionPrice ?? item.priceInfo?.price ?? item.priceInfo?.consignPrice;
   const cnyPrice = rawPrice ? parseFloat(rawPrice) : NaN;
-  const usdPrice = isNaN(cnyPrice) ? null : cnyPrice / CNY_TO_USD;
+  const usdPrice = isNaN(cnyPrice) ? null : cnyPrice / getCnyToUsd();
   const priceText = !isNaN(cnyPrice) ? `¥${cnyPrice.toFixed(0)}` : '';
   const id = String(item.offerId ?? index);
   const salesNum = typeof item.monthSold === "number" ? item.monthSold : parseInt(String(item.monthSold ?? "0"), 10);

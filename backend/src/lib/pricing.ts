@@ -1,27 +1,18 @@
 import { parseWeightKgFromTitle, defaultWeightKg } from "./weight";
+import { getPricing } from "./settings";
 
-export const USD_TO_IQD = 1350;
-export const IQD_MARKUP = 1.2;
-
-export const CNY_TO_USD = 6.5;
-export const USD_TO_IQD_CHINA = 1400;
-export const CHINA_SHIPPING_PER_KG = 15_500;
+// Live exchange rate (CNY→USD) — read dynamically from the dashboard settings.
+export function getCnyToUsd(): number {
+  return getPricing().cny_to_usd;
+}
 
 export function formatIQD_China(usd: number | null, weightKg = 1): string {
   if (usd === null || isNaN(usd)) return "";
-  const shipping = Math.round(weightKg * CHINA_SHIPPING_PER_KG);
-  const iqd = Math.round(usd * USD_TO_IQD_CHINA) + shipping;
+  const p = getPricing();
+  const shipping = Math.round(weightKg * p.china_shipping_per_kg);
+  const iqd = Math.round(usd * p.usd_to_iqd_china) + shipping;
   return `${iqd.toLocaleString("en")} دينار`;
 }
-
-// Shipping rates (IQD) — US shipments measured in lbs
-const SHIPPING_REGULAR_PER_LB   = 8_900;
-const SHIPPING_PERFUME_FLAT      = 40_000;
-const SHIPPING_HAZARDOUS_FLAT    = 25_000;
-const SHIPPING_SUPPLEMENT_PER_LB = 12_000;
-const SHIPPING_SUPPLEMENT_TAX    = 2_000;
-const SHIPPING_MOBILE_FLAT       = 95_000;
-const SHIPPING_LAPTOP_FLAT       = 55_000;
 
 export type ProductCategory = "perfume" | "hazardous" | "supplement" | "mobile" | "laptop" | "regular";
 const VALID_CATEGORIES = new Set<ProductCategory>(["perfume", "hazardous", "supplement", "mobile", "laptop", "regular"]);
@@ -41,20 +32,22 @@ export function detectCategory(title: string): ProductCategory {
 }
 
 export function calcShipping(category: ProductCategory, weightLbs = 1): number {
+  const p = getPricing();
   switch (category) {
-    case "mobile":     return SHIPPING_MOBILE_FLAT;
-    case "laptop":     return SHIPPING_LAPTOP_FLAT;
-    case "perfume":    return SHIPPING_PERFUME_FLAT;
-    case "hazardous":  return SHIPPING_HAZARDOUS_FLAT;
-    case "supplement": return SHIPPING_SUPPLEMENT_PER_LB * weightLbs + SHIPPING_SUPPLEMENT_TAX;
-    case "regular":    return SHIPPING_REGULAR_PER_LB * weightLbs;
+    case "mobile":     return p.shipping_mobile_flat;
+    case "laptop":     return p.shipping_laptop_flat;
+    case "perfume":    return p.shipping_perfume_flat;
+    case "hazardous":  return p.shipping_hazardous_flat;
+    case "supplement": return p.shipping_supplement_per_lb * weightLbs + p.shipping_supplement_tax;
+    case "regular":    return p.shipping_regular_per_lb * weightLbs;
   }
 }
 
 export function formatIQD(usd: number | null, category: ProductCategory = "regular", weightLbs = 1): string {
   if (usd === null || isNaN(usd)) return "";
+  const p = getPricing();
   const shipping = calcShipping(category, weightLbs);
-  const iqd = Math.round(usd * USD_TO_IQD * IQD_MARKUP) + shipping;
+  const iqd = Math.round(usd * p.usd_to_iqd * p.iqd_markup) + shipping;
   return `${iqd.toLocaleString("en")} دينار`;
 }
 
