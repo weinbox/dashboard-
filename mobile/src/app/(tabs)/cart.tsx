@@ -3,6 +3,44 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ShoppingCart, Trash2, Plus, Minus, ExternalLink, MessageCircle } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { useCartStore, CartItem } from '@/lib/cart';
+import { supabase } from '@/lib/supabase';
+
+function parsePriceNumeric(priceText: string): number | null {
+  if (!priceText) return null;
+  const n = parseFloat(String(priceText).replace(/[^0-9.]/g, ''));
+  return isNaN(n) ? null : n;
+}
+
+async function saveOrder(items: CartItem[], totalItems: number): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    const customerPhone = (user?.user_metadata?.phone as string) ?? null;
+    const { data: order, error: orderErr } = await supabase
+      .from('orders')
+      .insert({
+        user_id: user?.id ?? null,
+        customer_phone: customerPhone,
+        total_items: totalItems,
+      })
+      .select('id')
+      .single();
+    if (orderErr || !order) return;
+    const rows = items.map((item) => ({
+      order_id: order.id,
+      title: item.title,
+      price_text: item.priceText || null,
+      price_numeric: parsePriceNumeric(item.priceText),
+      quantity: item.quantity,
+      url: item.url || null,
+      image: item.image,
+      platform: item.platform,
+      variant_title: item.variantTitle ?? null,
+    }));
+    await supabase.from('order_items').insert(rows);
+  } catch {
+    // saving the order should never block the WhatsApp checkout
+  }
+}
 
 const ORDER_WHATSAPP_NUMBER = '9647800800173';
 
@@ -227,6 +265,8 @@ export default function CartScreen() {
 
   const handleCheckout = async () => {
     if (items.length === 0) return;
+    // Persist the order for the admin dashboard (non-blocking on failure)
+    await saveOrder(items, totalItems);
     const message = buildOrderMessage(items, totalItems);
     const url = `https://wa.me/${ORDER_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
     try {
