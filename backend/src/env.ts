@@ -12,6 +12,8 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   SUPABASE_URL: z.string(),
   SUPABASE_ANON_KEY: z.string(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+  ADMIN_PASSWORD: z.string().optional(),
   RAPIDAPI_KEY: z.string().optional(),
   APIFY_API_KEY: z.string().optional(),
   BACKEND_URL: z.string().optional().default("http://localhost:3000"),

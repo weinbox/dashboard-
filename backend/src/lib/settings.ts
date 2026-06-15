@@ -50,7 +50,7 @@ async function fetchSettings(): Promise<void> {
     for (const row of data as { key: string; value: number | string }[]) {
       if (row.key in next) {
         const n = Number(row.value);
-        if (!isNaN(n)) (next as Record<string, number>)[row.key] = n;
+        if (!isNaN(n)) (next as unknown as Record<string, number>)[row.key] = n;
       }
     }
     current = next;

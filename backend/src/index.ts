@@ -10,6 +10,7 @@ import { imageSearchRouter } from "./routes/image-search";
 import { resolveUrlRouter } from "./routes/resolve-url";
 import { trendingRouter } from "./routes/trending";
 import { imageProxyRouter } from "./routes/image-proxy";
+import { adminRouter } from "./routes/admin";
 import { logger } from "hono/logger";
 
 const app = new Hono();
@@ -49,6 +50,7 @@ app.route("/api/image-search", imageSearchRouter);
 app.route("/api/resolve-url", resolveUrlRouter);
 app.route("/api/trending", trendingRouter);
 app.route("/api/image-proxy", imageProxyRouter);
+app.route("/admin", adminRouter);
 
 const port = Number(process.env.PORT) || 3000;
 
