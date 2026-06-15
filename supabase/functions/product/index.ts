@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { corsHeaders, handleCors } from "../_shared/cors.ts";
-import { formatIQD, detectCategory, parseWeightKgFromTitle, parseWeightKgFromSpecs, defaultWeightKg, KG_TO_LBS } from "../_shared/pricing.ts";
+import { formatIQD, detectCategory, parseWeightKgFromTitle, parseWeightKgFromSpecs, defaultWeightKg, KG_TO_LBS, loadPricing } from "../_shared/pricing.ts";
 import type { ProductDetail, VariantGroup } from "../_shared/types.ts";
 
 const SERPAPI_BASE = "https://serpapi.com/search";
@@ -103,6 +103,8 @@ async function fetchIherbDetail(productUrl: string): Promise<ProductDetail> {
 serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
+
+  await loadPricing();
 
   const url = new URL(req.url);
   const platform = url.searchParams.get("platform")?.toLowerCase();

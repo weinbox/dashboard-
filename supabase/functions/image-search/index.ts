@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { corsHeaders, handleCors } from "../_shared/cors.ts";
-import { formatIQD, formatIQD_China, detectCategory, parseWeightKgFromTitle, defaultWeightKg, KG_TO_LBS } from "../_shared/pricing.ts";
+import { formatIQD, formatIQD_China, detectCategory, parseWeightKgFromTitle, defaultWeightKg, KG_TO_LBS, loadPricing } from "../_shared/pricing.ts";
 import type { Product } from "../_shared/types.ts";
 
 const SERPAPI_BASE = "https://serpapi.com/search";
@@ -66,6 +66,8 @@ async function searchPlatform(query: string, platform: string): Promise<Product[
 serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
+
+  await loadPricing();
 
   const url = new URL(req.url);
   const imageUrl = url.searchParams.get("url");

@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { corsHeaders, handleCors } from "../_shared/cors.ts";
 import { getSupabaseClient } from "../_shared/supabase.ts";
-import { CNY_TO_USD } from "../_shared/pricing.ts";
+import { getCnyToUsd, loadPricing } from "../_shared/pricing.ts";
 import type { Product, ProductVariant } from "../_shared/types.ts";
 
 const SERPAPI_BASE = "https://serpapi.com/search";
@@ -90,7 +90,7 @@ async function searchWalmart(query: string, page = 1): Promise<Product[]> {
 function mapChinaItem(item: any, platform: "taobao" | "1688", index: number): Product {
   const rawPrice = item.promotion_price ?? item.price ?? item.priceInfo?.promotionPrice ?? item.priceInfo?.price;
   const cnyPrice = typeof rawPrice === "number" ? rawPrice : parseFloat(String(rawPrice ?? ""));
-  const usdPrice = isNaN(cnyPrice) ? null : cnyPrice / CNY_TO_USD;
+  const usdPrice = isNaN(cnyPrice) ? null : cnyPrice / getCnyToUsd();
   const title = item.title ?? item.subject ?? "";
   const priceText = !isNaN(cnyPrice) ? `¥${cnyPrice.toFixed(0)}` : '';
   const id = String(item.num_iid ?? item.id ?? item.offerId ?? index);
@@ -151,6 +151,8 @@ const platformSearchers: Record<string, (q: string, p: number) => Promise<Produc
 serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
+
+  await loadPricing();
 
   const url = new URL(req.url);
   const query = url.searchParams.get("q");
