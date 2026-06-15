@@ -1,2 +1,7 @@
 [api]
 enabled = true
+
+# Admin dashboard is accessed directly from a browser (no anon JWT header),
+# so JWT verification must be disabled. It is protected by its own password.
+[functions.admin]
+verify_jwt = false
