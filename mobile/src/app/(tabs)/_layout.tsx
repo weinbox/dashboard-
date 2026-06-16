@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Home, Heart, User, ShoppingCart } from 'lucide-react-native';
+import { Home, Heart, User, ShoppingCart, Package } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 import { useCartStore } from '@/lib/cart';
 
@@ -84,6 +84,15 @@ export default function TabsLayout() {
           title: 'سلتي',
           tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <CartTabIcon color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="orders"
+        options={{
+          title: 'طلباتي',
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
+            <Package size={size} color={color} strokeWidth={2} />
           ),
         }}
       />
