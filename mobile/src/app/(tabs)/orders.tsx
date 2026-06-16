@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  Linking,
   Pressable,
   RefreshControl,
   Text,
@@ -22,6 +23,7 @@ interface OrderItem {
   price_text: string | null;
   quantity: number;
   image: string | null;
+  url: string | null;
   variant_title: string | null;
 }
 
@@ -105,7 +107,19 @@ function OrderCard({ order }: { order: Order }) {
       {/* Items */}
       <View style={{ paddingHorizontal: 14, paddingVertical: 10, gap: 10 }}>
         {order.order_items?.map((it) => (
-          <View key={it.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Pressable
+            key={it.id}
+            onPress={() => {
+              if (it.url) Linking.openURL(it.url).catch(() => {});
+            }}
+            disabled={!it.url}
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 10,
+              opacity: pressed && it.url ? 0.6 : 1,
+            })}
+          >
             {it.image ? (
               <Image
                 source={{ uri: it.image }}
@@ -139,8 +153,13 @@ function OrderCard({ order }: { order: Order }) {
                 <Text style={{ color: '#B12704', fontSize: 12, fontWeight: '700' }}>{it.price_text}</Text>
               ) : null}
               <Text style={{ color: '#565959', fontSize: 11 }}>الكمية: {it.quantity}</Text>
+              {it.url ? (
+                <Text style={{ color: '#007185', fontSize: 10, fontWeight: '600', marginTop: 2 }}>
+                  عرض المنتج ›
+                </Text>
+              ) : null}
             </View>
-          </View>
+          </Pressable>
         ))}
       </View>
 
