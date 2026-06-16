@@ -263,17 +263,15 @@ export default function CartScreen() {
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (items.length === 0) return;
-    // Persist the order for the admin dashboard (non-blocking on failure)
-    await saveOrder(items, totalItems);
     const message = buildOrderMessage(items, totalItems);
     const url = `https://wa.me/${ORDER_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-    try {
-      await Linking.openURL(url);
-    } catch {
-      // ignore
-    }
+    // Open WhatsApp immediately within the user gesture so web browsers
+    // don't block it as a popup. Saving the order must NOT block this.
+    Linking.openURL(url).catch(() => {});
+    // Persist the order for the admin dashboard in the background.
+    void saveOrder(items, totalItems);
   };
 
   if (items.length === 0) {
