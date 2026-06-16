@@ -10,6 +10,23 @@ function parsePriceNumeric(priceText: string): number | null {
   return isNaN(n) ? null : n;
 }
 
+// Multiplies the numeric part of a formatted price by the quantity while
+// preserving the currency symbol and the original formatting (e.g. "75,000 د.ع").
+function multiplyPriceText(priceText: string, quantity: number): string {
+  if (!priceText || quantity <= 1) return priceText;
+  const match = priceText.match(/[\d.,]+/);
+  if (!match) return priceText;
+  const token = match[0];
+  const numeric = parseFloat(token.replace(/,/g, ''));
+  if (isNaN(numeric)) return priceText;
+  const total = numeric * quantity;
+  const hasDecimals = token.includes('.') && !token.endsWith('.');
+  const formatted = hasDecimals
+    ? total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : Math.round(total).toLocaleString('en-US');
+  return priceText.replace(token, formatted);
+}
+
 async function saveOrder(items: CartItem[], totalItems: number): Promise<void> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -50,6 +67,9 @@ function buildOrderMessage(items: CartItem[], totalItems: number): string {
     if (item.variantTitle) msg += `   المواصفات: ${item.variantTitle}\n`;
     msg += `   السعر: ${item.priceText || 'غير محدد'}\n`;
     msg += `   الكمية: ${item.quantity}\n`;
+    if (item.priceText && item.quantity > 1) {
+      msg += `   الإجمالي: ${multiplyPriceText(item.priceText, item.quantity)}\n`;
+    }
     if (item.url) msg += `   الرابط: ${item.url}\n`;
     msg += '\n';
   });
@@ -142,10 +162,15 @@ function CartItemRow({ item }: { item: CartItem }) {
             <Text style={{ color: '#565959', fontSize: 11 }}>{item.variantTitle}</Text>
           ) : null}
 
-          {/* Price */}
+          {/* Price (multiplied by quantity) */}
           <Text style={{ color: '#B12704', fontSize: 16, fontWeight: '700', marginTop: 2 }}>
-            {item.priceText || 'عرض السعر'}
+            {item.priceText ? multiplyPriceText(item.priceText, item.quantity) : 'عرض السعر'}
           </Text>
+          {item.quantity > 1 && item.priceText ? (
+            <Text style={{ color: '#565959', fontSize: 11, marginTop: 1 }}>
+              {item.priceText} × {item.quantity}
+            </Text>
+          ) : null}
         </View>
 
         {/* Remove button */}
