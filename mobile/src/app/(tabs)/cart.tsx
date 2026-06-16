@@ -1,7 +1,6 @@
 import { FlatList, Image, Linking, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ShoppingCart, Trash2, Plus, Minus, ExternalLink, MessageCircle } from 'lucide-react-native';
-import * as WebBrowser from 'expo-web-browser';
+import { ShoppingCart, Trash2, Plus, Minus, MessageCircle } from 'lucide-react-native';
 import { useCartStore, CartItem } from '@/lib/cart';
 import { supabase } from '@/lib/supabase';
 
@@ -73,13 +72,6 @@ function CartItemRow({ item }: { item: CartItem }) {
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const removeFromCart = useCartStore((s) => s.removeFromCart);
   const platform = PLATFORM_CONFIG[item.platform];
-
-  const handleBuyNow = async () => {
-    if (!item.url) return;
-    await WebBrowser.openBrowserAsync(item.url, {
-      presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
-    });
-  };
 
   return (
     <View
@@ -170,14 +162,12 @@ function CartItemRow({ item }: { item: CartItem }) {
         </Pressable>
       </View>
 
-      {/* Bottom row: quantity controls + buy now */}
+      {/* Bottom row: quantity controls */}
       <View style={{
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
         paddingHorizontal: 12,
         paddingBottom: 12,
-        gap: 12,
       }}>
         {/* Quantity controls */}
         <View style={{
@@ -229,28 +219,6 @@ function CartItemRow({ item }: { item: CartItem }) {
             <Plus size={14} color="#333" strokeWidth={2.5} />
           </Pressable>
         </View>
-
-        {/* Buy now */}
-        <Pressable
-          testID="buy-now-button"
-          onPress={handleBuyNow}
-          style={({ pressed }) => ({
-            flex: 1,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-            backgroundColor: platform.bg,
-            borderRadius: 8,
-            paddingVertical: 9,
-            opacity: pressed ? 0.85 : 1,
-          })}
-        >
-          <ExternalLink size={14} color={platform.color} strokeWidth={2.5} />
-          <Text style={{ color: platform.color, fontSize: 13, fontWeight: '700' }}>
-            اشتري الآن
-          </Text>
-        </Pressable>
       </View>
     </View>
   );
