@@ -280,23 +280,16 @@ export default function SearchScreen() {
 
   const handleUrlTabPress = useCallback(async () => {
     setSearchMode('url');
-    if (Platform.OS !== 'web') {
-      try {
-        const text = await Clipboard.getStringAsync();
-        if (text && /^https?:\/\//i.test(text.trim())) {
-          setInputValue(text.trim());
-        }
-      } catch { /* ignore */ }
-    }
-    setTimeout(() => inputRef.current?.focus(), 80);
-  }, []);
-
-  const handleWebPaste = useCallback(async () => {
     try {
-      const text = await navigator.clipboard.readText();
-      if (text?.trim()) setInputValue(text.trim());
-      setTimeout(() => inputRef.current?.focus(), 80);
-    } catch { /* user denied permission */ }
+      const text =
+        Platform.OS === 'web'
+          ? await navigator.clipboard.readText()
+          : await Clipboard.getStringAsync();
+      if (text && /^https?:\/\//i.test(text.trim())) {
+        setInputValue(text.trim());
+      }
+    } catch { /* clipboard unavailable or permission denied */ }
+    setTimeout(() => inputRef.current?.focus(), 80);
   }, []);
 
   const handleImageTabPress = useCallback(() => {
