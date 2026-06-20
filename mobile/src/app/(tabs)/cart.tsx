@@ -31,18 +31,7 @@ async function saveOrder(items: CartItem[], totalItems: number): Promise<void> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     const customerPhone = (user?.user_metadata?.phone as string) ?? null;
-    const { data: order, error: orderErr } = await supabase
-      .from('orders')
-      .insert({
-        user_id: user?.id ?? null,
-        customer_phone: customerPhone,
-        total_items: totalItems,
-      })
-      .select('id')
-      .single();
-    if (orderErr || !order) return;
-    const rows = items.map((item) => ({
-      order_id: order.id,
+    const orderItems = items.map((item) => ({
       title: item.title,
       price_text: item.priceText || null,
       price_numeric: parsePriceNumeric(item.priceText),
@@ -52,7 +41,14 @@ async function saveOrder(items: CartItem[], totalItems: number): Promise<void> {
       platform: item.platform,
       variant_title: item.variantTitle ?? null,
     }));
-    await supabase.from('order_items').insert(rows);
+    // Single atomic round-trip: the order and all its items are inserted in
+    // one transaction. This prevents partial "0-item" orders that occurred
+    // when the second request was cancelled after switching to WhatsApp.
+    await supabase.rpc('place_order', {
+      p_items: orderItems,
+      p_total: totalItems,
+      p_phone: customerPhone,
+    });
   } catch {
     // saving the order should never block the WhatsApp checkout
   }

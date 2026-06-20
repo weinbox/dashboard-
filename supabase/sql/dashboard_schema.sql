@@ -137,3 +137,56 @@ create policy "settings_select_all" on public.settings
 drop policy if exists "search_events_insert_any" on public.search_events;
 create policy "search_events_insert_any" on public.search_events
   for insert to anon, authenticated with check (true);
+
+-- ============================================================
+-- ATOMIC ORDER CREATION
+-- Inserts an order AND its items in a single transaction so the
+-- client only needs one network round-trip. This prevents partial
+-- "0-item" orders that happened when the second request (items)
+-- was cancelled after the app switched to WhatsApp.
+-- ============================================================
+create or replace function public.place_order(
+  p_items jsonb,
+  p_total integer,
+  p_phone text default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_order_id uuid;
+  v_item jsonb;
+begin
+  if p_items is null or jsonb_array_length(p_items) = 0 then
+    raise exception 'order must contain at least one item';
+  end if;
+
+  insert into public.orders (user_id, customer_phone, total_items)
+  values (auth.uid(), p_phone, coalesce(p_total, 0))
+  returning id into v_order_id;
+
+  for v_item in select * from jsonb_array_elements(p_items)
+  loop
+    insert into public.order_items (
+      order_id, title, price_text, price_numeric,
+      quantity, url, image, platform, variant_title
+    ) values (
+      v_order_id,
+      coalesce(v_item->>'title', ''),
+      v_item->>'price_text',
+      nullif(v_item->>'price_numeric', '')::numeric,
+      coalesce((v_item->>'quantity')::int, 1),
+      v_item->>'url',
+      v_item->>'image',
+      v_item->>'platform',
+      v_item->>'variant_title'
+    );
+  end loop;
+
+  return v_order_id;
+end;
+$$;
+
+grant execute on function public.place_order(jsonb, integer, text) to anon, authenticated;
