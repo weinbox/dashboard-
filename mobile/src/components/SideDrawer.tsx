@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Home, Heart, ShoppingCart, Package, User, LogOut, LogIn, X } from 'lucide-react-native';
+import { Home, Heart, ShoppingCart, Package, User, LogIn, X } from 'lucide-react-native';
 import { useUIStore } from '@/lib/ui-store';
 import { useAuth } from '@/lib/auth-context';
 import { useCartStore } from '@/lib/cart';
@@ -20,7 +20,7 @@ const PANEL_WIDTH = Math.min(300, Dimensions.get('window').width * 0.82);
 export function SideDrawer() {
   const drawerOpen = useUIStore((s) => s.drawerOpen);
   const closeDrawer = useUIStore((s) => s.closeDrawer);
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const cartCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.quantity, 0));
   const translateX = useRef(new Animated.Value(PANEL_WIDTH)).current;
@@ -165,24 +165,7 @@ export function SideDrawer() {
 
             {/* Footer: sign in / out */}
             <View style={{ marginTop: 'auto', paddingHorizontal: 18, paddingBottom: insets.bottom + 20 }}>
-              {user ? (
-                <Pressable
-                  onPress={() => {
-                    closeDrawer();
-                    signOut();
-                  }}
-                  style={({ pressed }) => ({
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 10,
-                    paddingVertical: 12,
-                    opacity: pressed ? 0.6 : 1,
-                  })}
-                >
-                  <LogOut size={20} color="#FF6B6B" strokeWidth={2} />
-                  <Text style={{ color: '#FF6B6B', fontSize: 14, fontWeight: '700' }}>تسجيل الخروج</Text>
-                </Pressable>
-              ) : (
+              {!user && (
                 <Pressable
                   onPress={() => go('/auth')}
                   style={({ pressed }) => ({
