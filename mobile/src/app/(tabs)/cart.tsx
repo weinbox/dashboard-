@@ -1,4 +1,4 @@
-import { FlatList, Image, Linking, Pressable, Text, View } from 'react-native';
+import { FlatList, Image, Linking, Platform, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ShoppingCart, Trash2, Plus, Minus, MessageCircle } from 'lucide-react-native';
 import { useCartStore, CartItem } from '@/lib/cart';
@@ -256,12 +256,29 @@ export default function CartScreen() {
   const handleCheckout = () => {
     if (items.length === 0) return;
     const message = buildOrderMessage(items, totalItems);
-    const url = `https://wa.me/${ORDER_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-    // Open WhatsApp immediately within the user gesture so web browsers
-    // don't block it as a popup. Saving the order must NOT block this.
-    Linking.openURL(url).catch(() => {});
-    // Persist the order for the admin dashboard in the background.
+    const waUrl = `https://wa.me/${ORDER_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+
+    // Persist the order for the admin dashboard (atomic, fire-and-forget).
     void saveOrder(items, totalItems);
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+      const isMobile = /Android|iPhone|iPad|iPod|Mobile|WebView|wv/i.test(ua);
+      if (isMobile) {
+        // Inside mobile browsers / embedded WebViews, opening a new window
+        // ("_blank") is usually blocked and just keeps spinning. Navigating the
+        // current page lets wa.me hand off to the WhatsApp app reliably.
+        window.location.href = waUrl;
+      } else {
+        // Desktop: open in a new tab, falling back to same-tab if blocked.
+        const win = window.open(waUrl, '_blank');
+        if (!win) window.location.href = waUrl;
+      }
+      return;
+    }
+
+    // Native apps
+    Linking.openURL(waUrl).catch(() => {});
   };
 
   if (items.length === 0) {
