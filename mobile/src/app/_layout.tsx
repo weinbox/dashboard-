@@ -40,8 +40,8 @@ function RootLayoutNav() {
         <Stack.Screen name="iherb-browser" options={{ headerShown: false, animation: 'slide_from_bottom' }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         <Stack.Screen name="+not-found" />
-      <SideDrawer />
       </Stack>
+      <SideDrawer />
     </View>
   );
 }
