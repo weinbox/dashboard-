@@ -12,8 +12,10 @@ import {
 } from 'react-native';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Camera, Link, Search, ShoppingCart, X } from 'lucide-react-native';
+import { Camera, Link, Menu, Search, ShoppingCart, X } from 'lucide-react-native';
 import { VoiceAssistant } from '@/components/VoiceAssistant';
+import { useUIStore } from '@/lib/ui-store';
+import { useCartStore } from '@/lib/cart';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -62,6 +64,8 @@ async function searchProducts(query: string, platform: string, page = 1): Promis
 
 export default function SearchScreen() {
   const insets = useSafeAreaInsets();
+  const openDrawer = useUIStore((s) => s.openDrawer);
+  const cartCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.quantity, 0));
   const { width } = useWindowDimensions();
   const [inputValue, setInputValue] = useState<string>('');
   const [submittedQuery, setSubmittedQuery] = useState<string>('');
@@ -386,19 +390,56 @@ export default function SearchScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       {/* Header */}
-      <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 12 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 2 }}>
-          <View style={{
-            width: 34, height: 34, borderRadius: 10,
-            backgroundColor: '#E52222', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <ShoppingCart size={18} color="#ffffff" strokeWidth={2.2} />
+      <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          {/* Menu */}
+          <Pressable
+            testID="menu-button"
+            onPress={openDrawer}
+            hitSlop={10}
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, padding: 4 })}
+          >
+            <Menu size={26} color="#1a1a1a" strokeWidth={2} />
+          </Pressable>
+
+          {/* Logo + title */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View style={{
+              width: 34, height: 34, borderRadius: 10,
+              backgroundColor: '#E52222', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <ShoppingCart size={18} color="#ffffff" strokeWidth={2.2} />
+            </View>
+            <Text style={{ color: '#1a1a1a', fontSize: 24, fontWeight: '800', letterSpacing: -0.8 }}>
+              Box Global
+            </Text>
           </View>
-          <Text style={{ color: '#1a1a1a', fontSize: 26, fontWeight: '800', letterSpacing: -0.8 }}>
-            Box Global
-          </Text>
+
+          {/* Cart */}
+          <Pressable
+            testID="home-cart"
+            onPress={() => router.push('/cart')}
+            hitSlop={10}
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, padding: 4 })}
+          >
+            <View style={{ position: 'relative' }}>
+              <ShoppingCart size={24} color="#1a1a1a" strokeWidth={2} />
+              {cartCount > 0 ? (
+                <View style={{
+                  position: 'absolute', top: -6, right: -8,
+                  backgroundColor: '#CC0C39', borderRadius: 9,
+                  minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center',
+                  paddingHorizontal: 3, borderWidth: 1.5, borderColor: '#FFFFFF',
+                }}>
+                  <Text style={{ color: '#FFFFFF', fontSize: 9, fontWeight: '800', lineHeight: 12 }}>
+                    {cartCount > 99 ? '99+' : String(cartCount)}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          </Pressable>
         </View>
-        <Text style={{ color: '#999999', fontSize: 12, fontWeight: '500', letterSpacing: 1.2, marginLeft: 44 }}>
+        <Text style={{ color: '#999999', fontSize: 12, fontWeight: '500', letterSpacing: 1.2, textAlign: 'center' }}>
           eBay · Amazon · Walmart · Taobao · 1688 · iHerb
         </Text>
       </View>

@@ -1,23 +1,15 @@
 import { Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, Phone } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth-context';
+import { TopBar } from '@/components/TopBar';
 
 export default function ProfileScreen() {
   const { user } = useAuth();
-  const insets = useSafeAreaInsets();
 
   return (
-    <View
-      testID="profile-screen"
-      style={{ flex: 1, backgroundColor: '#FFFFFF', paddingTop: insets.top + 12 }}
-    >
-      <View style={{ paddingHorizontal: 20, paddingBottom: 16 }}>
-        <Text style={{ color: '#1a1a1a', fontSize: 24, fontWeight: '800', letterSpacing: -0.6 }}>
-          حسابي
-        </Text>
-      </View>
+    <View testID="profile-screen" style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      <TopBar title="حسابي" />
 
       {user ? (
         <View style={{ paddingHorizontal: 16, gap: 12 }}>

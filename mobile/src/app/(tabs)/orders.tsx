@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Package, ShoppingBag } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
+import { TopBar } from '@/components/TopBar';
 
 type OrderStatus = 'new' | 'confirmed' | 'shipping' | 'delivered' | 'cancelled';
 
@@ -218,29 +219,7 @@ export default function OrdersScreen() {
   }, [fetchOrders]);
 
   const Header = (
-    <View style={{ backgroundColor: '#131921', paddingTop: insets.top }}>
-      <View
-        style={{
-          paddingHorizontal: 16,
-          paddingVertical: 14,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <View>
-          <Text style={{ color: '#FFFFFF', fontSize: 20, fontWeight: '800', letterSpacing: -0.3 }}>
-            طلباتي
-          </Text>
-          {user ? (
-            <Text style={{ color: '#FF9900', fontSize: 12, marginTop: 2 }}>
-              {orders.length} طلب
-            </Text>
-          ) : null}
-        </View>
-        <Package size={22} color="#FF9900" strokeWidth={1.5} />
-      </View>
-    </View>
+    <TopBar title="طلباتي" subtitle={user ? `${orders.length} طلب` : undefined} />
   );
 
   // Not signed in

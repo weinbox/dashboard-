@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ShoppingCart, Trash2, Plus, Minus, MessageCircle } from 'lucide-react-native';
 import { useCartStore, CartItem } from '@/lib/cart';
 import { supabase } from '@/lib/supabase';
+import { TopBar } from '@/components/TopBar';
 
 function parsePriceNumeric(priceText: string): number | null {
   if (!priceText) return null;
@@ -266,23 +267,7 @@ export default function CartScreen() {
   if (items.length === 0) {
     return (
       <View testID="cart-screen" style={{ flex: 1, backgroundColor: '#EAEDED' }}>
-        {/* Header */}
-        <View style={{
-          backgroundColor: '#131921',
-          paddingTop: insets.top,
-          paddingBottom: 14,
-          paddingHorizontal: 16,
-        }}>
-          <Text style={{
-            color: '#FFFFFF',
-            fontSize: 20,
-            fontWeight: '800',
-            letterSpacing: -0.3,
-            marginTop: 10,
-          }}>
-            سلة التسوق
-          </Text>
-        </View>
+        <TopBar title="سلة التسوق" />
 
         <View style={{
           flex: 1,
@@ -332,23 +317,10 @@ export default function CartScreen() {
 
   return (
     <View testID="cart-screen" style={{ flex: 1, backgroundColor: '#EAEDED' }}>
-      {/* Header */}
-      <View style={{ backgroundColor: '#131921', paddingTop: insets.top }}>
-        <View style={{
-          paddingHorizontal: 16,
-          paddingVertical: 14,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          <View>
-            <Text style={{ color: '#FFFFFF', fontSize: 20, fontWeight: '800', letterSpacing: -0.3 }}>
-              سلة التسوق
-            </Text>
-            <Text style={{ color: '#FF9900', fontSize: 12, marginTop: 2 }}>
-              {totalItems} {totalItems === 1 ? 'منتج' : 'منتجات'}
-            </Text>
-          </View>
+      <TopBar
+        title="سلة التسوق"
+        subtitle={`${totalItems} ${totalItems === 1 ? 'منتج' : 'منتجات'}`}
+        rightOverride={
           <Pressable
             testID="clear-cart-button"
             onPress={clearCart}
@@ -363,8 +335,8 @@ export default function CartScreen() {
           >
             <Text style={{ color: '#FF9900', fontSize: 13, fontWeight: '600' }}>مسح الكل</Text>
           </Pressable>
-        </View>
-      </View>
+        }
+      />
 
       <FlatList
         data={items}

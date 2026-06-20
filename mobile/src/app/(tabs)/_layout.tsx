@@ -42,22 +42,10 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: '#232F3E',
-          borderTopColor: '#FF9900',
-          borderTopWidth: 2,
-          height: 70,
-          paddingBottom: 10,
-          paddingTop: 8,
-          elevation: 16,
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.4,
-          shadowRadius: 8,
-        },
-        tabBarActiveTintColor: '#FF9900',
-        tabBarInactiveTintColor: '#AABBCC',
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        // Bottom tab bar is hidden — navigation is handled by the side drawer
+        // (☰) in the top bar. This avoids a double bottom bar when the site is
+        // embedded inside another app.
+        tabBarStyle: { display: 'none' },
       }}
     >
       <Tabs.Screen

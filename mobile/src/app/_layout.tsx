@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { View } from 'react-native';
 import { AuthProvider } from '@/lib/auth-context';
+import { SideDrawer } from '@/components/SideDrawer';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,6 +40,7 @@ function RootLayoutNav() {
         <Stack.Screen name="iherb-browser" options={{ headerShown: false, animation: 'slide_from_bottom' }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         <Stack.Screen name="+not-found" />
+      <SideDrawer />
       </Stack>
     </View>
   );

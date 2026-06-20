@@ -5,6 +5,7 @@ import { Heart, ShoppingBag } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth-context';
 import { useFavorites } from '@/lib/favorites';
 import { ProductCard, Product } from '@/components/ProductCard';
+import { TopBar } from '@/components/TopBar';
 
 export default function FavoritesScreen() {
   const { user } = useAuth();
@@ -17,16 +18,7 @@ export default function FavoritesScreen() {
     return (
       <View testID="favorites-screen" style={{ flex: 1, backgroundColor: '#EAEDED' }}>
         {/* Header */}
-        <View style={{
-          backgroundColor: '#131921',
-          paddingTop: insets.top,
-          paddingBottom: 14,
-          paddingHorizontal: 16,
-        }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 20, fontWeight: '800', letterSpacing: -0.3, marginTop: 10 }}>
-            قائمة محفوظاتي
-          </Text>
-        </View>
+        <TopBar title="قائمة محفوظاتي" />
 
         <View style={{
           flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 80, paddingHorizontal: 32,
@@ -74,16 +66,7 @@ export default function FavoritesScreen() {
   if (favorites.length === 0) {
     return (
       <View testID="favorites-screen" style={{ flex: 1, backgroundColor: '#EAEDED' }}>
-        <View style={{
-          backgroundColor: '#131921',
-          paddingTop: insets.top,
-          paddingBottom: 14,
-          paddingHorizontal: 16,
-        }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 20, fontWeight: '800', letterSpacing: -0.3, marginTop: 10 }}>
-            قائمة محفوظاتي
-          </Text>
-        </View>
+        <TopBar title="قائمة محفوظاتي" />
 
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 80 }}>
           <ShoppingBag size={56} color="#CCCCCC" strokeWidth={1} style={{ marginBottom: 20 }} />
@@ -121,23 +104,7 @@ export default function FavoritesScreen() {
 
   return (
     <View testID="favorites-screen" style={{ flex: 1, backgroundColor: '#EAEDED' }}>
-      {/* Amazon-style header */}
-      <View style={{ backgroundColor: '#131921', paddingTop: insets.top }}>
-        <View style={{
-          paddingHorizontal: 16, paddingVertical: 14,
-          flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        }}>
-          <View>
-            <Text style={{ color: '#FFFFFF', fontSize: 20, fontWeight: '800', letterSpacing: -0.3 }}>
-              قائمة محفوظاتي
-            </Text>
-            <Text style={{ color: '#FF9900', fontSize: 12, marginTop: 2 }}>
-              {favorites.length} منتج محفوظ
-            </Text>
-          </View>
-          <Heart size={22} color="#FF9900" fill="#FF9900" strokeWidth={1.5} />
-        </View>
-      </View>
+      <TopBar title="قائمة محفوظاتي" subtitle={`${favorites.length} منتج محفوظ`} />
 
       <FlatList
         data={products}
