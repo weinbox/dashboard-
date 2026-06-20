@@ -1,8 +1,10 @@
 import { FlatList, Image, Linking, Platform, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ShoppingCart, Trash2, Plus, Minus, MessageCircle } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { useCartStore, CartItem } from '@/lib/cart';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 import { TopBar } from '@/components/TopBar';
 
 function parsePriceNumeric(priceText: string): number | null {
@@ -248,6 +250,7 @@ function CartItemRow({ item }: { item: CartItem }) {
 
 export default function CartScreen() {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
 
@@ -255,6 +258,11 @@ export default function CartScreen() {
 
   const handleCheckout = () => {
     if (items.length === 0) return;
+    // Require login before sending an order.
+    if (!user) {
+      router.push('/auth');
+      return;
+    }
     const message = buildOrderMessage(items, totalItems);
     const waUrl = `https://wa.me/${ORDER_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
