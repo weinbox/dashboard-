@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Dimensions, Modal, Platform, Pressable, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Dimensions, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Home, Heart, ShoppingCart, Package, User, LogOut, LogIn, X } from 'lucide-react-native';
@@ -24,14 +24,28 @@ export function SideDrawer() {
   const insets = useSafeAreaInsets();
   const cartCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.quantity, 0));
   const translateX = useRef(new Animated.Value(PANEL_WIDTH)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const [rendered, setRendered] = useState(false);
+  const useNative = Platform.OS !== 'web';
 
   useEffect(() => {
-    Animated.timing(translateX, {
-      toValue: drawerOpen ? 0 : PANEL_WIDTH,
-      duration: 220,
-      useNativeDriver: Platform.OS !== 'web',
-    }).start();
-  }, [drawerOpen, translateX]);
+    if (drawerOpen) {
+      setRendered(true);
+      Animated.parallel([
+        Animated.timing(translateX, { toValue: 0, duration: 220, useNativeDriver: useNative }),
+        Animated.timing(backdropOpacity, { toValue: 1, duration: 220, useNativeDriver: useNative }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(translateX, { toValue: PANEL_WIDTH, duration: 200, useNativeDriver: useNative }),
+        Animated.timing(backdropOpacity, { toValue: 0, duration: 200, useNativeDriver: useNative }),
+      ]).start(({ finished }) => {
+        if (finished) setRendered(false);
+      });
+    }
+  }, [drawerOpen, translateX, backdropOpacity, useNative]);
+
+  if (!rendered) return null;
 
   const go = (path: string) => {
     closeDrawer();
@@ -43,23 +57,31 @@ export function SideDrawer() {
     user?.email?.replace(/@phone\.boxglobal\.app$/, '').replace(/^964/, '+964 ');
 
   return (
-    <Modal visible={drawerOpen} transparent animationType="fade" onRequestClose={closeDrawer}>
+    <View style={[StyleSheet.absoluteFill, { zIndex: 1000, elevation: 1000 }]}>
       {/* Backdrop (tap to close) */}
-      <Pressable
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', flexDirection: 'row' }}
-        onPress={closeDrawer}
+      <Animated.View
+        style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.45)', opacity: backdropOpacity }]}
       >
-        <View style={{ flex: 1 }} />
+        <Pressable style={{ flex: 1 }} onPress={closeDrawer} />
+      </Animated.View>
 
-        {/* Panel */}
-        <Animated.View
-          style={{
-            width: PANEL_WIDTH,
-            backgroundColor: '#131921',
-            transform: [{ translateX }],
-          }}
-        >
-          <Pressable style={{ flex: 1 }} onPress={() => {}}>
+      {/* Panel */}
+      <Animated.View
+        style={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          right: 0,
+          width: PANEL_WIDTH,
+          backgroundColor: '#131921',
+          transform: [{ translateX }],
+          shadowColor: '#000',
+          shadowOffset: { width: -2, height: 0 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+        }}
+      >
+        <View style={{ flex: 1 }}>
             {/* Header / user */}
             <View
               style={{
@@ -179,9 +201,8 @@ export function SideDrawer() {
                 </Pressable>
               )}
             </View>
-          </Pressable>
-        </Animated.View>
-      </Pressable>
-    </Modal>
+        </View>
+      </Animated.View>
+    </View>
   );
 }
